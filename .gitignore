@@ -9,7 +9,7 @@ logs
 # ====================
 # 开发环境 / 配置
 # ====================
-application-local.yml
+application.yml
 *.local
 
 # ====================
