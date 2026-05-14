@@ -9,7 +9,8 @@ logs
 # ====================
 # 开发环境 / 配置
 # ====================
-application.yml
+application.properties
+#保存隐私信息
 *.local
 
 # ====================
