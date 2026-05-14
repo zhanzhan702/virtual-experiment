@@ -9,7 +9,8 @@ virtual-experiment/
 │   │   ├── dto/                      # 数据传输对象（请求/响应）
 │   │   └── utils/                    # JWT工具、文件上传等工具类
 │   ├── src/main/resources/
-│   │   ├── application.yml           # 主配置（端口、数据源、Redis等）
+│   │   ├── application.yml# 主配置（端口、数据源、Redis等）
+│   │   ├── application.properties
 │   │   └── db/migration/             # SQL 初始化脚本（Flyway可选）
 │   └── pom.xml
 ├── frontend/                         # 前端 Vue3 工程
