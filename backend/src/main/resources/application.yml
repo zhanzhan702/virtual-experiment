@@ -16,3 +16,4 @@ server:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印SQL
+  type-handlers-package: com.example.experiment.handler
