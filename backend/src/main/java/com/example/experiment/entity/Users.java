@@ -14,6 +14,7 @@ public class Users {
     private String password;
     private String phone;
     private String email;
+    private String name;
     private String gender;
     private LocalDate birthday;
     private String studentNo;
