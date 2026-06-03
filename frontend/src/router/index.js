@@ -6,8 +6,10 @@ import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 
 const routes = [
-  { path: '/', component: LoginView },             // 默认访问 '/' 跳转到登录页
-  { path: '/register', component: RegisterView }    // '/register' 跳转到注册页
+  { path: '/', component: LoginView },
+  { path: '/register', component: RegisterView },
+  { path: '/experiment', component: () => import('@/views/ExperimentView.vue') },
+  { path: '/admin', component: () => import('@/views/AdminView.vue') }
 ]
 
 const router = createRouter({
