@@ -24,6 +24,9 @@
       <el-form-item prop="studentNo">
         <el-input v-model="form.studentNo" placeholder="学号" size="large" />
       </el-form-item>
+      <el-form-item prop="orgId">
+        <el-input v-model="form.orgId" placeholder="所属班级 ID" size="large" />
+      </el-form-item>
       <el-form-item>
         <el-button type="success" size="large" class="register-btn" @click="handleRegister" :loading="loading">
           注 册
