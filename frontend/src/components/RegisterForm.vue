@@ -2,14 +2,31 @@
   <div class="register-card">
     <h2 class="title">学生注册</h2>
 
-    <input v-model="form.username" class="input" placeholder="用户名" />
-    <input type="password" v-model="form.password" class="input" placeholder="密码" />
-    <input v-model="form.name" class="input" placeholder="姓名" />
-    <input v-model="form.phone" class="input" placeholder="手机号" />
-    <input v-model="form.email" class="input" placeholder="邮箱" />
-    <input v-model="form.studentNo" class="input" placeholder="学号" />
-
-    <button class="register-btn" @click="handleRegister">注 册</button>
+    <el-form :model="form" :rules="rules" ref="formRef" label-position="top" @submit.prevent="handleRegister">
+      <el-form-item prop="username">
+        <el-input v-model="form.username" placeholder="用户名" size="large" />
+      </el-form-item>
+      <el-form-item prop="password">
+        <el-input v-model="form.password" type="password" show-password placeholder="密码" size="large" />
+      </el-form-item>
+      <el-form-item prop="name">
+        <el-input v-model="form.name" placeholder="姓名" size="large" />
+      </el-form-item>
+      <el-form-item prop="phone">
+        <el-input v-model="form.phone" placeholder="手机号" size="large" />
+      </el-form-item>
+      <el-form-item prop="email">
+        <el-input v-model="form.email" placeholder="邮箱" size="large" />
+      </el-form-item>
+      <el-form-item prop="studentNo">
+        <el-input v-model="form.studentNo" placeholder="学号" size="large" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="success" size="large" class="register-btn" @click="handleRegister" :loading="loading">
+          注 册
+        </el-button>
+      </el-form-item>
+    </el-form>
 
     <div class="login-link" @click="goLogin">
       已有账号？立即登录
@@ -18,12 +35,14 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const formRef = ref(null)
+const loading = ref(false)
 
 const form = reactive({
   username: '',
@@ -35,17 +54,27 @@ const form = reactive({
   orgId: ''
 })
 
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6位', trigger: 'blur' }
+  ],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
+}
+
 async function handleRegister() {
-  if (!form.username || !form.password || !form.name) {
-    alert('请填写必填项（用户名、密码、姓名）')
-    return
-  }
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+  loading.value = true
   try {
     await authStore.register(form)
     alert('注册成功，请登录')
     router.push('/')
   } catch (err) {
     alert('注册失败：' + (err.response?.data?.message || err.message))
+  } finally {
+    loading.value = false
   }
 }
 
@@ -67,27 +96,40 @@ function goLogin() {
   margin-bottom: 24px;
   font-size: 22px;
 }
-.input {
-  width: 100%;
-  height: 50px;
-  margin-bottom: 20px;
-  padding-left: 15px;
-  font-size: 18px;
-  box-sizing: border-box;
-}
 .register-btn {
   width: 100%;
-  height: 50px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
 }
 .login-link {
   text-align: center;
   color: #4da6ff;
-  margin-top: 40px;
   cursor: pointer;
+}
+
+/* 覆盖 Element Plus 深色主题样式 */
+:deep(.el-input__wrapper) {
+  background: #3a3b3e !important;
+  box-shadow: none !important;
+  border: 1px solid #555 !important;
+  border-radius: 4px !important;
+}
+:deep(.el-input__wrapper:hover) {
+  border-color: #2196f3 !important;
+}
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #2196f3 !important;
+  box-shadow: 0 0 0 1px #2196f3 inset !important;
+}
+:deep(.el-input__inner) {
+  color: #fff !important;
+}
+:deep(.el-input__inner::placeholder) {
+  color: #999 !important;
+}
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+:deep(.el-form-item__error) {
+  position: static;
+  padding-top: 4px;
 }
 </style>
