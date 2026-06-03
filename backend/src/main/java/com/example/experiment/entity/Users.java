@@ -1,5 +1,6 @@
 package com.example.experiment.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -16,8 +17,16 @@ public class Users {
     private String email;
     private String name;
     private String gender;
+
+    @TableField("birth_date")
     private LocalDate birthday;
+
+    @TableField("student_no")
     private String studentNo;
+
+    @TableField("org_id")
     private String orgId;
+
+    @TableField("created_at")
     private LocalDateTime createdAt;
 }
