@@ -14,10 +14,9 @@ import com.example.experiment.mapper.UsersMapper;
 import com.example.experiment.service.UserService;
 import com.example.experiment.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRolesMapper userRolesMapper;
     private final RolesMapper rolesMapper;
     private final UsersMapper usersMapper;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public boolean existsByUsername(String username) {
@@ -58,9 +58,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Users register(Users user) {
         user.setId(UUID.randomUUID().toString().replace("-", ""));
-        // 密码 MD5 加密
-        user.setPassword(DigestUtils.md5DigestAsHex(
-                user.getPassword().getBytes(StandardCharsets.UTF_8)));
+        // 密码 BCrypt 加密
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         usersMapper.insert(user);
         return user;
     }
@@ -101,10 +100,8 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户名不存在");
         }
 
-        // 校验密码（MD5）
-        String encrypted = DigestUtils.md5DigestAsHex(
-                dto.getPassword().getBytes(StandardCharsets.UTF_8));
-        if (!encrypted.equals(user.getPassword())) {
+        // 校验密码（BCrypt）
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new RuntimeException("用户名或密码错误");
         }
 
