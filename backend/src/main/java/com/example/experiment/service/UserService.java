@@ -1,30 +1,25 @@
 package com.example.experiment.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
-import com.example.experiment.entity.Roles;
-import com.example.experiment.entity.UserRoles;
+import com.example.experiment.dto.LoginDTO;
+import com.example.experiment.dto.LoginVO;
+import com.example.experiment.dto.RegisterDTO;
 import com.example.experiment.entity.Users;
-import com.example.experiment.mapper.RolesMapper;
-import com.example.experiment.mapper.UserRolesMapper;
-import com.example.experiment.mapper.UsersMapper;
-import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public interface UserService {
-    public boolean existsByUsername(String username) ;
 
-    public Users findByUsername(String username);
+    boolean existsByUsername(String username);
 
-    public List<String> getUserRoleCodes(String userId);
+    Users findByUsername(String username);
 
-    public Users register(Users user);
+    List<String> getUserRoleCodes(String userId);
 
+    Users register(Users user);
+
+    /** 注册（DTO版本）：自动分配学生角色 */
+    Users register(RegisterDTO dto);
+
+    /** 登录：校验密码，返回 token */
+    LoginVO login(LoginDTO dto);
 }
