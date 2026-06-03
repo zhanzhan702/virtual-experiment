@@ -2,7 +2,7 @@
 
 <template>
   <div class="preview-box">
-    <img src="@/assets/banner.png" class="preview-img" />
+    <img src="@/assets/images/banner.png" class="preview-img" />
   </div>
 </template>
 
