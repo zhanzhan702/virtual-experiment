@@ -16,6 +16,6 @@ import RegisterForm from '@/components/RegisterForm.vue'       //<!-- 注册表�
   justify-content:center;
   align-items:center;
   min-height:100vh;
-  background:#181b22;
+  background:#091333;
 }
 </style>

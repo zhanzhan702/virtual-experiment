@@ -19,6 +19,6 @@ import LoginForm from '@/components/LoginForm.vue'       // 登录表单组件
   align-items:center;
   gap:120px;
   min-height:100vh;
-  background:#181b22;
+  background:#091333;
 }
 </style>
