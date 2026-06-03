@@ -2,11 +2,13 @@ package com.example.experiment.handler;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.MappedJdbcTypes;
 
 import java.nio.ByteBuffer;
 import java.sql.*;
 import java.util.UUID;
 
+@MappedJdbcTypes(JdbcType.BINARY)
 public class UUIDTypeHandler extends BaseTypeHandler<String> {
 
     @Override
