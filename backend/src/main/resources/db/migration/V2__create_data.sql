@@ -36,9 +36,9 @@ INSERT INTO roles (id, code, name) VALUES
 
 -- 3. 用户（密码为 MD5 哈希值）
 INSERT INTO users (id, username, password, name, org_id) VALUES
-(UUID_TO_BIN(UUID()), 'admin', '0192023a7bbd73250516f069df18b500', '管理员', @univ_id),
-(UUID_TO_BIN(UUID()), 'teacher1', '39c56e4df8d450077c0ed1dbadcf25c2', '教师A', @college_id),
-(UUID_TO_BIN(UUID()), 'student1', '2b8e54ca99fb73bfc3695d8d9e8d20e8', '学生A', 
+(UUID_TO_BIN(UUID()), 'admin', '$2a$10$CGMamDauMHck7ZD4d8wXMOj2I0ZthT9UCLAuwhatljrEKtmnC9Tme', '管理员', @univ_id),
+(UUID_TO_BIN(UUID()), 'teacher1', '$2a$10$mKchFrQcW7J/adF5kluUH.98xHoppnW85/OEsJx96GfLMP1SD/TDi', '教师A', @college_id),
+(UUID_TO_BIN(UUID()), 'student1', '$2a$10$Z9LfnXd9GhoS3JGW8sB7pOa6fu/KnoBTYAK.9MK52kDCUsbnDUST6', '学生A', 
     (SELECT id FROM organization WHERE name = '1班'));
 
 -- 4. 用户角色关联
