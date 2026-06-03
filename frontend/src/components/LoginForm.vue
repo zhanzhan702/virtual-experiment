@@ -1,18 +1,13 @@
-//登录表单组件，右侧表单区域，支持身份选择、验证码、登录按钮和注册跳转。
+登录表单组件，右侧表单区域，支持验证码、登录按钮和注册跳转。
 
 <template>
   <div class="login-card">
-    <select v-model="role" class="input">
-      <option value="user">用户</option>
-      <option value="admin">管理员</option>
-    </select>
-
     <input v-model="username" class="input" placeholder="用户名" />
     <input type="password" v-model="password" class="input" placeholder="密码" />
 
     <VerifyCode @updateCode="getCode" />
 
-    <button class="login-btn">登录</button>
+    <button class="login-btn" @click="handleLogin">登录</button>
 
     <div class="register" @click="goRegister">
       还没有账号？点击注册
@@ -23,16 +18,40 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import VerifyCode from './VerifyCode.vue'
 
 const router = useRouter()
-const role = ref('user')
+const authStore = useAuthStore()
 const username = ref('')
 const password = ref('')
 
 const getCode = (code) => { console.log('验证码:', code) }
 
-function goRegister() { router.push('/register') }
+async function handleLogin() {
+  if (!username.value || !password.value) {
+    alert('请输入用户名和密码')
+    return
+  }
+  try {
+    const res = await authStore.login({
+      username: username.value,
+      password: password.value
+    })
+    console.log('登录成功', res)
+    if (authStore.isStudent) {
+      router.push('/experiment')
+    } else {
+      router.push('/admin')
+    }
+  } catch (err) {
+    alert('登录失败：' + (err.response?.data?.message || err.message))
+  }
+}
+
+function goRegister() {
+  router.push('/register')
+}
 </script>
 
 <style scoped>
