@@ -13,7 +13,7 @@ public class Organization {
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String name;
-    private String type;    //university/college/major/grade
+    private String type;    //university/college/major/grade/class
     private String parentId;
     private String path;
     private int sort;
