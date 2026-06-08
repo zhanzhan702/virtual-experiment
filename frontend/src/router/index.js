@@ -9,7 +9,9 @@ const routes = [
   { path: '/', component: LoginView },
   { path: '/register', component: RegisterView },
   { path: '/experiment', component: () => import('@/views/ExperimentView.vue') },
-  { path: '/admin', component: () => import('@/views/AdminView.vue') }
+  { path: '/admin', component: () => import('@/views/AdminView.vue') },
+    { path: '/666', component: () => import('@/views/HighVoltage/HWorkTicket.vue') }
+
 ]
 
 const router = createRouter({
