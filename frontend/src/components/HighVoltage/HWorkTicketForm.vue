@@ -2,11 +2,11 @@
   <div class="ticket-paper">
     <!-- 表头 -->
     <div class="paper-header">
-      <span class="paper-label">国网福建</span>
+      <span class="paper-title">国网福建</span>
       <span class="inline-input">
         <el-input v-model="formData.company" placeholder="______" size="default" @input="handleUserOperation" />
       </span>
-      <span class="paper-label">供电公司</span>
+      <span class="paper-title">供电公司</span>
       <span class="paper-right">配电第二种工作票</span>
     </div>
     <div class="paper-subheader">
@@ -16,7 +16,7 @@
       </span>
     </div>
 
-    <el-form ref="formRef" :model="formData" :rules="formRules" @change="handleUserOperation">
+    <el-form ref="formRef" :model="formData" :rules="formRules" @change="handleUserOperation" style="height: 60vh;overflow-y: auto;">
       <!-- 第一行：班组 -->
       <div class="form-line">
         <span class="line-label">1、工作班组：</span>
@@ -57,6 +57,62 @@
         </div>
       </div>
 
+      <!-- 第3点 -->
+  <div class="form-line">
+    <span class="line-label">
+      3、工作的变配电站名称及设备双重名称：
+    </span>
+    <span>
+      福州市台江区鳌峰路雪花水泥厂配电室计量柜
+    </span>
+  </div>
+
+  <!-- 第4点 -->
+<div class="section-title">4、工作任务</div>
+
+<table class="task-table">
+  <thead>
+    <tr>
+      <th style="width: 70%;">工作地点或地段</th>
+      <th>工作内容</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
+      <td>专变终端安装与调试</td>
+    </tr>
+
+    <tr>
+      <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
+      <td>三相电能表安装</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 第5点 -->
+<div class="form-line">
+  <span class="line-label">5、计划工作时间：</span>
+  <span>
+    {{ new Date().getFullYear() }}年
+    {{ String(new Date().getMonth() + 1).padStart(2,'0') }}月
+    {{ String(new Date().getDate()).padStart(2,'0') }}日
+    {{ String(new Date().getHours()).padStart(2,'0') }}时
+    {{ String(new Date().getMinutes()).padStart(2,'0') }}分
+    至__________________
+  </span>
+</div>
+
+<!-- 第6点 -->
+<div class="form-line">
+  <span class="line-label">
+    6、工作条件（停电或不停电，或邻近及保留带电设备名称）：
+  </span>
+  <span>不停电</span>
+</div>
+
+
       <!-- 7、安全措施 -->
       <div class="section-title">7、注意事项（安全措施）</div>
       <div class="form-line">
@@ -68,7 +124,40 @@
             <el-option label="C、与带电设备保持足够安全距离" value="C" />
           </el-select>
         </span>
+        
       </div>
+      <div class="form-line">
+      <span class="line-label">工作票签发人签名：</span>
+      <span>李强</span>
+      </div>
+
+      <!-- 第8点 -->
+      <div class="form-line">
+      <span class="line-label">
+          8、补充安全措施（工作许可人填写）：
+      </span>
+      <span>无</span>
+      </div>
+
+      <!-- 第9点 -->
+<div class="section-title">9、确认本工作票1-8项</div>
+
+<div class="form-line">
+  <span class="line-label">许可工作时间：</span>
+  <span>__________________</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作负责人签名：</span>
+  <span>__________________</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作许可人签名：</span>
+  <span>__________________</span>
+</div>
+
+
 
       <!-- 10、危险点分析 -->
       <div class="section-title">10、危险点分析及防范措施</div>
@@ -97,11 +186,70 @@
         </span>
       </div>
 
+
+      <!-- 第11点 -->
+<div class="section-title">
+  11、确认工作负责人布置的任务和本施工项目安全措施
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作班人员签名：</span>
+  <span>________________________________________________</span>
+</div>
+
+<!-- 第12点 -->
+<div class="section-title">12、工作票延期</div>
+
+<div class="form-line">
+  <span class="line-label">有效期延长到：</span>
+  <span>______年______月______日______时______分</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作负责人签名：</span>
+  <span>__________________</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作许可人签名：</span>
+  <span>__________________</span>
+</div>
+
+<!-- 第13点 -->
+<div class="section-title">13、工作票终结</div>
+
+<div class="form-line">
+  <span>
+    全部工作于______年______月______日______时______分结束，
+    工作人员已全部撤离，材料工具已清理完毕。
+  </span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作负责人签名：</span>
+  <span>__________________</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">工作许可人签名：</span>
+  <span>__________________</span>
+</div>
+
+<div class="form-line">
+  <span class="line-label">备注：</span>
+  <span>无</span>
+</div>
+
+
       <div class="submit-zone">
         <el-button type="warning" size="large" @click="validateAndSubmit">提交</el-button>
       </div>
     </el-form>
   </div>
+
+    
+
+
 </template>
 
 <script setup>
@@ -217,6 +365,24 @@ const validateAndSubmit = async () => {
   white-space: nowrap;
 }
 
+.paper-title {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+/* 国网福建中间输入框放大 */
+.paper-header .inline-input {
+  font-size: 22px;
+  min-width: 140px;
+}
+
+.paper-header .inline-input :deep(.el-input__inner) {
+  font-size: 22px !important;
+  font-weight: bold;
+  text-align: center;
+}
+
 /* 横线行 — 模拟纸上填空 */
 .form-line {
   display: flex;
@@ -293,5 +459,26 @@ const validateAndSubmit = async () => {
 .submit-zone {
   margin-top: 24px;
   text-align: right;
+}
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 14px 0;
+  font-size: 14px;
+  font-family: "SimSun", "宋体", serif;
+}
+
+.task-table th,
+.task-table td {
+  border: 1px solid #333;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.task-table th {
+  background: #f5f5f5;
+  font-weight: bold;
 }
 </style>
