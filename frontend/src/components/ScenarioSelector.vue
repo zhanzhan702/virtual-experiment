@@ -16,7 +16,7 @@ function select(type) {
 
     if (type === 'high') {
     // 跳转到工作票页面（替换为你表单页面的路由路径）
-    router.push('/666') 
+    router.push('/HWT') 
   }
 
 }
