@@ -1,5 +1,5 @@
 <template>
-  <div class="experiment-scene">
+  <div class="experiment-scene" >
     <div class="scroll-wrapper">
       <WorkTicketForm @submit-ticket="handleTicketSubmit" />
     </div>
@@ -59,7 +59,7 @@ const handleTicketSubmit = async (result) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('@/assets/background.jpg'); /* 可以替换成你的高压场景背景图 */
+  background-image: url('@/assets/images/HWTBackgroundImage.jpg'); /* 可以替换成你的高压场景背景图 */
   background-size: cover;
   background-position: center;
 }
