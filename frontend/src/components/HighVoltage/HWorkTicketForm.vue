@@ -16,7 +16,7 @@
       </span>
     </div>
 
-    <el-form ref="formRef" :model="formData" :rules="formRules" @change="handleUserOperation" style="height: 60vh;overflow-y: auto;">
+    <el-form ref="formRef" :model="formData" :rules="formRules" @change="handleUserOperation">
       <!-- 第一行：班组 -->
       <div class="form-line">
         <span class="line-label">1、工作班组：</span>
