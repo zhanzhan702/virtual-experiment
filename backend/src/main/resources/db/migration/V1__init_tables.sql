@@ -46,12 +46,17 @@ CREATE TABLE user_roles (
 
 -- 实验模板表
 CREATE TABLE experiment_templates (
-                                      id BINARY(16) PRIMARY KEY,
-                                      code VARCHAR(50) UNIQUE NOT NULL,
-                                      name VARCHAR(100) NOT NULL,
-                                      experiment_level VARCHAR(20),
-                                      description TEXT,
-                                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id BINARY(16) PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL COMMENT '模板编码',
+    name VARCHAR(100) NOT NULL COMMENT '模板名称',
+    category VARCHAR(30) NOT NULL
+        COMMENT 'high_voltage / low_voltage',
+    mode VARCHAR(20) NOT NULL DEFAULT 'training'
+        COMMENT 'training / exam',
+    version VARCHAR(20) DEFAULT '1.0'
+        COMMENT '模板版本',
+    description TEXT COMMENT '模板描述',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 实验步骤表
