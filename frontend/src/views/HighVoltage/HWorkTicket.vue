@@ -60,8 +60,9 @@ const handleTicketSubmit = async (result) => {
   justify-content: center;
   align-items: center;
   background-image: url('@/assets/images/HWTBackgroundImage.jpg'); /* 可以替换成你的高压场景背景图 */
-  background-size: cover;
+  background-size: contain;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* 核心要求：限制区域大小，其他内容通过滚动显示 */
