@@ -14,12 +14,18 @@ import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue' // 确
 
 // 从路由或全局状态获取实验元数据
 const experimentId = "123e4567-e89b-12d3-a456-426614174000" // 需替换为实际的 UUID
-const stepId = "987f6543-e21b-73d3-b456-426614174111"       // 需替换为实际的 UUID
+const stepId = "987f6543e21b73d3-b456426614174111"       // 需替换为实际的 UUID
 
 // 接收子组件抛出的提交事件
 const handleTicketSubmit = async (result) => {
   if (!result.success) {
-    ElMessage.error(`内容填写有误，请核对操作手册！（当前错误次数: ${result.errorCount}）`)
+    // 显示具体字段错误
+    if (result.errors && Object.keys(result.errors).length > 0) {
+      const msgs = Object.values(result.errors).join('；')
+      ElMessage.error(msgs)
+    } else {
+      ElMessage.error(`内容填写有误，请核对操作手册！（当前错误次数: ${result.errorCount}）`)
+    }
     return
   }
 

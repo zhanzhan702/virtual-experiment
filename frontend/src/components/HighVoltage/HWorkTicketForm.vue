@@ -1,11 +1,12 @@
 <template>
   <div class="ticket-paper">
+    <el-form ref="formRef" :model="formData" @change="handleUserOperation" class="paper-form">
     <!-- 表头 -->
     <div class="paper-header">
       <span class="paper-title">国网福建</span>
-      <span class="inline-input">
-        <el-input v-model="formData.company" placeholder="______" size="default" @input="handleUserOperation" />
-      </span>
+        <span class="inline-input">
+          <el-input v-model="formData.company" placeholder="______" size="default" @input="handleUserOperation" />
+        </span>
       <span class="paper-title">供电公司</span>
       <span class="paper-right">配电第二种工作票</span>
     </div>
@@ -16,44 +17,43 @@
       </span>
     </div>
 
-    <el-form ref="formRef" :model="formData" :rules="formRules" @change="handleUserOperation">
       <!-- 第一行：班组 -->
       <div class="form-line">
         <span class="line-label">1、工作班组：</span>
-        <span class="inline-input">
-          <el-select v-model="formData.team" placeholder="请选择" size="default">
-            <el-option label="修试班" value="修试班" />
+          <span class="inline-input">
+            <el-select v-model="formData.team" placeholder="请选择" size="default">
+              <el-option label="修试班" value="修试班" />
             <el-option label="装表班" value="装表班" />
             <el-option label="运维班" value="运维班" />
           </el-select>
-        </span>
+            </span>
       </div>
 
       <!-- 第二行：负责人 + 班人员 -->
       <div class="form-line-row triple">
         <div class="form-line">
           <span class="line-label">2、工作负责人：</span>
-          <span class="inline-input">
-            <el-select v-model="formData.leader" placeholder="请选择" size="default">
-              <el-option label="张亮" value="张亮" />
-              <el-option label="王五" value="王五" />
-            </el-select>
-          </span>
+            <span class="inline-input">
+              <el-select v-model="formData.leader" placeholder="请选择" size="default">
+                <el-option label="张亮" value="张亮" />
+                <el-option label="王五" value="王五" />
+              </el-select>
+            </span>
         </div>
         <div class="form-line">
           <span class="line-label">工作班人员1：</span>
-          <span class="inline-input">
-            <el-input v-model="formData.member1" placeholder="________" size="default" @input="handleUserOperation" />
-          </span>
+            <span class="inline-input">
+              <el-input v-model="formData.member1" placeholder="________" size="default" @input="handleUserOperation" />
+            </span>
         </div>
         <div class="form-line">
           <span class="line-label">工作班人员2：</span>
-          <span class="inline-input">
-            <el-select v-model="formData.member2" placeholder="请选择" size="default">
-              <el-option label="张三" value="张三" />
-              <el-option label="赵六" value="赵六" />
-            </el-select>
-          </span>
+            <span class="inline-input">
+              <el-select v-model="formData.member2" placeholder="请选择" size="default">
+                <el-option label="张三" value="张三" />
+                <el-option label="赵六" value="赵六" />
+              </el-select>
+            </span>
         </div>
       </div>
 
@@ -117,14 +117,13 @@
       <div class="section-title">7、注意事项（安全措施）</div>
       <div class="form-line">
         <span class="line-label">请选择：</span>
-        <span class="inline-input full">
-          <el-select v-model="formData.safetyMeasures" multiple placeholder="请选择安全措施" size="default">
-            <el-option label="A、防止电压回路短路或接地" value="A" />
-            <el-option label="B、严禁电流互感器二次回路开路" value="B" />
-            <el-option label="C、与带电设备保持足够安全距离" value="C" />
-          </el-select>
-        </span>
-        
+          <span class="inline-input full">
+            <el-select v-model="formData.safetyMeasures" multiple placeholder="请选择安全措施" size="default">
+              <el-option label="A、防止电压回路短路或接地" value="A" />
+              <el-option label="B、严禁电流互感器二次回路开路" value="B" />
+              <el-option label="C、与带电设备保持足够安全距离" value="C" />
+            </el-select>
+          </span>
       </div>
       <div class="form-line">
       <span class="line-label">工作票签发人签名：</span>
@@ -164,26 +163,26 @@
 
       <div class="form-line">
         <span class="line-label">走错工作间隔：</span>
-        <span class="inline-input full">
-          <el-select v-model="formData.dangerInterval" multiple placeholder="请选择（排除无关项）" size="default">
-            <el-option label="1、负责人对班成员进行安全教育" value="1" />
-            <el-option label="2、检查是否悬挂标示牌" value="2" />
-            <el-option label="3、核对工作任务单与现场信息一致" value="3" />
-            <el-option label="4、检查接入电源电线有无破损" value="4" />
-          </el-select>
-        </span>
+          <span class="inline-input full">
+            <el-select v-model="formData.dangerInterval" multiple placeholder="请选择（排除无关项）" size="default">
+              <el-option label="1、负责人对班成员进行安全教育" value="1" />
+              <el-option label="2、检查是否悬挂标示牌" value="2" />
+              <el-option label="3、核对工作任务单与现场信息一致" value="3" />
+              <el-option label="4、检查接入电源电线有无破损" value="4" />
+            </el-select>
+          </span>
       </div>
 
       <div class="form-line">
         <span class="line-label">短路或接地：</span>
-        <span class="inline-input full">
-          <el-select v-model="formData.dangerShortCircuit" multiple placeholder="请选择（全选）" size="default">
-            <el-option label="A、检查接入电源电线有无破损" value="A" />
-            <el-option label="B、使用合格工器具，螺丝刀除刀口外应绝缘" value="B" />
-            <el-option label="C、防止操作时相间或相对地短路" value="C" />
-            <el-option label="D、移动电源盘应带漏电保护器" value="D" />
-          </el-select>
-        </span>
+          <span class="inline-input full">
+            <el-select v-model="formData.dangerShortCircuit" multiple placeholder="请选择（全选）" size="default">
+              <el-option label="A、检查接入电源电线有无破损" value="A" />
+              <el-option label="B、使用合格工器具，螺丝刀除刀口外应绝缘" value="B" />
+              <el-option label="C、防止操作时相间或相对地短路" value="C" />
+              <el-option label="D、移动电源盘应带漏电保护器" value="D" />
+            </el-select>
+          </span>
       </div>
 
 
@@ -281,52 +280,40 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 
 const handleUserOperation = () => { stats.operation_count++ }
 
-const formRules = {
-  company: [
-    { required: true, message: '请输入单位', trigger: 'blur' },
-    { validator: (_r, v, cb) => v === '福州' ? cb() : cb(new Error('单位错误')) }
-  ],
-  team: [
-    { required: true, message: '请选择班组', trigger: 'change' },
-    { validator: (_r, v, cb) => v === '装表班' ? cb() : cb(new Error('班组选择错误')) }
-  ],
-  leader: [
-    { required: true, message: '请选择工作负责人', trigger: 'change' },
-    { validator: (_r, v, cb) => v === '张亮' ? cb() : cb(new Error('负责人选择错误')) }
-  ],
-  member1: [
-    { required: true, message: '请输入工作班人员1', trigger: 'blur' },
-    { validator: (_r, v, cb) => v === '李四' ? cb() : cb(new Error('人员输入错误')) }
-  ],
-  member2: [
-    { required: true, message: '请选择工作班人员2', trigger: 'change' },
-    { validator: (_r, v, cb) => v === '张三' ? cb() : cb(new Error('人员选择错误')) }
-  ],
-  safetyMeasures: [
-    { type: 'array', required: true, message: '请选择注意事项', trigger: 'change' },
-    { validator: (_r, v, cb) => v.length === 3 ? cb() : cb(new Error('需全选三项')) }
-  ],
-  dangerInterval: [
-    { type: 'array', required: true, message: '请选择防范措施', trigger: 'change' },
-    { validator: (_r, v, cb) => v.length === 3 && !v.includes('4') ? cb() : cb(new Error('选择错误，请排除无关项')) }
-  ],
-  dangerShortCircuit: [
-    { type: 'array', required: true, message: '请选择防范措施', trigger: 'change' },
-    { validator: (_r, v, cb) => v.length === 4 ? cb() : cb(new Error('需全选四项')) }
-  ]
+/** 手动校验 — 只在提交时调用，不在填表过程中显示任何错误 */
+const manualValidate = () => {
+  const errors = {}
+  if (!formData.company) errors.company = '请输入单位'
+  else if (formData.company !== '福州') errors.company = '单位错误'
+  if (!formData.team) errors.team = '请选择班组'
+  else if (formData.team !== '装表班') errors.team = '班组选择错误'
+  if (!formData.leader) errors.leader = '请选择工作负责人'
+  else if (formData.leader !== '张亮') errors.leader = '负责人选择错误'
+  if (!formData.member1) errors.member1 = '请输入工作班人员1'
+  else if (formData.member1 !== '李四') errors.member1 = '人员输入错误'
+  if (!formData.member2) errors.member2 = '请选择工作班人员2'
+  else if (formData.member2 !== '张三') errors.member2 = '人员选择错误'
+  if (!formData.safetyMeasures || !formData.safetyMeasures.length) errors.safetyMeasures = '请选择注意事项'
+  else if (formData.safetyMeasures.length !== 3) errors.safetyMeasures = '需全选三项'
+  if (!formData.dangerInterval || !formData.dangerInterval.length) errors.dangerInterval = '请选择防范措施'
+  else if (formData.dangerInterval.length !== 3 || formData.dangerInterval.includes('4')) errors.dangerInterval = '选择错误，请排除无关项'
+  if (!formData.dangerShortCircuit || !formData.dangerShortCircuit.length) errors.dangerShortCircuit = '请选择防范措施'
+  else if (formData.dangerShortCircuit.length !== 4) errors.dangerShortCircuit = '需全选四项'
+  return errors
 }
 
+// 以下 formRef 和 formRules 仅保留结构兼容
 const formRef = ref(null)
+const formRules = {}
 
 const validateAndSubmit = async () => {
-  if (!formRef.value) return
-  try {
-    await formRef.value.validate()
-    emit('submit-ticket', { success: true, data: JSON.parse(JSON.stringify(formData)), stats: { ...stats } })
-  } catch (error) {
+  const errors = manualValidate()
+  if (Object.keys(errors).length > 0) {
     stats.error_count++
-    emit('submit-ticket', { success: false, errorCount: stats.error_count })
+    emit('submit-ticket', { success: false, errors, errorCount: stats.error_count })
+    return
   }
+  emit('submit-ticket', { success: true, data: JSON.parse(JSON.stringify(formData)), stats: { ...stats } })
 }
 </script>
 
@@ -459,6 +446,32 @@ const validateAndSubmit = async () => {
 .submit-zone {
   margin-top: 24px;
   text-align: right;
+}
+
+/* 内联 form-item — 保持纸张横线布局，校验时显示错误 */
+:deep(.paper-form) {
+  width: 100%;
+}
+:deep(.inline-item) {
+  display: inline-flex !important;
+  margin-bottom: 0 !important;
+  position: relative;
+}
+:deep(.inline-item .el-form-item__content) {
+  margin-left: 0 !important;
+}
+:deep(.inline-item .el-form-item__error) {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #f56c6c;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.95);
+  padding: 1px 4px;
+  border-radius: 2px;
+  z-index: 10;
 }
 
 .task-table {
