@@ -6,20 +6,20 @@
 
 ## 技术栈
 
-| 层级 | 技术 | 版本 |
-|------|------|------|
-| 前端框架 | Vue 3 + Vite | 3.5 / 5.4 |
-| UI 组件库 | Element Plus | 2.5 |
-| 路由 | Vue Router | 4.3 |
-| 状态管理 | Pinia | 3.0 |
-| HTTP 客户端 | Axios | 1.6 |
-| 后端框架 | Spring Boot | 4.0 |
-| ORM | MyBatis-Plus | 3.5 |
-| 数据库 | MySQL | 8.0 |
-| 数据库迁移 | Flyway | — |
-| 身份认证 | JWT (jjwt) | 0.12 |
-| 密码加密 | BCrypt (spring-security-crypto) | — |
-| 参数校验 | Jakarta Validation | — |
+| 层级        | 技术                            | 版本      |
+| ----------- | ------------------------------- | --------- |
+| 前端框架    | Vue 3 + Vite                    | 3.5 / 5.4 |
+| UI 组件库   | Element Plus                    | 2.5       |
+| 路由        | Vue Router                      | 4.3       |
+| 状态管理    | Pinia                           | 3.0       |
+| HTTP 客户端 | Axios                           | 1.6       |
+| 后端框架    | Spring Boot                     | 4.0       |
+| ORM         | MyBatis-Plus                    | 3.5       |
+| 数据库      | MySQL                           | 8.0       |
+| 数据库迁移  | Flyway                          | —         |
+| 身份认证    | JWT (jjwt)                      | 0.12      |
+| 密码加密    | BCrypt (spring-security-crypto) | —         |
+| 参数校验    | Jakarta Validation              | —         |
 
 ---
 
@@ -128,11 +128,11 @@ npm run dev
 
 ## 测试账号
 
-| 用户名 | 密码 | 角色 | 登录后跳转 |
-|--------|------|------|-----------|
+| 用户名     | 密码       | 角色    | 登录后跳转  |
+| ---------- | ---------- | ------- | ----------- |
 | `student1` | student123 | student | /experiment |
-| `teacher1` | teacher123 | teacher | /admin |
-| `admin` | admin123 | admin | /admin |
+| `teacher1` | teacher123 | teacher | /admin      |
+| `admin`    | admin123   | admin   | /admin      |
 
 学生可通过注册页面自助注册。
 
@@ -140,10 +140,10 @@ npm run dev
 
 ## 接口
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
+| 方法 | 路径                 | 说明                              |
+| ---- | -------------------- | --------------------------------- |
 | POST | `/api/auth/register` | 学生注册（自动分配 student 角色） |
-| POST | `/api/auth/login` | 登录，返回 JWT + 角色 + 跳转路径 |
+| POST | `/api/auth/login`    | 登录，返回 JWT + 角色 + 跳转路径  |
 
 ### 登录响应示例
 
@@ -164,27 +164,27 @@ npm run dev
 
 ## 路由设计
 
-| 路径 | 页面 | 访问权限 |
-|------|------|---------|
-| `/` | 登录页 | 公开 |
-| `/register` | 学生注册页 | 公开 |
-| `/experiment` | 学生实验页 | 学生角色 |
-| `/admin` | 管理后台 | 教师 / 管理员角色 |
+| 路径          | 页面       | 访问权限          |
+| ------------- | ---------- | ----------------- |
+| `/`           | 登录页     | 公开              |
+| `/register`   | 学生注册页 | 公开              |
+| `/experiment` | 学生实验页 | 学生角色          |
+| `/admin`      | 管理后台   | 教师 / 管理员角色 |
 
 ---
 
 ## 数据库表
 
-| 表名 | 说明 |
-|------|------|
-| `organization` | 组织架构（树形：大学→学院→专业→年级→班级） |
-| `users` | 用户 |
-| `roles` | 角色（admin / teacher / student） |
-| `user_roles` | 用户角色关联 |
-| `experiment_templates` | 实验模板 |
-| `experiment_steps` | 实验步骤 |
-| `user_experiments` | 用户实验记录 |
-| `user_experiment_steps` | 用户实验步骤记录 |
+| 表名                    | 说明                                       |
+| ----------------------- | ------------------------------------------ |
+| `organization`          | 组织架构（树形：大学→学院→专业→年级→班级） |
+| `users`                 | 用户                                       |
+| `roles`                 | 角色（admin / teacher / student）          |
+| `user_roles`            | 用户角色关联                               |
+| `experiment_templates`  | 实验模板                                   |
+| `experiment_steps`      | 实验步骤                                   |
+| `user_experiments`      | 用户实验记录                               |
+| `user_experiment_steps` | 用户实验步骤记录                           |
 
 ---
 
