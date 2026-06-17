@@ -7,13 +7,32 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
+import { startExperiment } from '@/api/experiment'
+import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const authStore = useAuthStore()
 
-function onScenarioSelect(type) {
-  console.log('选择场景:', type)
+async function onScenarioSelect(type) {
+  // 模板ID（从 DataInitializer 预置）
+  const templateId = 'a1b2c3d4e5f67890abcdef1234567890'
+  try {
+    const res = await startExperiment(templateId)
+    ElMessage.success('实验已启动！')
+    // 跳转到第一步（填写工作票），带 experimentId
+    router.push({
+      path: '/HWT',
+      query: {
+        experimentId: res.experimentId,
+        stepId: res.steps[0].stepId  // 第一步
+      }
+    })
+  } catch (err) {
+    ElMessage.error('启动实验失败：' + (err.response?.data?.message || err.message))
+  }
 }
 </script>
 
