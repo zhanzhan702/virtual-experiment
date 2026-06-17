@@ -1,7 +1,7 @@
 package com.example.experiment.controller;
 
-import com.example.experiment.dto.ExperimentStartDTO;
-import com.example.experiment.dto.ExperimentStepSubmitDTO;
+import com.example.experiment.dto.experiment.ExperimentStartDTO;
+import com.example.experiment.dto.experiment.ExperimentStepSubmitDTO;
 import com.example.experiment.service.ExperimentService;
 import com.example.experiment.utils.JwtUtils;
 import java.util.Map;

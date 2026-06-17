@@ -1,8 +1,8 @@
 package com.example.experiment.service;
 
-import com.example.experiment.dto.LoginDTO;
-import com.example.experiment.dto.LoginVO;
-import com.example.experiment.dto.RegisterDTO;
+import com.example.experiment.dto.auth.LoginDTO;
+import com.example.experiment.dto.auth.LoginVO;
+import com.example.experiment.dto.auth.RegisterDTO;
 import com.example.experiment.entity.Users;
 import java.util.List;
 

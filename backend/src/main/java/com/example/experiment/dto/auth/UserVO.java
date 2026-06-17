@@ -1,4 +1,4 @@
-package com.example.experiment.dto;
+package com.example.experiment.dto.auth;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

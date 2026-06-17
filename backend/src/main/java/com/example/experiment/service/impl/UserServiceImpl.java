@@ -1,10 +1,10 @@
 package com.example.experiment.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.experiment.dto.LoginDTO;
-import com.example.experiment.dto.LoginVO;
-import com.example.experiment.dto.RegisterDTO;
-import com.example.experiment.dto.UserVO;
+import com.example.experiment.dto.auth.LoginDTO;
+import com.example.experiment.dto.auth.LoginVO;
+import com.example.experiment.dto.auth.RegisterDTO;
+import com.example.experiment.dto.auth.UserVO;
 import com.example.experiment.entity.Roles;
 import com.example.experiment.entity.UserRoles;
 import com.example.experiment.entity.Users;

@@ -1,8 +1,8 @@
 package com.example.experiment.service;
 
-import com.example.experiment.dto.ExperimentStartDTO;
-import com.example.experiment.dto.ExperimentStartVO;
-import com.example.experiment.dto.ExperimentStepSubmitDTO;
+import com.example.experiment.dto.experiment.ExperimentStartDTO;
+import com.example.experiment.dto.experiment.ExperimentStartVO;
+import com.example.experiment.dto.experiment.ExperimentStepSubmitDTO;
 
 public interface ExperimentService {
 
