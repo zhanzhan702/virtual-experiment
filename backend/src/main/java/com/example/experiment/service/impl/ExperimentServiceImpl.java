@@ -26,8 +26,15 @@ public class ExperimentServiceImpl implements ExperimentService {
 
     @Override
     public ExperimentStartVO start(ExperimentStartDTO dto, String userId) {
-        // 1. 查询模板
-        var template = templatesMapper.selectById(dto.getTemplateId());
+        // 1. 查询模板（支持按 ID 或 code）
+        ExperimentTemplates template;
+        if (dto.getTemplateCode() != null) {
+            template = templatesMapper.selectOne(
+                    new LambdaQueryWrapper<ExperimentTemplates>()
+                            .eq(ExperimentTemplates::getCode, dto.getTemplateCode()));
+        } else {
+            template = templatesMapper.selectById(dto.getTemplateId());
+        }
         if (template == null) throw new RuntimeException("实验模板不存在");
 
         // 2. 查询步骤

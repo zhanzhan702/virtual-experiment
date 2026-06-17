@@ -17,17 +17,16 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 async function onScenarioSelect(type) {
-  // 模板ID（从 DataInitializer 预置）
-  const templateId = 'a1b2c3d4e5f67890abcdef1234567890'
+  // 按模板编码查询（后端需支持按 code 查模板，或前端用 templateCode 参数）
+  const templateCode = 'HV_TRAIN_V1'
   try {
-    const res = await startExperiment(templateId)
+    const res = await startExperiment(templateCode)
     ElMessage.success('实验已启动！')
-    // 跳转到第一步（填写工作票），带 experimentId
     router.push({
       path: '/HWT',
       query: {
         experimentId: res.experimentId,
-        stepId: res.steps[0].stepId  // 第一步
+        stepId: res.steps[0].stepId
       }
     })
   } catch (err) {

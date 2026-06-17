@@ -1,10 +1,9 @@
 package com.example.experiment.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class ExperimentStartDTO {
-    @NotBlank(message = "模板ID不能为空")
-    private String templateId;
+    private String templateId;     // 按 ID 启动
+    private String templateCode;   // 按编码启动（如 HV_TRAIN_V1）
 }
