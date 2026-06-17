@@ -8,18 +8,21 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
-import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue' // 确保路径对应你的项目结构
+import { submitStep } from '@/api/experiment'
+import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
 
-// 从路由或全局状态获取实验元数据
-const experimentId = "123e4567-e89b-12d3-a456-426614174000" // 需替换为实际的 UUID
-const stepId = "987f6543e21b73d3-b456426614174111"       // 需替换为实际的 UUID
+const route = useRoute()
+const router = useRouter()
+
+// 从路由 query 获取实验元数据
+const experimentId = ref(route.query.experimentId || '')
+const stepId = ref(route.query.stepId || '')
 
 // 接收子组件抛出的提交事件
 const handleTicketSubmit = async (result) => {
   if (!result.success) {
-    // 显示具体字段错误
     if (result.errors && Object.keys(result.errors).length > 0) {
       const msgs = Object.values(result.errors).join('；')
       ElMessage.error(msgs)
@@ -29,30 +32,23 @@ const handleTicketSubmit = async (result) => {
     return
   }
 
-  // 组装发送给后端的 Payload，契合你的 MySQL 数据库字段设计
   const payload = {
-    experiment_id: experimentId,
-    step_id: stepId,
+    experimentId: experimentId.value,
+    stepId: stepId.value,
     status: 1,
-    duration_seconds: result.stats.duration_seconds,
-    operation_count: result.stats.operation_count,
-    error_count: result.stats.error_count,
+    durationSeconds: result.stats.duration_seconds,
+    operationCount: result.stats.operation_count,
+    errorCount: result.stats.error_count,
     score: 100.00,
-    result_data: JSON.stringify(result.data) // 将填写的表单内容序列化存储在 JSON 列中
+    resultData: JSON.stringify(result.data),
+    startedAt: new Date().toISOString()
   }
 
   try {
-    const response = await axios.post('/api/experiment/step/submit', payload)
-
-    if (response.status === 200) {
-      ElMessage.success('提交成功！即将进入“工作负责人布置工作任务”环节...')
-
-      // TODO: 在此调用 Vue Router 进行下一步跳转
-      // router.push({ name: 'NextTaskScene' })
-    }
-  } catch (error) {
-    ElMessage.error('服务器提交失败，请检查网络或后端接口。')
-    console.error(error)
+    await submitStep(payload)
+    ElMessage.success('提交成功！即将进入下一步...')
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
 }
 </script>

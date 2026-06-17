@@ -12,5 +12,6 @@ public class ExperimentStepSubmitDTO {
     private Integer operationCount;
     private Integer errorCount;
     private Double score;
-    private String resultData;  // JSON 字符串
+    private String resultData;   // JSON 字符串
+    private String startedAt;    // ISO 时间字符串（步骤首次开始时传）
 }

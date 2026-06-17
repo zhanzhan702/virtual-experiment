@@ -80,6 +80,16 @@ public class ExperimentServiceImpl implements ExperimentService {
 
         if (stepRecord == null) throw new RuntimeException("步骤记录不存在");
 
+        // 首次提交时设置开始时间
+        if (stepRecord.getStartedAt() == null) {
+            if (dto.getStartedAt() != null) {
+                String t = dto.getStartedAt().replace("Z", "").replace("T", " ").substring(0, 19);
+                stepRecord.setStartedAt(LocalDateTime.parse(t, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            } else {
+                stepRecord.setStartedAt(LocalDateTime.now());
+            }
+        }
+
         // 更新
         stepRecord.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
         stepRecord.setDurationSeconds(dto.getDurationSeconds());

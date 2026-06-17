@@ -6,30 +6,20 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 const emit = defineEmits(['select'])
-const router = useRouter()
-
 
 function select(type) {
   emit('select', type)
-
-    if (type === 'high') {
-    // 跳转到工作票页面（替换为你表单页面的路由路径）
-    router.push('/HWT') 
-  }
-
 }
 </script>
 
 <style scoped>
 .scenario-selector {
   display: flex;
-  padding-top: 25%;
+  padding-top: 40vh;
   gap: 48px;
   justify-content: center;
   align-items: center;
-  margin-top: 60px;
 }
 
 .scenario-btn {
