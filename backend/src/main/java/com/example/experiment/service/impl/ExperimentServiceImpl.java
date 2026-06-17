@@ -40,14 +40,14 @@ public class ExperimentServiceImpl implements ExperimentService {
     var steps =
         stepsMapper.selectList(
             new LambdaQueryWrapper<ExperimentSteps>()
-                .eq(ExperimentSteps::getTemplateId, dto.getTemplateId())
+                .eq(ExperimentSteps::getTemplateId, template.getId())
                 .orderByAsc(ExperimentSteps::getStepOrder));
 
     // 3. 创建实验记录
     var record = new UserExperiments();
     record.setId(UUID.randomUUID().toString().replace("-", ""));
     record.setUserId(userId);
-    record.setTemplateId(dto.getTemplateId());
+    record.setTemplateId(template.getId());
     record.setStartTime(LocalDateTime.now());
     record.setStatus(0);
     userExperimentsMapper.insert(record);
