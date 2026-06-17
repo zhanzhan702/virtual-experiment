@@ -1,4 +1,4 @@
--- =============================================
+-- V1 初始建表脚本
 -- 组织架构表
 CREATE TABLE organization (
     id BINARY(16) PRIMARY KEY,

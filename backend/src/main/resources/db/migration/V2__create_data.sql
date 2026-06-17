@@ -1,4 +1,4 @@
--- V2 初始化数据 =============================================
+-- V2 初始化数据
 
 -- 1. 组织架构
 
@@ -38,7 +38,7 @@ INSERT INTO roles (id, code, name) VALUES
 INSERT INTO users (id, username, password, name, org_id) VALUES
 (UUID_TO_BIN(UUID()), 'admin', '$2a$10$CGMamDauMHck7ZD4d8wXMOj2I0ZthT9UCLAuwhatljrEKtmnC9Tme', '管理员', @univ_id),
 (UUID_TO_BIN(UUID()), 'teacher1', '$2a$10$mKchFrQcW7J/adF5kluUH.98xHoppnW85/OEsJx96GfLMP1SD/TDi', '教师A', @college_id),
-(UUID_TO_BIN(UUID()), 'student1', '$2a$10$Z9LfnXd9GhoS3JGW8sB7pOa6fu/KnoBTYAK.9MK52kDCUsbnDUST6', '学生A', 
+(UUID_TO_BIN(UUID()), 'student1', '$2a$10$Z9LfnXd9GhoS3JGW8sB7pOa6fu/KnoBTYAK.9MK52kDCUsbnDUST6', '学生A',
     (SELECT id FROM organization WHERE name = '1班'));
 
 -- 4. 用户角色关联

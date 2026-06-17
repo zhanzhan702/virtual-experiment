@@ -1,5 +1,4 @@
--- V3 模板表建立 =============================================
-
+-- V3 插入高压场景实验模板和步骤
 INSERT INTO experiment_templates (id, code, name, category, mode, version, description) VALUES
 (UUID_TO_BIN(UUID()), 'HV_TRAIN_V1', '高压训练场景V1', 'high_voltage', 'training', '1.0', '高压场景下的用电信息采集终端安装与调试训练模式');
 
