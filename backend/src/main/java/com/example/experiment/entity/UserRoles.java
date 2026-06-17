@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @TableName("user_roles")
 public class UserRoles {
-    private String userId;
-    private String roleId;
+  private String userId;
+  private String roleId;
 }

@@ -5,5 +5,4 @@ import com.example.experiment.entity.UserExperimentSteps;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UserExperimentStepsMapper extends BaseMapper<UserExperimentSteps> {
-}
+public interface UserExperimentStepsMapper extends BaseMapper<UserExperimentSteps> {}

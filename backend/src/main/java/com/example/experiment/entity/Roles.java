@@ -8,9 +8,10 @@ import lombok.Data;
 @Data
 @TableName("roles")
 public class Roles {
-    @TableId(type = IdType.ASSIGN_UUID)
-    private String id;
-    private String code;
-    private String name;
-    private String description;
+  @TableId(type = IdType.ASSIGN_UUID)
+  private String id;
+
+  private String code;
+  private String name;
+  private String description;
 }
