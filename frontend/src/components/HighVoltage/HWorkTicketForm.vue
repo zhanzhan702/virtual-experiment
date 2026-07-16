@@ -468,11 +468,6 @@ const validateAndSubmit = async () => {
   padding: 0 2px !important;
 }
 
-/* placeholder 文字颜色 */
-:deep(.inline-input .el-select__placeholder) {
-  color: #999 !important;
-}
-
 /* 选中后的显示文字与正文统一 */
 :deep(.inline-input .el-select__selected-item) {
   font-family: "SimSun", "宋体", serif;
