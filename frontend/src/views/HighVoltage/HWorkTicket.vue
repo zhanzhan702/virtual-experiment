@@ -20,6 +20,12 @@ const router = useRouter()
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 
+//时区转换工具函数
+const pad = (n) => String(n).padStart(2, '0')
+const formatLocalTime = (d) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+  `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+
 // 接收子组件抛出的提交事件
 const handleTicketSubmit = async (result) => {
   if (!result.success) {
@@ -39,9 +45,9 @@ const handleTicketSubmit = async (result) => {
     durationSeconds: result.stats.duration_seconds,
     operationCount: result.stats.operation_count,
     errorCount: result.stats.error_count,
-    score: 100.00,
+    score: 100.00 - (result.stats.error_count * 10) > 0 ? 100.00 - (result.stats.error_count * 10) : 0,//最低得分为0分
     resultData: JSON.stringify(result.data),
-    startedAt: new Date().toISOString()
+    startedAt: formatLocalTime(new Date())
   }
 
   try {
