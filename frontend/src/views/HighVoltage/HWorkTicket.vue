@@ -38,6 +38,7 @@ const handleTicketSubmit = async (result) => {
     return
   }
 
+  //传递到后端的 payload
   const payload = {
     experimentId: experimentId.value,
     stepId: stepId.value,
@@ -53,11 +54,17 @@ const handleTicketSubmit = async (result) => {
   try {
     const submitRes = await submitStep(payload)
     ElMessage.success('提交成功！即将进入工器具选择...')
-    // 跳转到下一步（工器具选择），传递 experimentId
+    // 从 sessionStorage 获取下一步 stepId
+    const steps = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+    const nextStep = steps.find(s => s.stepOrder === 2)
+    // 跳转到下一步（工器具选择），传递 experimentId + stepId
     setTimeout(() => {
       router.push({
         path: '/WIS',
-        query: { experimentId: experimentId.value }
+        query: {
+          experimentId: experimentId.value,
+          stepId: nextStep ? nextStep.stepId : ''
+        }
       })
     }, 1000)
   } catch (err) {
