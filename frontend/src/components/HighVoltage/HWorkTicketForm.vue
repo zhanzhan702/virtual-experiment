@@ -165,10 +165,10 @@
         <span class="line-label">走错工作间隔：</span>
         <span class="inline-input full">
           <el-select v-model="formData.dangerInterval" multiple placeholder="" size="default">
-            <el-option label="1、负责人对班成员进行安全教育" value="1" />
-            <el-option label="2、检查是否悬挂标示牌" value="2" />
-            <el-option label="3、核对工作任务单与现场信息一致" value="3" />
-            <el-option label="4、检查接入电源电线有无破损" value="4" />
+            <el-option label="A、负责人对班成员进行安全教育" value="A" />
+            <el-option label="B、检查是否悬挂标示牌" value="B" />
+            <el-option label="C、核对工作任务单与现场信息一致" value="C" />
+            <el-option label="D、检查接入电源电线有无破损" value="D" />
           </el-select>
         </span>
       </div>
@@ -428,7 +428,7 @@ const validateAndSubmit = async () => {
 
 :deep(.inline-input .el-input__inner) {
   font-size: 14px;
-  color: #00f;
+  color: #222;
   font-family: "SimSun", "宋体", serif;
 }
 
@@ -461,7 +461,9 @@ const validateAndSubmit = async () => {
   background: #fffef8 !important;
   border: none !important;
   border-radius: 0 !important;
-  font-size: 12px;
+  font-family: "SimSun", "宋体", serif;
+  font-size: 14px;
+  color: #222;
   margin: 1px 2px;
   padding: 0 2px !important;
 }
@@ -469,6 +471,19 @@ const validateAndSubmit = async () => {
 /* placeholder 文字颜色 */
 :deep(.inline-input .el-select__placeholder) {
   color: #999 !important;
+}
+
+/* 选中后的显示文字与正文统一 */
+:deep(.inline-input .el-select__selected-item) {
+  font-family: "SimSun", "宋体", serif;
+  font-size: 14px;
+  color: #222;
+}
+
+:deep(.inline-input .el-select__input) {
+  font-family: "SimSun", "宋体", serif;
+  font-size: 14px;
+  color: #222;
 }
 
 .submit-zone {
