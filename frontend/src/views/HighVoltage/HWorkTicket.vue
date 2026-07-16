@@ -85,6 +85,9 @@ const handleTicketSubmit = async (result) => {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* 边框：使用 outline 不占据盒模型空间，避免出现滚动条 */
+  outline: 10px solid #73BCBB;
+  outline-offset: -4px;
 }
 
 /* 自定义滚动条，使其风格契合仿真平台 */
