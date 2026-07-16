@@ -13,7 +13,7 @@
       <div class="paper-subheader">
         <span class="paper-label">编号：</span>
         <span class="inline-input short">
-          <el-input v-model="formData.ticketNo" placeholder="1001" size="default" />
+          <el-input v-model="formData.ticketNo" placeholder="" size="default" />
         </span>
       </div>
 
@@ -258,7 +258,7 @@ const emit = defineEmits(['submit-ticket'])
 
 const formData = reactive({
   company: '',
-  ticketNo: '1001',
+  ticketNo: '',
   team: '',
   leader: '',
   member1: '',
@@ -285,12 +285,13 @@ const manualValidate = () => {
   const errors = {}
   if (!formData.company) errors.company = '请输入单位'
   else if (formData.company !== '福州') errors.company = '单位错误'
+  if (!formData.ticketNo) errors.ticketNo = '请输入编号'
   if (!formData.team) errors.team = '请选择班组'
   else if (formData.team !== '装表班') errors.team = '班组选择错误'
   if (!formData.leader) errors.leader = '请选择工作负责人'
   else if (formData.leader !== '张亮') errors.leader = '负责人选择错误'
-  if (!formData.member1) errors.member1 = '请输入工作班人员1'
-  else if (formData.member1 !== '李四') errors.member1 = '人员输入错误'
+  // if (!formData.member1) errors.member1 = '请输入工作班人员1'
+  // else if (formData.member1 !== '李四') errors.member1 = '人员输入错误'
   if (!formData.member2) errors.member2 = '请选择工作班人员2'
   else if (formData.member2 !== '张三') errors.member2 = '人员选择错误'
   if (!formData.safetyMeasures || !formData.safetyMeasures.length) errors.safetyMeasures = '请选择注意事项'
@@ -313,7 +314,7 @@ const validateAndSubmit = async () => {
     emit('submit-ticket', { success: false, errors, errorCount: stats.error_count })
     return
   }
-  emit('submit-ticket', { success: true, data: JSON.parse(JSON.stringify(formData)), stats: { ...stats } })
+  emit('submit-ticket', { success: true, data: { ticketNo: formData.ticketNo, member1: formData.member1 }, stats: { ...stats } })
 }
 </script>
 
