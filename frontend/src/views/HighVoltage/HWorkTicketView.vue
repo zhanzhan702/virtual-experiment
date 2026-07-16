@@ -60,7 +60,7 @@ const handleTicketSubmit = async (result) => {
     // 跳转到下一步（工器具选择），传递 experimentId + stepId
     setTimeout(() => {
       router.push({
-        path: '/WIS',
+        path: '/HTS',
         query: {
           experimentId: experimentId.value,
           stepId: nextStep ? nextStep.stepId : ''
