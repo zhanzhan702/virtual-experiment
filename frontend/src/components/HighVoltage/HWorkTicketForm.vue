@@ -377,7 +377,7 @@ const validateAndSubmit = async () => {
 /* 横线行 — 模拟纸上填空 */
 .form-line {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   padding: 6px 0;
   border-bottom: 1px dashed #ccc;
   margin-bottom: 2px;
