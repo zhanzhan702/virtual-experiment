@@ -1,27 +1,29 @@
 <template>
-  <div class="tool-selection-view">
-    <!-- 页面标题 -->
-    <div class="view-header">
-      <div class="view-title">
-        <el-icon :size="24">
-          <Suitcase />
-        </el-icon>
-        <span>选择工器具</span>
-      </div>
-      <div class="view-subtitle">
-        请依次选择正确的个人防护用具、终端设备、工器具和线材，确保作业安全
-      </div>
-    </div>
+    <div class="tool-selection-view">
+        <!-- 页面标题 -->
+        <div class="view-header">
+            <div class="view-title">
+                <el-icon :size="24">
+                    <Suitcase />
+                </el-icon>
+                <span>选择工器具</span>
+            </div>
+            <div class="view-subtitle">
+                请依次选择正确的个人防护用具、终端设备、工器具和线材，确保作业安全
+            </div>
+        </div>
 
-    <WizardInventorySelection :categories="categories" @finish="handleToolSelectionSubmit" @operation="handleOperation"
-      @submit-error="handleSubmitError" />
+        <WizardInventorySelection ref="wizardRef" :categories="categories" @finish="handleToolSelectionSubmit"
+            @operation="handleOperation" @submit-error="handleSubmitError" />
 
-    <div class="save-bar">
-      <el-button type="info" size="default" @click="saveProgress" :loading="saving">
-        <el-icon><FolderOpened /></el-icon> 保存进度
-      </el-button>
+        <div class="save-bar-fixed">
+            <el-button type="info" size="default" @click="saveProgress" :loading="saving">
+                <el-icon>
+                    <FolderOpened />
+                </el-icon> 保存进度
+            </el-button>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -31,46 +33,61 @@ import { ElMessage } from 'element-plus'
 import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
-import { submitStep, saveDraft } from '@/api/experiment'
+import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 
 const route = useRoute()
 const router = useRouter()
 
+const wizardRef = ref(null)
+
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 
-// 页面加载时记录步骤开始时间（非提交时）
+// 页面加载时记录步骤开始时间
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)
 
-// 保存进度
+// 恢复草稿数据
+onMounted(async () => {
+    if (!experimentId.value || !stepId.value) return
+    try {
+        const draft = await getStepDraft(experimentId.value, stepId.value)
+        if (draft && Object.keys(draft).length > 0 && wizardRef.value) {
+            Object.assign(wizardRef.value.selectedMap, draft)
+        }
+    } catch (_) { /* ignore */ }
+})
+
+// 保存进度（全量选择数据）
 const saveProgress = async () => {
-  saving.value = true
-  try {
-    await saveDraft({
-      experimentId: experimentId.value,
-      stepId: stepId.value,
-      status: 0,
-      durationSeconds: stats.duration_seconds,
-      operationCount: stats.operation_count,
-      errorCount: stats.error_count,
-      startedAt: startedAt.value
-    })
-    ElMessage.success('进度已保存')
-  } catch (err) {
-    ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
-  } finally {
-    saving.value = false
-  }
+    saving.value = true
+    try {
+        const fullData = wizardRef.value ? JSON.parse(JSON.stringify(wizardRef.value.selectedMap)) : {}
+        await saveDraft({
+            experimentId: experimentId.value,
+            stepId: stepId.value,
+            status: 0,
+            durationSeconds: stats.duration_seconds,
+            operationCount: stats.operation_count,
+            errorCount: stats.error_count,
+            resultData: JSON.stringify(fullData),
+            startedAt: startedAt.value
+        })
+        ElMessage.success('进度已保存')
+    } catch (err) {
+        ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+    } finally {
+        saving.value = false
+    }
 }
 
 // 操作统计
 const stats = reactive({
-  duration_seconds: 0,
-  operation_count: 0,
-  error_count: 0
+    duration_seconds: 0,
+    operation_count: 0,
+    error_count: 0
 })
 
 let timer = null
@@ -84,87 +101,88 @@ const handleOperation = () => { stats.operation_count++ }
 const handleSubmitError = (errorPageCount) => { stats.error_count += errorPageCount }
 
 const handleToolSelectionSubmit = async (selectedMap) => {
-  //传递到后端的 payload
-  const payload = {
-    experimentId: experimentId.value,
-    stepId: stepId.value,
-    status: 1,
-    durationSeconds: stats.duration_seconds,
-    operationCount: stats.operation_count,
-    errorCount: stats.error_count,
-    score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
-    startedAt: startedAt.value
-  }
+    //传递到后端的 payload
+    const payload = {
+        experimentId: experimentId.value,
+        stepId: stepId.value,
+        status: 1,
+        durationSeconds: stats.duration_seconds,
+        operationCount: stats.operation_count,
+        errorCount: stats.error_count,
+        score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
+        startedAt: startedAt.value
+    }
 
-  try {
-    await submitStep(payload)
-    ElMessage.success('工器具选择已完成，即将进入下一步...')
-    setTimeout(() => {
-      router.push({
-        path: '/',
-        query: { experimentId: experimentId.value }
-      })
-    }, 1000)
-  } catch (err) {
-    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
-  }
+    try {
+        await submitStep(payload)
+        ElMessage.success('工器具选择已完成，即将进入下一步...')
+        setTimeout(() => {
+            router.push({
+                path: '/',
+                query: { experimentId: experimentId.value }
+            })
+        }, 1000)
+    } catch (err) {
+        ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    }
 }
 </script>
 
 <style scoped>
 .tool-selection-view {
-  position: relative;
-  padding: 24px;
-  height: 100%;
-  min-height: 100vh;
-  /* 半透明背景色叠加，让内容区域保持可读 */
-  background: linear-gradient(180deg, rgba(240, 245, 255, 0.82) 0%, rgba(245, 247, 250, 0.82) 100%);
+    position: relative;
+    padding: 24px;
+    height: 100%;
+    min-height: 100vh;
+    /* 半透明背景色叠加，让内容区域保持可读 */
+    background: linear-gradient(180deg, rgba(240, 245, 255, 0.82) 0%, rgba(245, 247, 250, 0.82) 100%);
 }
 
 /* 背景图伪元素 */
 .tool-selection-view::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url('@/assets/images/selection.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.6;
-  z-index: 0;
-  pointer-events: none;
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('@/assets/images/selection.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* 确保内容在背景之上 */
 .tool-selection-view>* {
-  position: relative;
-  z-index: 1;
+    position: relative;
+    z-index: 1;
 }
 
 .view-header {
-  text-align: center;
-  margin-bottom: 24px;
+    text-align: center;
+    margin-bottom: 24px;
 }
 
 .view-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #303133;
-  margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #303133;
+    margin-bottom: 8px;
 }
 
 .view-subtitle {
-  font-size: 14px;
-  color: #909399;
+    font-size: 14px;
+    color: #909399;
 }
 
-.save-bar {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.save-bar-fixed {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
 }
 </style>

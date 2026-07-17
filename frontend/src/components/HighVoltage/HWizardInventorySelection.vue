@@ -560,6 +560,8 @@ function submitSelection() {
         emit('finish', { ...selectedMap.value })
     }
 }
+
+defineExpose({ selectedMap })
 </script>
 
 <style scoped>
