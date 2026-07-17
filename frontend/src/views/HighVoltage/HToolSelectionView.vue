@@ -13,7 +13,8 @@
       </div>
     </div>
 
-    <WizardInventorySelection :categories="categories" @finish="handleToolSelectionSubmit" />
+    <WizardInventorySelection :categories="categories" @finish="handleToolSelectionSubmit" @operation="handleOperation"
+      @submit-error="handleSubmitError" />
   </div>
 </template>
 
@@ -25,6 +26,7 @@ import { Suitcase } from '@element-plus/icons-vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
 import { submitStep } from '@/api/experiment'
+import { formatLocalTime } from '@/utils/time'
 
 const route = useRoute()
 const router = useRouter()
@@ -33,11 +35,8 @@ const router = useRouter()
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 
-// 时区转换工具函数
-const pad = (n) => String(n).padStart(2, '0')
-const formatLocalTime = (d) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
-  `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+// 页面加载时记录步骤开始时间（非提交时）
+const startedAt = ref(formatLocalTime(new Date()))
 
 // 操作统计
 const stats = reactive({
@@ -50,6 +49,12 @@ let timer = null
 onMounted(() => { timer = setInterval(() => { stats.duration_seconds++ }, 1000) })
 onUnmounted(() => { if (timer) clearInterval(timer) })
 
+// 统计操作次数（每次点击/选择工器具）
+const handleOperation = () => { stats.operation_count++ }
+
+// 统计提交错误次数
+const handleSubmitError = (errorPageCount) => { stats.error_count += errorPageCount }
+
 const handleToolSelectionSubmit = async (selectedMap) => {
   //传递到后端的 payload
   const payload = {
@@ -60,7 +65,7 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     operationCount: stats.operation_count,
     errorCount: stats.error_count,
     score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
-    startedAt: formatLocalTime(new Date())
+    startedAt: startedAt.value
   }
 
   try {

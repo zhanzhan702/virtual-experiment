@@ -263,7 +263,7 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['finish'])
+const emit = defineEmits(['finish', 'operation', 'submit-error'])
 
 // ============ 状态 ============
 const activeStep = ref(0)
@@ -476,6 +476,7 @@ function toggleTool(tool) {
     } else {
         selected.push(tool.id)
     }
+    emit('operation')
 }
 
 function removeTool(tool) {
@@ -488,11 +489,13 @@ function removeTool(tool) {
     if (hasSubmitted.value && errorMap.value[tool.categoryKey].length > 0) {
         errorMap.value[tool.categoryKey] = []
     }
+    emit('operation')
 }
 
 function resetCurrent() {
     selectedMap.value[currentCategory.value.key] = []
     errorMap.value[currentCategory.value.key] = []
+    emit('operation')
 }
 
 function goToStep(index) {
@@ -547,6 +550,9 @@ function submitSelection() {
     submitting.value = false
 
     if (hasAnyError) {
+        // 统计本次有错误的页面数
+        const errorPageCount = Object.values(newErrorMap).filter(arr => arr.length > 0).length
+        emit('submit-error', errorPageCount)
         errorDialogVisible.value = true
     } else {
         // 全部正确

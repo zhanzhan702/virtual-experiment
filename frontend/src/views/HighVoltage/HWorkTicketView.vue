@@ -11,6 +11,7 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { submitStep } from '@/api/experiment'
+import { formatLocalTime } from '@/utils/time'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
 
 const route = useRoute()
@@ -19,12 +20,8 @@ const router = useRouter()
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
-
-//时区转换工具函数
-const pad = (n) => String(n).padStart(2, '0')
-const formatLocalTime = (d) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
-  `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+// 页面加载时记录步骤开始时间（非提交时）
+const startedAt = ref(formatLocalTime(new Date()))
 
 // 接收子组件抛出的提交事件
 const handleTicketSubmit = async (result) => {
@@ -48,7 +45,7 @@ const handleTicketSubmit = async (result) => {
     errorCount: result.stats.error_count,
     score: 100.00 - (result.stats.error_count * 10) > 0 ? 100.00 - (result.stats.error_count * 10) : 0,//最低得分为0分
     resultData: JSON.stringify(result.data),
-    startedAt: formatLocalTime(new Date())
+    startedAt: startedAt.value
   }
 
   try {
