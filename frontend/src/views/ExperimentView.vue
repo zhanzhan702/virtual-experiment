@@ -26,7 +26,8 @@ async function onScenarioSelect(type) {
         await ElMessageBox.confirm(
           `检测到未完成实验「${exp.templateName}」，已完成 ${exp.completedSteps}/${exp.totalSteps} 步。是否继续？`,
           '恢复实验',
-          { confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info' }
+          { confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info',
+            distinguishCancelAndClose: true }
         )
         // 继续 → 跳转到当前未完成步骤
         sessionStorage.setItem('experimentId', exp.experimentId)
