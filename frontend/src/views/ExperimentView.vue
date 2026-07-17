@@ -18,14 +18,14 @@ const authStore = useAuthStore()
 
 async function onScenarioSelect(type) {
   // 按模板编码查询（后端需支持按 code 查模板，或前端用 templateCode 参数）
-  const templateCode = 'HV_TRAIN_V1'
+  const templateCode = type == 'high' ? 'HV_TRAIN_V1' : 'LV_TRAIN_V1'
   try {
     const res = await startExperiment(templateCode)
     // 存储全部步骤供后续页面使用
     sessionStorage.setItem('experimentSteps', JSON.stringify(res.steps))
     ElMessage.success('实验已启动！')
     router.push({
-      path: '/HWT',
+      path: type == 'high' ? '/HWT' : '/LWT',
       query: {
         experimentId: res.experimentId,
         stepId: res.steps[0].stepId

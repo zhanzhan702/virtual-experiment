@@ -11,7 +11,8 @@ const routes = [
   { path: '/experiment', component: () => import('@/views/ExperimentView.vue') },
   { path: '/admin', component: () => import('@/views/AdminView.vue') },
   { path: '/HWT', component: () => import('@/views/HighVoltage/HWorkTicketView.vue') },
-  { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') }
+  { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') },
+  { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
 ]
 
 const router = createRouter({
