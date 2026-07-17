@@ -7,14 +7,43 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
-import { startExperiment } from '@/api/experiment'
-import { ElMessage } from 'element-plus'
+import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 页面加载时检查是否有未完成实验
+onMounted(async () => {
+  try {
+    const list = await getUnfinishedExperiments()
+    if (list.length === 0) return
+    const exp = list[0]
+    try {
+      await ElMessageBox.confirm(
+        `检测到未完成实验「${exp.templateName}」，已完成 ${exp.completedSteps}/${exp.totalSteps} 步。是否继续？`,
+        '恢复实验',
+        { confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info' }
+      )
+      // 继续 → 跳转到当前未完成步骤
+      const stepRouteMap = { 1: '/HWT', 2: '/HTS' }
+      const path = stepRouteMap[exp.nextStepOrder] || '/HWT'
+      router.push({
+        path,
+        query: { experimentId: exp.experimentId, stepId: exp.nextStepId }
+      })
+    } catch {
+      // 用户点"重新开始" → 删除所有未完成实验
+      for (const e of list) {
+        try { await deleteExperiment(e.experimentId) } catch (_) { /* ignore */ }
+      }
+    }
+  } catch (_) { /* 忽略查询失败 */ }
+})
 
 async function onScenarioSelect(type) {
   // 按模板编码查询（后端需支持按 code 查模板，或前端用 templateCode 参数）

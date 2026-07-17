@@ -60,4 +60,60 @@ public class ExperimentController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     }
   }
+
+  /** 保存进度草稿 */
+  @PostMapping("/step/draft")
+  public ResponseEntity<?> saveDraft(
+      @RequestBody ExperimentStepSubmitDTO dto,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null)
+      return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    try {
+      experimentService.saveDraft(dto);
+      return ResponseEntity.ok(Map.of("message", "草稿已保存"));
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+  }
+
+  /** 查询未完成实验 */
+  @GetMapping("/unfinished")
+  public ResponseEntity<?> getUnfinished(
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null)
+      return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    var list = experimentService.getUnfinishedExperiments(userId);
+    return ResponseEntity.ok(list);
+  }
+
+  /** 删除实验（级联删除步骤） */
+  @DeleteMapping("/{experimentId}")
+  public ResponseEntity<?> deleteExperiment(
+      @PathVariable String experimentId,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null)
+      return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    try {
+      experimentService.deleteExperiment(experimentId);
+      return ResponseEntity.ok(Map.of("message", "已删除"));
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+  }
+
+  /** 获取步骤草稿数据（恢复用） */
+  @GetMapping("/step/draft")
+  public ResponseEntity<?> getStepDraft(
+      @RequestParam String experimentId,
+      @RequestParam String stepId,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null)
+      return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    var data = experimentService.getStepDraftData(experimentId, stepId);
+    return ResponseEntity.ok(data);
+  }
 }

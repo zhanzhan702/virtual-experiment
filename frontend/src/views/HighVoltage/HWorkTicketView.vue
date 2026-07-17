@@ -2,6 +2,11 @@
   <div class="experiment-scene">
     <div class="scroll-wrapper">
       <WorkTicketForm @submit-ticket="handleTicketSubmit" />
+      <div class="save-bar">
+        <el-button type="info" size="default" @click="saveProgress" :loading="saving">
+          <el-icon><FolderOpened /></el-icon> 保存进度
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -10,7 +15,8 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { submitStep } from '@/api/experiment'
+import { FolderOpened } from '@element-plus/icons-vue'
+import { submitStep, saveDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
 
@@ -22,6 +28,27 @@ const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 // 页面加载时记录步骤开始时间（非提交时）
 const startedAt = ref(formatLocalTime(new Date()))
+const saving = ref(false)
+
+// 保存进度
+const saveProgress = async () => {
+  saving.value = true
+  try {
+    await saveDraft({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 0,
+      durationSeconds: 0,
+      resultData: null,
+      startedAt: startedAt.value
+    })
+    ElMessage.success('进度已保存')
+  } catch (err) {
+    ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+  } finally {
+    saving.value = false
+  }
+}
 
 // 接收子组件抛出的提交事件
 const handleTicketSubmit = async (result) => {
@@ -112,5 +139,13 @@ const handleTicketSubmit = async (result) => {
 
 .scroll-wrapper::-webkit-scrollbar-thumb:hover {
   background: #7a8085;
+}
+
+.save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e4e7ed;
 }
 </style>

@@ -15,6 +15,12 @@
 
     <WizardInventorySelection :categories="categories" @finish="handleToolSelectionSubmit" @operation="handleOperation"
       @submit-error="handleSubmitError" />
+
+    <div class="save-bar">
+      <el-button type="info" size="default" @click="saveProgress" :loading="saving">
+        <el-icon><FolderOpened /></el-icon> 保存进度
+      </el-button>
+    </div>
   </div>
 </template>
 
@@ -22,10 +28,10 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Suitcase } from '@element-plus/icons-vue'
+import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
-import { submitStep } from '@/api/experiment'
+import { submitStep, saveDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 
 const route = useRoute()
@@ -37,6 +43,28 @@ const stepId = ref(route.query.stepId || '')
 
 // 页面加载时记录步骤开始时间（非提交时）
 const startedAt = ref(formatLocalTime(new Date()))
+const saving = ref(false)
+
+// 保存进度
+const saveProgress = async () => {
+  saving.value = true
+  try {
+    await saveDraft({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 0,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      startedAt: startedAt.value
+    })
+    ElMessage.success('进度已保存')
+  } catch (err) {
+    ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+  } finally {
+    saving.value = false
+  }
+}
 
 // 操作统计
 const stats = reactive({
@@ -132,5 +160,11 @@ const handleToolSelectionSubmit = async (selectedMap) => {
 .view-subtitle {
   font-size: 14px;
   color: #909399;
+}
+
+.save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

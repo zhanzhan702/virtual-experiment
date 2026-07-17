@@ -9,3 +9,23 @@ export function startExperiment(templateCode) {
 export function submitStep(data) {
   return request.post('/experiment/step/submit', data)
 }
+
+/** 保存步骤草稿 */
+export function saveDraft(data) {
+  return request.post('/experiment/step/draft', data)
+}
+
+/** 查询未完成实验列表 */
+export function getUnfinishedExperiments() {
+  return request.get('/experiment/unfinished')
+}
+
+/** 删除实验（级联删除步骤） */
+export function deleteExperiment(experimentId) {
+  return request.delete(`/experiment/${experimentId}`)
+}
+
+/** 获取步骤草稿数据 */
+export function getStepDraft(experimentId, stepId) {
+  return request.get('/experiment/step/draft', { params: { experimentId, stepId } })
+}
