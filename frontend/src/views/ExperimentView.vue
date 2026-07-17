@@ -34,8 +34,10 @@ async function onScenarioSelect(type) {
                 const path = stepRouteMap[exp.nextStepOrder] || '/HWT'
                 router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
                 return
-            } catch {
-                // 重新开始 → 删除所有未完成实验
+            } catch (action) {
+                // 点 × 或遮罩 → 关闭弹窗，不做任何操作
+                if (action !== 'cancel') return
+                // 点"重新开始" → 删除所有未完成实验，继续走正常启动
                 for (const e of list) {
                     try { await deleteExperiment(e.experimentId) } catch (_) { /* ignore */ }
                 }
