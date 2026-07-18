@@ -214,6 +214,12 @@ public class ExperimentServiceImpl implements ExperimentService {
 
   @Override
   public void deleteExperiment(String experimentId) {
+    var exp = userExperimentsMapper.selectById(experimentId);
+    if (exp == null) return;
+    // 仅允许删除未完成的实验，已完成的受保护
+    if (exp.getStatus() != null && exp.getStatus() == 1) {
+      throw new RuntimeException("已完成实验不可删除");
+    }
     userExperimentStepsMapper.delete(
         new LambdaQueryWrapper<UserExperimentSteps>()
             .eq(UserExperimentSteps::getExperimentId, experimentId));
