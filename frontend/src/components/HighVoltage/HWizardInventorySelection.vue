@@ -44,7 +44,7 @@
                 <!-- 中间：工器具卡片 -->
                 <div class="tool-panel">
                     <!-- 工具卡片网格（分页） -->
-                    <div class="tool-grid">
+                    <div class="tool-grid" ref="gridContainer">
                         <div v-for="tool in currentPageTools" :key="tool.id" class="tool-card" :class="{
                             selected: isSelected(currentCategory.key, tool.id)
                         }" @click="toggleTool(tool)">
@@ -194,7 +194,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
     Check, Close, Delete, ArrowLeft, ArrowRight, Finished,
@@ -219,7 +219,8 @@ const selectedMap = ref({})
 const errorMap = ref({})
 const errorDialogVisible = ref(false)
 const toolPage = ref(0)
-const TOOLS_PER_PAGE = 9
+const TOOLS_PER_PAGE = ref(9)
+const gridContainer = ref(null)
 
 // 初始化
 props.categories.forEach(cat => {
@@ -227,16 +228,42 @@ props.categories.forEach(cat => {
     errorMap.value[cat.key] = []
 })
 
+// 动态计算每页卡片数
+function calcToolsPerPage() {
+    nextTick(() => {
+        const grid = gridContainer.value
+        if (!grid) return
+        const style = getComputedStyle(grid)
+        const gap = parseInt(style.gridRowGap || style.gap || '10')
+        const cardMinH = 148
+        const availH = grid.clientHeight
+        const rows = Math.max(1, Math.floor((availH + gap) / (cardMinH + gap)))
+        const cols = Math.max(2, style.gridTemplateColumns.split(' ').length || 3)
+        TOOLS_PER_PAGE.value = rows * cols
+    })
+}
+
+onMounted(calcToolsPerPage)
+
+let resizeObserver = null
+onMounted(() => {
+    resizeObserver = new ResizeObserver(calcToolsPerPage)
+    if (gridContainer.value) resizeObserver.observe(gridContainer.value)
+})
+onUnmounted(() => {
+    if (resizeObserver) resizeObserver.disconnect()
+})
+
 // ============ 计算属性 ============
 const currentCategory = computed(() => props.categories[activeStep.value])
 
 // 当前分类工具分页
 const totalPages = computed(() => {
-    return Math.ceil(currentCategory.value.tools.length / TOOLS_PER_PAGE)
+    return Math.ceil(currentCategory.value.tools.length / TOOLS_PER_PAGE.value)
 })
 const currentPageTools = computed(() => {
-    const start = toolPage.value * TOOLS_PER_PAGE
-    return currentCategory.value.tools.slice(start, start + TOOLS_PER_PAGE)
+    const start = toolPage.value * TOOLS_PER_PAGE.value
+    return currentCategory.value.tools.slice(start, start + TOOLS_PER_PAGE.value)
 })
 
 const isLastStep = computed(() => activeStep.value === props.categories.length - 1)
@@ -267,21 +294,6 @@ const allPagesFilled = computed(() => {
         const selected = selectedMap.value[cat.key] || []
         return selected.length >= getRequiredCount(cat)
     })
-})
-
-const selectionStatusType = computed(() => {
-    const count = currentSelected.value.length
-    const required = getRequiredCount(currentCategory.value)
-    if (count >= required) return 'success'
-    if (count > 0) return 'warning'
-    return 'info'
-})
-
-const selectionStatusText = computed(() => {
-    const count = currentSelected.value.length
-    const required = getRequiredCount(currentCategory.value)
-    if (count >= required) return `已满足要求 (${count}/${required})`
-    return `还需 ${required - count} 项 (${count}/${required})`
 })
 
 const totalSelected = computed(() => {

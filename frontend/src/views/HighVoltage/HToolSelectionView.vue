@@ -1,18 +1,5 @@
 <template>
   <div class="tool-selection-view">
-    <!-- 页面标题 -->
-    <div class="view-header">
-      <div class="view-title">
-        <el-icon :size="24">
-          <Suitcase />
-        </el-icon>
-        <span>选择工器具</span>
-      </div>
-      <div class="view-subtitle">
-        请依次选择正确的个人防护用具、终端设备、工器具和线材，确保作业安全
-      </div>
-    </div>
-
     <WizardInventorySelection ref="wizardRef" :categories="categories" @finish="handleToolSelectionSubmit"
       @operation="handleOperation" @submit-error="handleSubmitError" />
 
@@ -131,9 +118,10 @@ const handleToolSelectionSubmit = async (selectedMap) => {
 <style scoped>
 .tool-selection-view {
   position: relative;
-  padding: 24px;
-  height: 100%;
-  min-height: 100vh;
+  padding: 28px;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
   background: linear-gradient(180deg, rgba(240, 245, 255, 0.82) 0%, rgba(245, 247, 250, 0.82) 100%);
 }
 
@@ -155,26 +143,7 @@ const handleToolSelectionSubmit = async (selectedMap) => {
   z-index: 1;
 }
 
-.view-header {
-  text-align: center;
-  margin-bottom: 24px;
-}
 
-.view-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.view-subtitle {
-  font-size: 14px;
-  color: #909399;
-}
 
 .save-bar-fixed {
   position: fixed;
