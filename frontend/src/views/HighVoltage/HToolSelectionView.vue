@@ -132,8 +132,6 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     position: relative;
     z-index: 1;
 }
-<<<<<<< HEAD
-=======
 
 .view-header {
     text-align: center;
@@ -162,5 +160,4 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     right: 24px;
     z-index: 100;
 }
->>>>>>> 15ef3d44b0bca2cff592f7828085623b38172b74
 </style>
