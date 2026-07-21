@@ -17,9 +17,11 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 async function onScenarioSelect(type) {
-  // 先检查是否有未完成实验
+  // 先检查是否有未完成实验（按场景类型过滤）
   try {
-    const list = await getUnfinishedExperiments()
+    const category = type === 'high' ? 'high_voltage' : 'low_voltage'
+    const allList = await getUnfinishedExperiments()
+    const list = allList.filter(e => e.category === category)
     if (list.length > 0) {
       const exp = list[0]
       try {
@@ -31,8 +33,10 @@ async function onScenarioSelect(type) {
         )
         // 继续 → 跳转到当前未完成步骤
         sessionStorage.setItem('experimentId', exp.experimentId)
-        const stepRouteMap = { 1: '/HWT', 2: '/HTS' }
-        const path = stepRouteMap[exp.nextStepOrder] || '/HWT'
+        const stepRouteMap = type === 'high'
+          ? { 1: '/HWT', 2: '/HTS' }
+          : { 1: '/LWT', 2: '/LTS' }
+        const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
         router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
         return
       } catch (action) {
