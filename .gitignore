@@ -85,3 +85,11 @@ __screenshots__/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+# ====================
+# 云端配置 / 辅助工具
+# ====================
+.github/
+.reasonix/
+reasonix/
+reasonix.toml
