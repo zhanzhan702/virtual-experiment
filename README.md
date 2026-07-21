@@ -31,17 +31,16 @@ virtual-experiment/
 │   ├── src/main/java/com/example/experiment/
 │   │   ├── config/
 │   │   │   ├── WebConfig.java               # CORS 跨域配置
-│   │   │   └── DataInitializer.java         # 开发环境：自动插入实验模板
 │   │   ├── controller/
 │   │   │   ├── HelloController.java         # 健康检查 /api/hello
 │   │   │   ├── AuthController.java          # 注册 / 登录接口
-│   │   │   └── ExperimentController.java    # 实验启动 / 步骤提交接口
+│   │   │   └── ExperimentController.java    # 实验启动 / 步骤提交 / 存档 / 恢复
 │   │   ├── service/
 │   │   │   ├── UserService.java             # 用户服务接口
-│   │   │   ├── ExperimentService.java       # 实验服务接口
+│   │   │   ├── ExperimentService.java       # 实验服务接口（含存档）
 │   │   │   └── impl/
 │   │   │       ├── UserServiceImpl.java     # 用户服务实现（注册 / 登录）
-│   │   │       └── ExperimentServiceImpl.java # 实验服务实现（启动 / 步骤提交）
+│   │   │       └── ExperimentServiceImpl.java # 实验服务实现（启动 / 提交 / 存档 / 删除）
 │   │   ├── mapper/                          # MyBatis-Plus Mapper（8 张表）
 │   │   ├── entity/                          # 数据库实体（8 张表）
 │   │   │   ├── Users.java                   # 用户
@@ -61,7 +60,8 @@ virtual-experiment/
 │   │   │   └── experiment/                  # 实验相关 DTO
 │   │   │       ├── ExperimentStartDTO.java
 │   │   │       ├── ExperimentStartVO.java
-│   │   │       └── ExperimentStepSubmitDTO.java
+│   │   │       ├── ExperimentStepSubmitDTO.java
+│   │   │       └── UnfinishedExperimentVO.java
 │   │   ├── handler/
 │   │   │   └── UUIDTypeHandler.java         # UUID ↔ BINARY(16) 类型转换
 │   │   └── utils/
@@ -72,14 +72,19 @@ virtual-experiment/
 │   │   └── db/migration/                    # Flyway 数据库迁移
 │   │       ├── V1__init_tables.sql           # 建表（8 张表）
 │   │       ├── V2__create_data.sql           # 初始数据（组织 / 角色 / 用户）
-│   │       └── V3__experiment_templates.sql  # 高压实验模板 + 步骤 1
+│   │       ├── V3__experiment_templates.sql  # 高压实验模板 + 步骤 1
+│   │       └── V4__low_experiment_templates.sql # 低压实验模板 + 步骤
 │   └── pom.xml
+│
+├── .github/
+│   └── instructions/
+│       └── project-conventions.instructions.md  # 项目开发规范
 │
 ├── frontend/                                # 前端 Vue 3 + Vite 工程
 │   ├── src/
 │   │   ├── api/
 │   │   │   ├── auth.js                      # 登录 / 注册 API
-│   │   │   └── experiment.js                # 实验 API（启动 / 步骤提交）
+│   │   │   └── experiment.js                # 实验 API（启动 / 提交 / 存档 / 恢复 / 删除）
 │   │   ├── assets/                          # 图片等静态资源
 │   │   ├── components/
 │   │   │   ├── LoginForm.vue                # 登录表单（Element Plus）
@@ -89,8 +94,9 @@ virtual-experiment/
 │   │   │   ├── ScenarioSelector.vue         # 高 / 低压场景选择
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
-│   │   │   │   └── HWizardInventorySelection.vue # 工器具选择向导
-│   │   │   └── LowVoltage/                  # 低压场景组件（待完善）
+│   │   │   │   └── HWizardInventorySelection.vue # 工器具选择向导（含分页）
+│   │   │   └── LowVoltage/
+│   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
 │   │   ├── views/
 │   │   │   ├── LoginView.vue                # 登录页
 │   │   │   ├── RegisterView.vue             # 学生注册页
@@ -98,15 +104,19 @@ virtual-experiment/
 │   │   │   ├── AdminView.vue                # 管理后台页
 │   │   │   ├── TestView.vue                 # 后端连通性测试页
 │   │   │   ├── HighVoltage/
-│   │   │   │   ├── HWorkTicket.vue          # 工作票填写步骤页
+│   │   │   │   ├── HWorkTicketView.vue      # 工作票填写步骤页
 │   │   │   │   └── HToolSelectionView.vue   # 工器具选择步骤页
-│   │   │   └── LowVoltage/                  # 低压场景页面（待完善）
+│   │   │   └── LowVoltage/
+│   │   │       └── LWorkTicketView.vue      # 低压工作票步骤页
 │   │   ├── stores/
 │   │   │   └── auth.js                      # 用户认证状态（Pinia）
 │   │   ├── router/
 │   │   │   └── index.js                     # 路由配置
 │   │   ├── utils/
-│   │   │   └── request.js                   # Axios 拦截器（JWT 注入 / 错误处理）
+│   │   │   ├── request.js                   # Axios 拦截器（JWT 注入 / 错误处理）
+│   │   │   └── time.js                      # 本地时间格式化工具
+│   │   ├── constants/
+│   │   │   └── tool-selection-config.js     # 工器具选择配置
 │   │   ├── App.vue
 │   │   └── main.js
 │   ├── vite.config.js                       # Vite 配置（含 /api 代理）
@@ -209,10 +219,14 @@ npm run dev
 
 ### 实验
 
-| 方法 | 路径                       | 说明                              | 认证        |
-| ---- | -------------------------- | --------------------------------- | ----------- |
-| POST | `/api/experiment/start`    | 启动实验（传入 templateCode）     | Bearer JWT  |
-| POST | `/api/experiment/step/submit` | 提交步骤结果（更新进度/评分）  | Bearer JWT  |
+| 方法   | 路径                          | 说明                   | 认证       |
+| ------ | ----------------------------- | ---------------------- | ---------- |
+| POST   | `/api/experiment/start`       | 启动实验               | Bearer JWT |
+| POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）   | Bearer JWT |
+| POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分） | Bearer JWT |
+| GET    | `/api/experiment/unfinished`  | 查询未完成实验         | Bearer JWT |
+| GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据       | Bearer JWT |
+| DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联） | Bearer JWT |
 
 ### 登录响应示例
 
@@ -260,8 +274,9 @@ npm run dev
 | `/register`   | 学生注册页       | 公开              |
 | `/experiment` | 实验场景选择页   | 登录即可          |
 | `/admin`      | 管理后台         | 教师 / 管理员     |
-| `/HWT`        | 工作票填写步骤   | 登录即可          |
-| `/WIS`        | 工器具选择步骤   | 登录即可          |
+| `/HWT`        | 高压工作票填写步骤 | 登录即可          |
+| `/HTS`        | 高压工器具选择步骤 | 登录即可          |
+| `/LWT`        | 低压工作票填写步骤 | 登录即可          |
 
 ---
 
@@ -287,4 +302,7 @@ npm run dev
 - **密码**：BCrypt 加密存储，`UUIDTypeHandler` 不会误拦截 BCrypt 哈希（通过 hex 模式 + 16 字节长度双重校验）
 - **UUID**：`BINARY(16)` 列通过全局 `UUIDTypeHandler` 自动与 Java `String`（32 位 hex）互转
 - **DTO 按域分包**：`dto/auth/` 存放认证相关，`dto/experiment/` 存放实验相关
-- **JWT**：登录签发 24h 有效 token，前端通过 Axios 拦截器自动注入 `Authorization: Bearer <token>`
+- **实验存档**：支持保存进度草稿（全量表单数据），下次进入时询问是否继续
+- **级联删除**：重新开始时仅删除未完成实验（status=0），已完成实验受保护
+- **操作统计**：自动记录操作次数、错误次数、耗时，作为评分依据
+- **评分机制**：满分 100 分，每错误一次扣 10 分，最低 0 分
