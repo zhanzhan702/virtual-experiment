@@ -1,6 +1,28 @@
 <template>
     <div class="tool-selection-view">
-        <WizardInventorySelection :categories="categories" @finish="handleFinish" />
+        <!-- 页面标题 -->
+        <div class="view-header">
+            <div class="view-title">
+                <el-icon :size="24">
+                    <Suitcase />
+                </el-icon>
+                <span>选择工器具</span>
+            </div>
+            <div class="view-subtitle">
+                请依次选择正确的个人防护用具、终端设备、工器具和线材，确保作业安全
+            </div>
+        </div>
+
+        <WizardInventorySelection ref="wizardRef" :categories="categories"
+            @finish="handleToolSelectionSubmit"
+            @operation="handleOperation"
+            @submit-error="handleSubmitError" />
+
+        <div class="save-bar-fixed">
+            <el-button type="info" size="default" @click="saveProgress" :loading="saving">
+                <el-icon><FolderOpened /></el-icon> 保存进度
+            </el-button>
+        </div>
     </div>
 </template>
 
@@ -109,11 +131,10 @@ const handleToolSelectionSubmit = async (selectedMap) => {
 <style scoped>
 .tool-selection-view {
     position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    padding: 14px 18px;
-    box-sizing: border-box;
+    padding: 24px;
+    height: 100%;
+    min-height: 100vh;
+    background: linear-gradient(180deg, rgba(240, 245, 255, 0.82) 0%, rgba(245, 247, 250, 0.82) 100%);
 }
 
 .tool-selection-view::before {
@@ -124,6 +145,7 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    opacity: 0.6;
     z-index: 0;
     pointer-events: none;
 }

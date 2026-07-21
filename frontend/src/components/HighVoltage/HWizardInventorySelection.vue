@@ -1,99 +1,87 @@
 <template>
     <div class="wizard-container">
-        <!-- 主体区域 -->
-        <div class="content-layout">
-            <!-- 左侧：已选工具 -->
-            <div class="left-panel">
-                <div class="left-header">
-                    <span class="left-title">已选工具</span>
-                    <el-button text size="small" type="danger" :disabled="totalSelected === 0" @click="resetCurrent">
-                        <el-icon><Delete /></el-icon>
-                    </el-button>
-                </div>
-                <div v-if="totalSelected === 0" class="left-empty">暂未选择工具</div>
-                <div v-else class="left-list">
-                    <div v-for="tool in allSelectedTools" :key="tool.id" class="left-item"
-                        :class="{ 'left-err': isWrong(tool.categoryKey, tool.id) }"
-                        @click="removeTool(tool)">
-                        <span class="left-ico">{{ tool.icon }}</span>
-                        <span class="left-name">{{ tool.name }}</span>
-                        <span class="left-cat">{{ tool.categoryTitle }}</span>
-                        <el-icon class="left-del"><Close /></el-icon>
+        <!-- 顶部步骤条 -->
+        <div class="steps-wrapper">
+            <div class="steps-bar">
+                <div v-for="(cat, index) in categories" :key="cat.key" class="step-item" :class="{
+                    active: index === activeStep,
+                    done: index < activeStep,
+                    'has-error': hasStepError(cat.key)
+                }" @click="goToStep(index)">
+                    <div class="step-dot">
+                        <el-icon v-if="index < activeStep && !hasStepError(cat.key)" class="step-check">
+                            <Check />
+                        </el-icon>
+                        <el-icon v-else-if="hasStepError(cat.key)" class="step-error-icon">
+                            <Close />
+                        </el-icon>
+                        <span v-else class="step-num">{{ index + 1 }}</span>
                     </div>
-                </div>
-            </div>
-
-            <!-- 中间列 -->
-            <div class="center-column">
-                <!-- Tab 标签栏 -->
-                <div class="tabs-bar">
-                    <div v-for="(cat, index) in categories" :key="cat.key" class="tab-item" :class="{
-                        active: index === activeStep,
-                        done: index < activeStep
-                    }" @click="goToStep(index)">
-                        <el-icon class="tab-icon">
+                    <div class="step-info">
+                        <el-icon class="step-icon">
                             <component :is="cat.icon" />
                         </el-icon>
-                        <span class="tab-title">{{ cat.title }}</span>
-                        <span class="tab-count">
+                        <span class="step-title">{{ cat.title }}</span>
+                        <span class="step-count">
                             {{ getSelectedCount(cat.key) }}/{{ getRequiredCount(cat) }}
                         </span>
                     </div>
+                    <div v-if="index < categories.length - 1" class="step-line"
+                        :class="{ filled: index < activeStep }" />
+                </div>
+            </div>
+        </div>
+
+        <!-- 主体区域 -->
+        <div class="content-layout">
+            <!-- 左侧工器具选择面板 -->
+            <div class="tool-panel">
+                <div class="panel-header">
+                    <div class="header-left">
+                        <el-icon class="header-icon">
+                            <component :is="currentCategory.icon" />
+                        </el-icon>
+                        <div>
+                            <div class="header-title">{{ currentCategory.title }} 工器具选择</div>
+                            <div class="header-desc">
+                                请选择 {{ getRequiredCount(currentCategory) }} 项工器具
+                                <span
+                                    v-if="currentCategory.requiredCount !== undefined && currentCategory.requiredCount !== null">
+                                    （任意{{ currentCategory.requiredCount }}项即可进入下一步）
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <el-tag :type="selectionStatusType" size="large" effect="plain" round>
+                            {{ selectionStatusText }}
+                        </el-tag>
+                    </div>
                 </div>
 
-                <!-- 中间：工器具卡片 -->
-                <div class="tool-panel">
-                    <!-- 工具卡片网格（分页） -->
-                    <div class="tool-grid">
-                        <div v-for="tool in currentPageTools" :key="tool.id" class="tool-card" :class="{
-                            selected: isSelected(currentCategory.key, tool.id)
-                        }" @click="toggleTool(tool)">
-                            <div class="card-img">
-                                <span class="card-emoji">{{ tool.icon }}</span>
-                                <div v-if="isSelected(currentCategory.key, tool.id)" class="card-check">
-                                    <el-icon>
-                                        <Check />
-                                    </el-icon>
-                                </div>
+                <div class="tool-grid">
+                    <div v-for="tool in currentCategory.tools" :key="tool.id" class="tool-card" :class="{
+                        selected: isSelected(currentCategory.key, tool.id),
+                        wrong: isWrong(currentCategory.key, tool.id),
+                        'wrong-flash': isWrong(currentCategory.key, tool.id)
+                    }" @click="toggleTool(tool)">
+                        <div class="card-img">
+                            <span class="card-emoji">{{ tool.icon }}</span>
+                            <div v-if="isSelected(currentCategory.key, tool.id)" class="card-check">
+                                <el-icon>
+                                    <Check />
+                                </el-icon>
                             </div>
-                            <div class="card-body">
-                                <div class="card-name">{{ tool.name }}</div>
-                                <div class="card-desc">{{ tool.description }}</div>
+                            <div v-else-if="isWrong(currentCategory.key, tool.id)" class="card-wrong-mark">
+                                <el-icon>
+                                    <Close />
+                                </el-icon>
                             </div>
                         </div>
-                    </div>
-                    <!-- 分页导航 -->
-                    <div v-if="totalPages > 1" class="pagi-bar">
-                        <button class="pagi-btn" :disabled="toolPage === 0" @click="prevToolPage">
-                            <el-icon><ArrowLeft /></el-icon>
-                        </button>
-                        <div class="pagi-dots">
-                            <span v-for="p in totalPages" :key="p" class="pagi-dot"
-                                :class="{ active: p - 1 === toolPage }" />
+                        <div class="card-body">
+                            <div class="card-name">{{ tool.name }}</div>
+                            <div class="card-desc">{{ tool.description }}</div>
                         </div>
-                        <button class="pagi-btn" :disabled="toolPage >= totalPages - 1" @click="nextToolPage">
-                            <el-icon><ArrowRight /></el-icon>
-                        </button>
-                    </div>
-
-                    <!-- 操作按钮 -->
-                    <div class="action-bar">
-                        <el-button size="default" @click="prevStep" :disabled="activeStep === 0">
-                            <el-icon><ArrowLeft /></el-icon> 上一步
-                        </el-button>
-                        <el-button v-if="!isLastStep" size="default" type="primary" :disabled="!canProceed" @click="nextStep">
-                            下一步
-                            <el-icon>
-                                <ArrowRight />
-                            </el-icon>
-                        </el-button>
-                        <el-button v-else size="default" type="success" :disabled="!allPagesFilled" @click="submitSelection"
-                            :loading="submitting">
-                            <el-icon>
-                                <Finished />
-                            </el-icon>
-                            提交工器具选择
-                        </el-button>
                     </div>
                 </div>
             </div>
@@ -172,22 +160,88 @@
             </div>
         </div>
 
+        <!-- 底部已选 + 操作栏 -->
+        <div class="bottom-bar">
+            <div class="selected-area">
+                <div class="selected-header">
+                    <span class="selected-title">已选工器具</span>
+                    <el-button text size="small" type="danger" :disabled="totalSelected === 0" @click="resetCurrent">
+                        <el-icon>
+                            <Delete />
+                        </el-icon>
+                        清空当前页
+                    </el-button>
+                </div>
+                <div v-if="totalSelected === 0" class="selected-empty">
+                    <el-icon :size="20">
+                        <InfoFilled />
+                    </el-icon>
+                    暂未选择任何工器具，请在左侧面板进行选择
+                </div>
+                <div v-else class="selected-scroll">
+                    <div v-for="tool in allSelectedTools" :key="tool.id" class="selected-chip"
+                        :class="{ 'chip-wrong': isWrong(tool.categoryKey, tool.id) }">
+                        <span class="chip-emoji">{{ tool.icon }}</span>
+                        <span class="chip-name">{{ tool.name }}</span>
+                        <span class="chip-category">{{ tool.categoryTitle }}</span>
+                        <el-icon class="chip-remove" :size="14" @click.stop="removeTool(tool)">
+                            <Close />
+                        </el-icon>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <el-button size="large" @click="prevStep" :disabled="activeStep === 0">
+                    <el-icon>
+                        <ArrowLeft />
+                    </el-icon>
+                    上一步
+                </el-button>
+                <el-button v-if="!isLastStep" size="large" type="primary" :disabled="!canProceed" @click="nextStep">
+                    下一步
+                    <el-icon>
+                        <ArrowRight />
+                    </el-icon>
+                </el-button>
+                <el-button v-else size="large" type="success" :disabled="!allPagesFilled" @click="submitSelection"
+                    :loading="submitting">
+                    <el-icon>
+                        <Finished />
+                    </el-icon>
+                    提交工器具选择
+                </el-button>
+            </div>
+        </div>
+
         <!-- 提交错误反馈对话框 -->
-        <el-dialog v-model="errorDialogVisible" title="校验不通过" width="560px" :close-on-click-modal="false" center>
-            <div class="err-dialog">
-                <el-icon :size="44" color="#f56c6c"><WarningFilled /></el-icon>
-                <p>共 <strong>{{ errorMessages.length }}</strong> 处错误：</p>
-                <div class="err-list">
-                    <div v-for="(msg, idx) in errorMessages" :key="idx" class="err-item"
+        <el-dialog v-model="errorDialogVisible" title="工器具选择校验不通过" width="600px" :close-on-click-modal="false" center>
+            <div class="error-dialog-body">
+                <div class="error-icon-area">
+                    <el-icon :size="48" color="#f56c6c">
+                        <WarningFilled />
+                    </el-icon>
+                </div>
+                <p class="error-summary">
+                    共发现 <strong>{{ errorMessages.length }}</strong> 处错误，请检查以下页面：
+                </p>
+                <div class="error-list">
+                    <div v-for="(msg, idx) in errorMessages" :key="idx" class="error-item"
                         @click="goToErrorPage(msg.categoryKey)">
-                        <el-tag type="danger" size="small" round>{{ msg.categoryTitle }}</el-tag>
-                        <span>{{ msg.text }}</span>
-                        <el-icon><Right /></el-icon>
+                        <el-tag type="danger" effect="dark" size="small" round>
+                            {{ msg.categoryTitle }}
+                        </el-tag>
+                        <span class="error-text">{{ msg.text }}</span>
+                        <el-icon class="error-goto">
+                            <Right />
+                        </el-icon>
                     </div>
                 </div>
             </div>
             <template #footer>
-                <el-button type="primary" @click="errorDialogVisible = false">去修改</el-button>
+                <el-button type="primary" @click="errorDialogVisible = false">
+                    我知道了，去修改
+                </el-button>
             </template>
         </el-dialog>
     </div>
@@ -216,10 +270,8 @@ const activeStep = ref(0)
 const submitting = ref(false)
 const hasSubmitted = ref(false)
 const selectedMap = ref({})
-const errorMap = ref({})
+const errorMap = ref({})       // { categoryKey: [wrongToolIds] }
 const errorDialogVisible = ref(false)
-const toolPage = ref(0)
-const TOOLS_PER_PAGE = 9
 
 // 初始化
 props.categories.forEach(cat => {
@@ -229,15 +281,6 @@ props.categories.forEach(cat => {
 
 // ============ 计算属性 ============
 const currentCategory = computed(() => props.categories[activeStep.value])
-
-// 当前分类工具分页
-const totalPages = computed(() => {
-    return Math.ceil(currentCategory.value.tools.length / TOOLS_PER_PAGE)
-})
-const currentPageTools = computed(() => {
-    const start = toolPage.value * TOOLS_PER_PAGE
-    return currentCategory.value.tools.slice(start, start + TOOLS_PER_PAGE)
-})
 
 const isLastStep = computed(() => activeStep.value === props.categories.length - 1)
 
@@ -383,8 +426,7 @@ const errorMessages = computed(() => {
 
         let text = ''
         if (missingNames.length > 0 && wrongNames.length > 0) {
-            //text = `选错了 ${wrongNames.join('、')}，应为 ${missingNames.join('、')}`
-            text = `选错了 ${wrongNames.join('、')}`
+            text = `选错了 ${wrongNames.join('、')}，应为 ${missingNames.join('、')}`
         } else if (missingNames.length > 0) {
             text = `缺少 ${missingNames.join('、')}`
         } else if (wrongNames.length > 0) {
@@ -443,35 +485,21 @@ function removeTool(tool) {
     if (idx > -1) {
         selected.splice(idx, 1)
     }
+    // 清除对应页面的错误状态
     if (hasSubmitted.value && errorMap.value[tool.categoryKey].length > 0) {
         errorMap.value[tool.categoryKey] = []
     }
     emit('operation')
 }
 
-function nextToolPage() {
-    if (toolPage.value < totalPages.value - 1) toolPage.value++
-}
-function prevToolPage() {
-    if (toolPage.value > 0) toolPage.value--
-}
-
 function resetCurrent() {
-    // 清空所有分类的已选和错误状态
-    props.categories.forEach(cat => {
-        if (Array.isArray(selectedMap.value[cat.key])) {
-            selectedMap.value[cat.key].splice(0)
-        }
-        if (Array.isArray(errorMap.value[cat.key])) {
-            errorMap.value[cat.key].splice(0)
-        }
-    })
+    selectedMap.value[currentCategory.value.key] = []
+    errorMap.value[currentCategory.value.key] = []
     emit('operation')
 }
 
 function goToStep(index) {
     activeStep.value = index
-    toolPage.value = 0
 }
 
 function goToErrorPage(catKey) {
@@ -485,7 +513,6 @@ function goToErrorPage(catKey) {
 function prevStep() {
     if (activeStep.value > 0) {
         activeStep.value--
-        toolPage.value = 0
     }
 }
 
@@ -496,7 +523,6 @@ function nextStep() {
         return
     }
     activeStep.value++
-    toolPage.value = 0
 }
 
 function submitSelection() {
@@ -530,7 +556,7 @@ function submitSelection() {
         errorDialogVisible.value = true
     } else {
         // 全部正确
-        // ElMessage.success('🎉 工器具选择全部正确！')
+        ElMessage.success('🎉 工器具选择全部正确！')
         emit('finish', { ...selectedMap.value })
     }
 }
@@ -543,327 +569,739 @@ defineExpose({ selectedMap })
 .wizard-container {
     width: 100%;
     max-width: 1200px;
-    height: 100%;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    overflow: hidden;
+    padding: 24px 0;
 }
 
-/* ========== 中间列（包裹 Tab + 工具面板） ========== */
-.center-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    overflow: hidden;
-    align-self: stretch;
+/* ========== 步骤条 ========== */
+.steps-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* ========== Tab 标签栏 ========== */
-.tabs-bar {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    flex-shrink: 0;
-    background: rgba(255,255,255,.85);
-    backdrop-filter: blur(8px);
-    border-radius: 10px 10px 0 0;
-    overflow: hidden;
-    box-shadow: 0 -1px 8px rgba(0,0,0,.04);
-}
-
-.tab-item {
-    flex: 1;
+.steps-bar {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 12px 10px;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     cursor: pointer;
-    user-select: none;
-    transition: all .25s;
-    background: #f5f7fa;
-    border-bottom: 3px solid transparent;
     position: relative;
+    user-select: none;
+    transition: all 0.25s;
+}
+
+.step-item:hover {
+    transform: translateY(-1px);
+}
+
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8eaed;
+    color: #999;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.step-item.active .step-dot {
+    background: linear-gradient(135deg, #409eff, #66b1ff);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.35);
+    transform: scale(1.1);
+}
+
+.step-item.done .step-dot {
+    background: linear-gradient(135deg, #67c23a, #85ce61);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(103, 194, 58, 0.3);
+}
+
+.step-item.has-error .step-dot {
+    background: linear-gradient(135deg, #f56c6c, #f89898);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(245, 108, 108, 0.35);
+    animation: pulse-error 2s infinite;
+}
+
+@keyframes pulse-error {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 12px rgba(245, 108, 108, 0.35);
+    }
+
+    50% {
+        box-shadow: 0 4px 20px rgba(245, 108, 108, 0.55);
+    }
+}
+
+.step-check,
+.step-error-icon {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.step-num {
+    font-size: 14px;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.step-icon {
+    font-size: 16px;
+    color: #909399;
+    transition: color 0.3s;
+}
+
+.step-item.active .step-icon {
+    color: #409eff;
+}
+
+.step-item.done .step-icon {
+    color: #67c23a;
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #606266;
+    transition: color 0.3s;
+}
+
+.step-item.active .step-title {
+    color: #303133;
+    font-weight: 600;
+}
+
+.step-count {
+    font-size: 12px;
+    color: #909399;
+    background: #f5f7fa;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.step-line {
+    width: 48px;
+    height: 2px;
+    background: #e4e7ed;
+    margin: 0 12px;
+    transition: background 0.4s;
+    border-radius: 1px;
+}
+
+.step-line.filled {
+    background: #67c23a;
+}
+
+/* ========== 主体布局 ========== */
+.content-layout {
+    display: flex;
+    gap: 20px;
+    min-height: 520px;
+}
+
+/* ========== 左侧工具面板 ========== */
+.tool-panel {
+    flex: 1.4;
+    min-width: 0;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f2f5;
+}
+
+.header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.header-icon {
+    font-size: 28px;
+    color: #409eff;
+    margin-top: 2px;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #303133;
+    margin-bottom: 4px;
+}
+
+.header-desc {
     font-size: 13px;
     color: #909399;
 }
-.tab-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20%;
-    height: 60%;
-    width: 1px;
-    background: #e4e7ed;
-}
-.tab-item:hover {
-    background: #ecf5ff;
-    color: #409eff;
-}
-.tab-item.active {
-    background: #fff;
-    color: #303133;
-    font-weight: 600;
-    border-bottom-color: #409eff;
-}
-
-.tab-icon {
-    font-size: 16px;
-}
-.tab-title {
-    font-size: 13px;
-    font-weight: 500;
-}
-.tab-item.active .tab-title {
-    font-weight: 600;
-}
-.tab-count {
-    font-size: 11px;
-    background: rgba(0,0,0,.06);
-    padding: 1px 7px;
-    border-radius: 8px;
-    color: inherit;
-    font-weight: 500;
-}
-/* ========== 主体布局（撑满剩余高度） ========== */
-.content-layout {
-    flex: 1;
-    display: flex;
-    gap: 14px;
-    min-height: 0;
-    overflow: hidden;
-    align-items: flex-start;
-}
-
-/* ========== 左侧：已选工具面板 ========== */
-.left-panel {
-    flex: 0 0 200px;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255,255,255,.85);
-    backdrop-filter: blur(4px);
-    border-radius: 10px;
-    padding: 12px;
-    overflow: hidden;
-    align-self: stretch;
-    min-height: 300px;
-}
-.left-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-}
-.left-title { font-size: 14px; font-weight: 700; color: #303133; }
-.left-empty {
-    flex: 1;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; color: #c0c4cc;
-}
-.left-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.left-list::-webkit-scrollbar { width: 3px; }
-.left-list::-webkit-scrollbar-thumb { background: #dcdfe6; border-radius: 2px; }
-.left-item {
-    display: flex; align-items: center; gap: 5px;
-    padding: 5px 8px;
-    border-radius: 6px;
-    background: #f5f7fa;
-    border: 1px solid #e4e7ed;
-    cursor: pointer; transition: all .2s;
-    font-size: 12px;
-}
-.left-item:hover { background: #ecf5ff; }
-.left-err { border-color: #f56c6c; background: #fef0f0; }
-.left-ico { font-size: 16px; flex-shrink: 0; }
-.left-name { flex: 1; font-weight: 500; color: #303133; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.left-cat { font-size: 10px; color: #909399; background: #fff; padding: 0 5px; border-radius: 4px; flex-shrink: 0; }
-.left-del { color: #c0c4cc; font-size: 11px; flex-shrink: 0; }
-.left-del:hover { color: #f56c6c; }
-
-/* ========== 中间：工具面板（无标题） ========== */
-.tool-panel {
-    flex: 1;
-    min-width: 0;
-    background: rgba(255,255,255,.88);
-    backdrop-filter: blur(4px);
-    border-radius: 0 0 10px 10px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
 
 .tool-grid {
-    flex: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 14px;
+    flex: 1;
     align-content: start;
     overflow-y: auto;
     padding-right: 4px;
 }
-.tool-grid::-webkit-scrollbar { width: 4px; }
-.tool-grid::-webkit-scrollbar-thumb { background: #dcdfe6; border-radius: 2px; }
+
+.tool-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tool-grid::-webkit-scrollbar-thumb {
+    background: #dcdfe6;
+    border-radius: 2px;
+}
 
 /* ========== 工具卡片 ========== */
 .tool-card {
     border: 2px solid #e4e7ed;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
-    transition: all .25s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     background: #fff;
     position: relative;
 }
+
 .tool-card:hover {
     border-color: #b3d8ff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(64,158,255,.1);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(64, 158, 255, 0.12);
 }
-.tool-card:active { transform: translateY(-1px) scale(.98); }
+
+.tool-card:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
 .tool-card.selected {
     border-color: #67c23a;
     background: linear-gradient(135deg, #f0f9eb, #e1f3d8);
-    box-shadow: 0 4px 16px rgba(103,194,58,.15);
+    box-shadow: 0 4px 16px rgba(103, 194, 58, 0.15);
 }
+
+.tool-card.selected:hover {
+    border-color: #85ce61;
+    box-shadow: 0 6px 20px rgba(103, 194, 58, 0.2);
+}
+
+.tool-card.wrong {
+    border-color: #f56c6c !important;
+    background: linear-gradient(135deg, #fef0f0, #fde2e2) !important;
+    box-shadow: 0 4px 16px rgba(245, 108, 108, 0.2);
+    animation: wrongPulse 1s ease-in-out;
+}
+
+@keyframes wrongPulse {
+    0% {
+        border-color: #f56c6c;
+    }
+
+    25% {
+        border-color: #f89898;
+        transform: translateX(-3px);
+    }
+
+    50% {
+        border-color: #f56c6c;
+        transform: translateX(3px);
+    }
+
+    75% {
+        border-color: #f89898;
+        transform: translateX(-2px);
+    }
+
+    100% {
+        border-color: #f56c6c;
+        transform: translateX(0);
+    }
+}
+
+.tool-card.wrong-flash {
+    animation: wrongPulse 0.6s ease-in-out 3;
+}
+
 .card-img {
-    height: 80px;
-    display: flex; align-items: center; justify-content: center;
-    background: #fafbfc; position: relative;
-    transition: background .3s;
-}
-.tool-card.selected .card-img { background: #e8f5e0; }
-.card-emoji { font-size: 36px; transition: transform .3s; }
-.tool-card:hover .card-emoji { transform: scale(1.1); }
-.card-check {
-    position: absolute; top: 6px; right: 6px;
-    width: 22px; height: 22px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    background: #67c23a; color: #fff;
-}
-.card-body { padding: 10px; }
-.card-name { font-size: 13px; font-weight: 600; color: #303133; margin-bottom: 3px; line-height: 1.3; }
-.card-desc { font-size: 11px; color: #909399; line-height: 1.3; }
-
-/* ========== 右侧人物面板 ========== */
-.avatar-panel {
-    flex: 0 0 280px;
-    background: rgba(255,255,255,.88);
-    backdrop-filter: blur(4px);
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    align-self: stretch;
-    min-height: 300px;
-}
-.avatar-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 14px 0;
-}
-.avatar-header-title { font-size: 14px; font-weight: 700; color: #303133; }
-.character-section { padding: 10px 14px 0; display: flex; justify-content: center; }
-.character-body { width: 120px; position: relative; }
-.person-svg { width: 120px; height: 210px; }
-.person-head { fill: #fde8d0; stroke: #d4b896; stroke-width: 1.5; transition: fill .3s; }
-.person-head.equipped { fill: #fef5e7; }
-.person-helmet { fill: #409eff; stroke: #337ecc; stroke-width: 1.5; }
-.person-goggle { fill: none; stroke: #606266; stroke-width: 1.5; }
-.person-goggle-bridge { stroke: #606266; stroke-width: 1.5; }
-.person-body { fill: #e8eaed; stroke: #c0c4cc; stroke-width: 1.5; transition: fill .3s; }
-.person-body.equipped { fill: #409eff; stroke: #337ecc; }
-.person-arm { fill: #e8eaed; stroke: #c0c4cc; stroke-width: 1.5; transition: fill .3s; }
-.person-arm.equipped { fill: #ffd54f; stroke: #f5a623; }
-.person-glove { fill: #ff9800; stroke: #e68900; stroke-width: 1.2; }
-.person-leg { fill: #e8eaed; stroke: #c0c4cc; stroke-width: 1.5; transition: fill .3s; }
-.person-leg.equipped { fill: #37474f; stroke: #263238; }
-.person-shoe { fill: #37474f; stroke: #263238; stroke-width: 1.5; }
-.equipment-slots { padding: 10px 14px 14px; flex: 1; overflow-y: auto; }
-.equipment-slots::-webkit-scrollbar { width: 3px; }
-.equipment-slots::-webkit-scrollbar-thumb { background: #e4e7ed; border-radius: 2px; }
-.slot-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0f2f5; }
-.slot-row:last-child { border-bottom: none; }
-.slot-label { display: flex; align-items: center; gap: 4px; width: 56px; flex-shrink: 0; font-size: 12px; font-weight: 500; color: #606266; padding-top: 2px; }
-.slot-icon { color: #909399; }
-.slot-tags { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
-.slot-empty { font-size: 11px; color: #c0c4cc; line-height: 22px; }
-
-/* ========== 操作按钮（工具面板底部居中） ========== */
-.tool-panel .action-bar {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    padding: 10px 0 4px;
-    flex-shrink: 0;
-    border-top: 1px solid #f0f2f5;
-    margin-top: auto;
-}
-
-/* ========== 分页导航 ========== */
-.pagi-bar {
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 8px 0 0;
-    flex-shrink: 0;
+    background: #fafbfc;
+    position: relative;
+    transition: background 0.3s;
 }
-.pagi-btn {
-    width: 28px; height: 28px;
+
+.tool-card.selected .card-img {
+    background: #e8f5e0;
+}
+
+.tool-card.wrong .card-img {
+    background: #fde8e8;
+}
+
+.card-emoji {
+    font-size: 42px;
+    transition: transform 0.3s;
+}
+
+.tool-card:hover .card-emoji {
+    transform: scale(1.1);
+}
+
+.card-check,
+.card-wrong-mark {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    border: 1px solid #dcdfe6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.card-check {
+    background: #67c23a;
+    color: #fff;
+}
+
+.card-wrong-mark {
+    background: #f56c6c;
+    color: #fff;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.card-body {
+    padding: 12px;
+}
+
+.card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.card-desc {
+    font-size: 12px;
+    color: #909399;
+    line-height: 1.4;
+}
+
+/* ========== 右侧人物面板 ========== */
+.avatar-panel {
+    flex: 0 0 340px;
     background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.avatar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 0;
+}
+
+.avatar-header-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #303133;
+}
+
+.character-section {
+    padding: 16px 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.character-body {
+    width: 140px;
+    position: relative;
+}
+
+.person-svg {
+    width: 140px;
+    height: 240px;
+}
+
+.person-head {
+    fill: #fde8d0;
+    stroke: #d4b896;
+    stroke-width: 1.5;
+    transition: fill 0.3s;
+}
+
+.person-head.equipped {
+    fill: #fef5e7;
+}
+
+.person-helmet {
+    fill: #409eff;
+    stroke: #337ecc;
+    stroke-width: 1.5;
+    transition: all 0.3s;
+}
+
+.person-goggle {
+    fill: none;
+    stroke: #606266;
+    stroke-width: 1.5;
+}
+
+.person-goggle-bridge {
+    stroke: #606266;
+    stroke-width: 1.5;
+}
+
+.person-body {
+    fill: #e8eaed;
+    stroke: #c0c4cc;
+    stroke-width: 1.5;
+    transition: fill 0.3s;
+}
+
+.person-body.equipped {
+    fill: #409eff;
+    stroke: #337ecc;
+}
+
+.person-arm {
+    fill: #e8eaed;
+    stroke: #c0c4cc;
+    stroke-width: 1.5;
+    transition: fill 0.3s;
+}
+
+.person-arm.equipped {
+    fill: #ffd54f;
+    stroke: #f5a623;
+}
+
+.person-glove {
+    fill: #ff9800;
+    stroke: #e68900;
+    stroke-width: 1.2;
+    transition: all 0.3s;
+}
+
+.person-leg {
+    fill: #e8eaed;
+    stroke: #c0c4cc;
+    stroke-width: 1.5;
+    transition: fill 0.3s;
+}
+
+.person-leg.equipped {
+    fill: #37474f;
+    stroke: #263238;
+}
+
+.person-shoe {
+    fill: #37474f;
+    stroke: #263238;
+    stroke-width: 1.5;
+    transition: all 0.3s;
+}
+
+.equipment-slots {
+    padding: 16px 20px 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.equipment-slots::-webkit-scrollbar {
+    width: 3px;
+}
+
+.equipment-slots::-webkit-scrollbar-thumb {
+    background: #e4e7ed;
+    border-radius: 2px;
+}
+
+.slot-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #f5f7fa;
+}
+
+.slot-row:last-child {
+    border-bottom: none;
+}
+
+.slot-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 64px;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
     color: #606266;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .2s;
+    padding-top: 2px;
 }
-.pagi-btn:hover { border-color: #409eff; color: #409eff; }
-.pagi-btn:disabled { opacity: .3; cursor: default; border-color: #e4e7ed; color: #c0c4cc; }
-.pagi-dots { display: flex; gap: 6px; }
-.pagi-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
+
+.slot-icon {
+    color: #909399;
+}
+
+.slot-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex: 1;
+}
+
+.slot-empty {
+    font-size: 12px;
+    color: #c0c4cc;
+    line-height: 24px;
+}
+
+/* ========== 底部栏 ========== */
+.bottom-bar {
+    background: #fff;
+    border-radius: 16px;
+    margin-top: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.selected-area {
+    margin-bottom: 16px;
+}
+
+.selected-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.selected-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #303133;
+}
+
+.selected-empty {
+    color: #c0c4cc;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 0;
+}
+
+.selected-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scrollbar-gutter: stable;
+}
+
+.selected-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.selected-scroll::-webkit-scrollbar-thumb {
     background: #dcdfe6;
-    transition: all .3s;
+    border-radius: 3px;
 }
-.pagi-dot.active { background: #409eff; transform: scale(1.3); }
+
+.selected-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #f0f9eb;
+    border: 1px solid #b3e19d;
+    flex-shrink: 0;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.selected-chip:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.selected-chip.chip-wrong {
+    background: #fef0f0;
+    border-color: #fab6b6;
+}
+
+.chip-emoji {
+    font-size: 16px;
+}
+
+.chip-name {
+    font-weight: 500;
+    color: #303133;
+}
+
+.chip-category {
+    font-size: 11px;
+    color: #909399;
+    background: #f5f7fa;
+    padding: 1px 6px;
+    border-radius: 8px;
+}
+
+.chip-remove {
+    color: #c0c4cc;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-left: 2px;
+}
+
+.chip-remove:hover {
+    color: #f56c6c;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f2f5;
+}
 
 /* ========== 错误对话框 ========== */
-.err-dialog { text-align: center; }
-.err-dialog p { margin: 10px 0 14px; font-size: 14px; color: #606266; }
-.err-list { text-align: left; display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
-.err-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px; background: #fef0f0;
-    border: 1px solid #fde2e2; border-radius: 8px;
-    cursor: pointer; transition: all .2s; font-size: 13px;
+.error-dialog-body {
+    text-align: center;
 }
-.err-item:hover { background: #fde2e2; border-color: #fab6b6; transform: translateX(4px); }
-.err-item .el-icon:last-child { color: #f56c6c; margin-left: auto; }
+
+.error-icon-area {
+    margin-bottom: 16px;
+}
+
+.error-summary {
+    font-size: 15px;
+    color: #606266;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.error-list {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.error-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fef0f0;
+    border: 1px solid #fde2e2;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.error-item:hover {
+    background: #fde2e2;
+    border-color: #fab6b6;
+    transform: translateX(4px);
+}
+
+.error-text {
+    font-size: 13px;
+    color: #606266;
+    flex: 1;
+}
+
+.error-goto {
+    color: #f56c6c;
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+
+.error-item:hover .error-goto {
+    transform: translateX(2px);
+}
 
 /* ========== 响应式 ========== */
-@media (max-width:900px) {
-    .content-layout { flex-direction: column; align-items: stretch; }
-    .left-panel { flex: none; width: 100%; max-height: 140px; align-self: auto; min-height: auto; }
-    .left-list { flex-direction: row; flex-wrap: wrap; }
-    .left-item { width: auto; flex: 0 0 auto; }
-    .avatar-panel { flex: 0 0 auto; align-self: auto; min-height: auto; }
-    .character-section { display: none; }
-    .center-column { flex: none; }
-    .tool-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .tabs-bar { flex-wrap: wrap; }
-    .tab-item:not(:last-child)::after { display: none; }
+@media (max-width: 900px) {
+    .content-layout {
+        flex-direction: column-reverse;
+    }
+
+    .avatar-panel {
+        flex: 0 0 auto;
+    }
+
+    .character-section {
+        display: none;
+    }
+
+    .tool-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .steps-bar {
+        flex-wrap: wrap;
+    }
 }
 </style>
