@@ -10,7 +10,9 @@
                 <el-input v-model="form.password" type="password" show-password placeholder="密码" size="large" />
             </el-form-item>
 
-            <VerifyCode @updateCode="getCode" />
+            <div class="code-item">
+                <VerifyCode ref="verifyCodeRef" v-model="form.code" @updateCode="saveGeneratedCode" />
+            </div>
 
             <el-form-item>
                 <el-button type="primary" size="large" class="login-btn" @click="handleLogin" :loading="loading">
@@ -29,16 +31,20 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ElMessage } from 'element-plus'
 import VerifyCode from './VerifyCode.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const formRef = ref(null)
+const verifyCodeRef = ref(null)
 const loading = ref(false)
+let generatedCode = ''
 
 const form = reactive({
     username: '',
-    password: ''
+    password: '',
+    code: ''
 })
 
 const rules = {
@@ -46,11 +52,30 @@ const rules = {
     password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
-const getCode = (code) => { console.log('验证码:', code) }
+function saveGeneratedCode(code) {
+    generatedCode = code
+}
 
 async function handleLogin() {
+    // 校验必填项
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid) return
+
+    // 手动校验验证码（独立于 el-form-item，因为 VerifyCode 非 ElInput）
+    const code = (form.code || '').trim()
+    if (!code) {
+        ElMessage.warning('请输入验证码')
+        verifyCodeRef.value?.createCode()
+        form.code = ''
+        return
+    }
+    if (code.toUpperCase() !== generatedCode) {
+        ElMessage.error('验证码错误，请重新输入')
+        verifyCodeRef.value?.createCode()
+        form.code = ''
+        return
+    }
+
     loading.value = true
     try {
         const res = await authStore.login({
@@ -64,7 +89,7 @@ async function handleLogin() {
             router.push('/admin')
         }
     } catch (err) {
-        alert('登录失败：' + (err.response?.data?.message || err.message))
+        ElMessage.error('登录失败：' + (err.response?.data?.message || err.message))
     } finally {
         loading.value = false
     }
@@ -120,6 +145,12 @@ function goRegister() {
 
 :deep(.el-form-item) {
     margin-bottom: 18px;
+}
+
+.code-item :deep(.el-form-item__content) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 :deep(.el-form-item__error) {
