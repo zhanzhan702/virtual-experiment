@@ -102,6 +102,7 @@ public class AuthController {
 - 模板注释放在 `<template>` 上方：`<!-- 组件说明 -->`
 - 组件选项顺序：`template` → `script setup` → `style`
 - 使用 `@/` 别名导入（不可使用相对路径 `../`）
+- 模板中绑定的事件名必须与 `defineEmits` 声明及父组件实际函数名一致，禁止凭空捏造不存在的函数名
 
 ```vue
 <!-- 登录表单组件 -->
