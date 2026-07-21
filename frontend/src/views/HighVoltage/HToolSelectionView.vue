@@ -1,18 +1,5 @@
 <template>
     <div class="tool-selection-view">
-        <!-- 页面标题 -->
-        <div class="view-header">
-            <div class="view-title">
-                <el-icon :size="24">
-                    <Suitcase />
-                </el-icon>
-                <span>选择工器具</span>
-            </div>
-            <div class="view-subtitle">
-                请依次选择正确的个人防护用具、终端设备、工器具和线材，确保作业安全
-            </div>
-        </div>
-
         <WizardInventorySelection :categories="categories" @finish="handleFinish" />
     </div>
 </template>
@@ -63,51 +50,27 @@ function handleFinish(selectedMap) {
 <style scoped>
 .tool-selection-view {
     position: relative;
-    padding: 24px;
-    height: 100%;
-    min-height: 100vh;
-    /* 半透明背景色叠加，让内容区域保持可读 */
-    background: linear-gradient(180deg, rgba(240, 245, 255, 0.82) 0%, rgba(245, 247, 250, 0.82) 100%);
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    padding: 14px 18px;
+    box-sizing: border-box;
 }
 
-/* 背景图伪元素 */
 .tool-selection-view::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url('@/assets/images/selection.jpg');
+    background-image: url('@/assets/images/WISBackground.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.6;
     z-index: 0;
     pointer-events: none;
 }
 
-/* 确保内容在背景之上 */
-.tool-selection-view>* {
+.tool-selection-view > * {
     position: relative;
     z-index: 1;
-}
-
-.view-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.view-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #303133;
-    margin-bottom: 8px;
-}
-
-.view-subtitle {
-    font-size: 14px;
-    color: #909399;
 }
 </style>
