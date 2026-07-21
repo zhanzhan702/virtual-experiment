@@ -120,7 +120,7 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url('@/assets/images/WISBackground.png');
+    background-image: url('@/assets/images/selection.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
