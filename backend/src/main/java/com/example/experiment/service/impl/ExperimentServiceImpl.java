@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.experiment.dto.experiment.ExperimentStartDTO;
 import com.example.experiment.dto.experiment.ExperimentStartVO;
 import com.example.experiment.dto.experiment.ExperimentStepSubmitDTO;
+import com.example.experiment.dto.experiment.UnfinishedExperimentVO;
 import com.example.experiment.entity.*;
 import com.example.experiment.mapper.*;
 import com.example.experiment.service.ExperimentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -127,6 +129,115 @@ public class ExperimentServiceImpl implements ExperimentService {
         exp.setEndTime(LocalDateTime.now());
         userExperimentsMapper.updateById(exp);
       }
+    }
+  }
+
+  @Override
+  public void saveDraft(ExperimentStepSubmitDTO dto) {
+    var stepRecord =
+        userExperimentStepsMapper.selectOne(
+            new LambdaQueryWrapper<UserExperimentSteps>()
+                .eq(UserExperimentSteps::getExperimentId, dto.getExperimentId())
+                .eq(UserExperimentSteps::getStepId, dto.getStepId()));
+    if (stepRecord == null) throw new RuntimeException("步骤记录不存在");
+
+    // 首次保存时设置开始时间
+    if (stepRecord.getStartedAt() == null) {
+      if (dto.getStartedAt() != null) {
+        String t = dto.getStartedAt().replace("Z", "").replace("T", " ").substring(0, 19);
+        stepRecord.setStartedAt(
+            LocalDateTime.parse(
+                t, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+      } else {
+        stepRecord.setStartedAt(LocalDateTime.now());
+      }
+    }
+
+    // 只更新数据字段，不设置 finishedAt / score / status（保持草稿状态）
+    stepRecord.setDurationSeconds(dto.getDurationSeconds());
+    stepRecord.setOperationCount(dto.getOperationCount());
+    stepRecord.setErrorCount(dto.getErrorCount());
+    stepRecord.setResultData(dto.getResultData());
+    userExperimentStepsMapper.updateById(stepRecord);
+  }
+
+  @Override
+  public List<UnfinishedExperimentVO> getUnfinishedExperiments(String userId) {
+    var experiments =
+        userExperimentsMapper.selectList(
+            new LambdaQueryWrapper<UserExperiments>()
+                .eq(UserExperiments::getUserId, userId)
+                .eq(UserExperiments::getStatus, 0)
+                .orderByDesc(UserExperiments::getStartTime));
+
+    List<UnfinishedExperimentVO> result = new ArrayList<>();
+    for (var exp : experiments) {
+      var template = templatesMapper.selectById(exp.getTemplateId());
+      var allSteps =
+          stepsMapper.selectList(
+              new LambdaQueryWrapper<ExperimentSteps>()
+                  .eq(ExperimentSteps::getTemplateId, exp.getTemplateId())
+                  .orderByAsc(ExperimentSteps::getStepOrder));
+      var finishedSteps =
+          userExperimentStepsMapper.selectList(
+              new LambdaQueryWrapper<UserExperimentSteps>()
+                  .eq(UserExperimentSteps::getExperimentId, exp.getId())
+                  .eq(UserExperimentSteps::getStatus, 1));
+
+      var vo = new UnfinishedExperimentVO();
+      vo.setExperimentId(exp.getId());
+      vo.setTemplateName(template != null ? template.getName() : "");
+      vo.setCategory(template != null ? template.getCategory() : "");
+      vo.setStartTime(exp.getStartTime());
+      vo.setCompletedSteps(finishedSteps.size());
+      vo.setTotalSteps(allSteps.size());
+
+      // 找第一个未完成的步骤
+      var finishedIds =
+          finishedSteps.stream()
+              .map(UserExperimentSteps::getStepId)
+              .collect(Collectors.toSet());
+      var nextStep =
+          allSteps.stream()
+              .filter(s -> !finishedIds.contains(s.getId()))
+              .findFirst()
+              .orElse(null);
+      if (nextStep != null) {
+        vo.setNextStepId(nextStep.getId());
+        vo.setNextStepOrder(nextStep.getStepOrder());
+        vo.setNextStepName(nextStep.getStepName());
+      }
+      result.add(vo);
+    }
+    return result;
+  }
+
+  @Override
+  public void deleteExperiment(String experimentId) {
+    var exp = userExperimentsMapper.selectById(experimentId);
+    if (exp == null) return;
+    // 仅允许删除未完成的实验，已完成的受保护
+    if (exp.getStatus() != null && exp.getStatus() == 1) {
+      throw new RuntimeException("已完成实验不可删除");
+    }
+    userExperimentStepsMapper.delete(
+        new LambdaQueryWrapper<UserExperimentSteps>()
+            .eq(UserExperimentSteps::getExperimentId, experimentId));
+    userExperimentsMapper.deleteById(experimentId);
+  }
+
+  @Override
+  public Map<String, Object> getStepDraftData(String experimentId, String stepId) {
+    var step =
+        userExperimentStepsMapper.selectOne(
+            new LambdaQueryWrapper<UserExperimentSteps>()
+                .eq(UserExperimentSteps::getExperimentId, experimentId)
+                .eq(UserExperimentSteps::getStepId, stepId));
+    if (step == null || step.getResultData() == null) return Map.of();
+    try {
+      return new ObjectMapper().readValue(step.getResultData(), Map.class);
+    } catch (Exception e) {
+      return Map.of();
     }
   }
 }

@@ -5,45 +5,104 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Suitcase } from '@element-plus/icons-vue'
+import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
-import { ref } from 'vue'
+import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
+import { formatLocalTime } from '@/utils/time'
 
+const route = useRoute()
 const router = useRouter()
-const submittedResult = ref(null)
 
-function handleFinish(selectedMap) {
-    console.log('✅ 工器具选择结果:', selectedMap)
-    submittedResult.value = selectedMap
+const wizardRef = ref(null)
 
-    // 构建提交数据（转换为后端需要的格式）
-    const resultPayload = categories.map(cat => {
-        const toolIds = selectedMap[cat.key] || []
-        return {
-            category: cat.key,
-            categoryTitle: cat.title,
-            selected: toolIds.map(id => {
-                const tool = cat.tools.find(t => t.id === id)
-                return { id, name: tool ? tool.name : '' }
-            })
+// 从路由 query 获取实验元数据
+const experimentId = ref(route.query.experimentId || '')
+const stepId = ref(route.query.stepId || '')
+
+// 页面加载时记录步骤开始时间
+const startedAt = ref(formatLocalTime(new Date()))
+const saving = ref(false)
+
+// 恢复草稿数据
+onMounted(async () => {
+    if (!experimentId.value || !stepId.value) return
+    try {
+        const draft = await getStepDraft(experimentId.value, stepId.value)
+        if (draft && Object.keys(draft).length > 0 && wizardRef.value) {
+            Object.assign(wizardRef.value.selectedMap, draft)
         }
-    })
+    } catch (_) { /* ignore */ }
+})
 
-    console.log('📤 提交到后端的数据:', resultPayload)
+// 保存进度（全量选择数据）
+const saveProgress = async () => {
+    saving.value = true
+    try {
+        const fullData = wizardRef.value ? JSON.parse(JSON.stringify(wizardRef.value.selectedMap)) : {}
+        await saveDraft({
+            experimentId: experimentId.value,
+            stepId: stepId.value,
+            status: 0,
+            durationSeconds: stats.duration_seconds,
+            operationCount: stats.operation_count,
+            errorCount: stats.error_count,
+            resultData: JSON.stringify(fullData),
+            startedAt: startedAt.value
+        })
+        ElMessage.success('进度已保存')
+    } catch (err) {
+        ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+    } finally {
+        saving.value = false
+    }
+}
 
-    /*
-      后续可在此调用后端接口提交数据：
-      import { submitToolSelection } from '@/api/experiment'
-      await submitToolSelection(resultPayload)
-    */
+// 操作统计
+const stats = reactive({
+    duration_seconds: 0,
+    operation_count: 0,
+    error_count: 0
+})
 
-    ElMessage.success('工器具选择已完成，即将进入下一步...')
+let timer = null
+onMounted(() => { timer = setInterval(() => { stats.duration_seconds++ }, 1000) })
+onUnmounted(() => { if (timer) clearInterval(timer) })
 
-    // 正确后可以跳转到下一个步骤
-    // router.push('/next-step')
+// 统计操作次数（每次点击/选择工器具）
+const handleOperation = () => { stats.operation_count++ }
+
+// 统计提交错误次数
+const handleSubmitError = (errorPageCount) => { stats.error_count += errorPageCount }
+
+const handleToolSelectionSubmit = async (selectedMap) => {
+    //传递到后端的 payload
+    const payload = {
+        experimentId: experimentId.value,
+        stepId: stepId.value,
+        status: 1,
+        durationSeconds: stats.duration_seconds,
+        operationCount: stats.operation_count,
+        errorCount: stats.error_count,
+        score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
+        startedAt: startedAt.value
+    }
+
+    try {
+        await submitStep(payload)
+        ElMessage.success('工器具选择已完成，即将进入下一步...')
+        setTimeout(() => {
+            router.push({
+                path: '/',
+                query: { experimentId: experimentId.value }
+            })
+        }, 1000)
+    } catch (err) {
+        ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    }
 }
 </script>
 
@@ -73,4 +132,35 @@ function handleFinish(selectedMap) {
     position: relative;
     z-index: 1;
 }
+<<<<<<< HEAD
+=======
+
+.view-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.view-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #303133;
+    margin-bottom: 8px;
+}
+
+.view-subtitle {
+    font-size: 14px;
+    color: #909399;
+}
+
+.save-bar-fixed {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+}
+>>>>>>> 15ef3d44b0bca2cff592f7828085623b38172b74
 </style>
