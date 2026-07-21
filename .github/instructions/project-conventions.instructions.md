@@ -9,15 +9,15 @@ applyTo: "**"
 
 ### 前端 (`frontend/src/`)
 
-| 类型                | 规范                            | 示例                                                                               |
-| ------------------- | ------------------------------- | ---------------------------------------------------------------------------------- |
-| Vue 组件            | **PascalCase**                  | `LoginForm.vue`, `ExperimentView.vue`, `HWorkTicketForm.vue`,`LWorkTicketForm.vue` |
-| 视图页面            | **PascalCase** + `View` 后缀    | `AdminView.vue`, `LoginView.vue`, `TestView.vue`                                   |
-| JS 工具/API         | **kebab-case**                  | `tool-selection-config.js`, `request.js`                                           |
-| CSS 样式            | **kebab-case**                  | `base.css`, `main.css`                                                             |
-| 图片资源            | **PascalCase** 或 **camelCase** | `ExperimentViewBackgroundImage.jpg`, `logo.png`, `HWTBackgroundImage.jpg`          |
-| 目录（组件/视图组） | **PascalCase**                  | `HighVoltage/`, `LowVoltage/`                                                      |
-| 目录（工具/资源）   | **kebab-case**                  | `assets/styles/`, `utils/`, `api/`                                                 |
+| 类型                | 规范                            | 示例                                                                                                                             |
+| ------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Vue 组件            | **PascalCase**                  | `LoginForm.vue`, `ExperimentView.vue`, `HWorkTicketForm.vue`,`LWorkTicketForm.vue`                                               |
+| 视图页面            | **PascalCase** + `View` 后缀    | `AdminView.vue`, `LoginView.vue`, `TestView.vue`                                                                                 |
+| JS 工具/API         | **kebab-case**                  | `tool-selection-config.js`, `request.js`                                                                                         |
+| CSS 样式            | **kebab-case**                  | `base.css`, `main.css`                                                                                                           |
+| 图片资源            | **PascalCase** 或 **camelCase** | `ExperimentViewBackgroundImage.jpg`, `logo.png`, `HWTBackgroundImage.jpg`, `HighVoltageButton.png`, `HighVoltageButtonHover.png` |
+| 目录（组件/视图组） | **PascalCase**                  | `HighVoltage/`, `LowVoltage/`                                                                                                    |
+| 目录（工具/资源）   | **kebab-case**                  | `assets/styles/`, `utils/`, `api/`                                                                                               |
 
 ### 后端 (`backend/src/main/java/com/example/experiment/`)
 
