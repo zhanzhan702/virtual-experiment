@@ -90,6 +90,7 @@ build/
 # 云端配置 / 辅助工具
 # ====================
 .github/
+.claude/
 .reasonix/
 reasonix/
 reasonix.toml
