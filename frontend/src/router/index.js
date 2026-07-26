@@ -12,8 +12,8 @@ const routes = [
   { path: '/admin', component: () => import('@/views/AdminView.vue') },
   { path: '/HWT', component: () => import('@/views/HighVoltage/HWorkTicketView.vue') },
   { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') },
-  { path: '/HScene', component: () => import('@/views/HighVoltage/HSceneOverviewView.vue') },
-  { path: '/HCabinetLocal', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
+  { path: '/HSO', component: () => import('@/views/HighVoltage/HSceneOverviewView.vue') },
+  { path: '/HCL', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
   { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
 ]
 

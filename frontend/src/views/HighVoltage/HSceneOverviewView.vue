@@ -44,7 +44,7 @@ const wrapperRef = ref(null)
 
 function enterCabinet() {
   router.push({
-    path: '/HCabinetLocal',
+    path: '/HCL',
     query: { experimentId: route.query.experimentId || '' }
   })
 }

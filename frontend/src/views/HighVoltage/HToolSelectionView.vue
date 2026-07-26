@@ -115,7 +115,7 @@ const handleToolSelectionSubmit = async (selectedMap) => {
     ElMessage.success('工器具选择已完成，即将进入下一步...')
     setTimeout(() => {
       router.push({
-        path: '/HScene',
+        path: '/HSO',
         query: { experimentId: experimentId.value }
       })
     }, 1000)
