@@ -11,8 +11,8 @@
             </el-button>
         </div>
 
-        <!-- 查看工作背景按钮（左下角） -->
-        <div class="work-bg-btn" @click="showWorkBg = true" title="查看工作背景" />
+        <!-- 查看工作任务按钮（左下角） -->
+        <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
         <!-- 高压工作背景弹窗 -->
         <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
@@ -174,23 +174,24 @@ const handleTicketSubmit = async (result) => {
     z-index: 100;
 }
 
-/* 查看工作背景按钮（左下角，图片预留） */
-.work-bg-btn {
+/* 查看工作任务按钮（左下角） */
+.work-task-btn {
     position: fixed;
     bottom: 24px;
     left: 24px;
     z-index: 100;
-    width: 60px;
-    height: 60px;
+    width: 100px;
+    height: 100px;
     cursor: pointer;
-    /* TODO: 替换为实际按钮图片 */
-    background: rgba(255, 255, 255, .6);
-    border: 1px dashed #73BCBB;
-    border-radius: 8px;
+    background-image: url('@/assets/images/WorkTaskButton.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     transition: transform 0.2s;
 }
 
-.work-bg-btn:hover {
+.work-task-btn:hover {
+    background-image: url('@/assets/images/WorkTaskButtonHover.png');
     transform: scale(1.05);
 }
 
