@@ -3,7 +3,8 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper" ref="wrapperRef">
-      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg" draggable="false" />
+      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg"
+        draggable="false" />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
         <span class="hotspot-label">点击进入设备区操作</span>
@@ -153,8 +154,8 @@ onUnmounted(() => {
   bottom: 24px;
   left: 24px;
   z-index: 100;
-  width: 100px;
-  height: 100px;
+  width: 160px;
+  height: 40px;
   cursor: pointer;
   background-image: url('@/assets/images/WorkTaskButton.png');
   background-size: contain;
