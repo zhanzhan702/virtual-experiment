@@ -180,8 +180,8 @@ const handleTicketSubmit = async (result) => {
     bottom: 24px;
     left: 24px;
     z-index: 100;
-    width: 100px;
-    height: 100px;
+    width: 160px;
+    height: 40px;
     cursor: pointer;
     background-image: url('@/assets/images/WorkTaskButton.png');
     background-size: contain;
