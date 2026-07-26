@@ -36,26 +36,8 @@ const showWorkBg = ref(false)
 let pendingType = null  // 暂存场景类型，供弹窗关闭后使用
 
 async function onScenarioSelect(type) {
-  pendingType = type
-  // 先展示差异介绍须知
-  showNotice.value = true
-}
-
-// 关闭须知 → 展示工作背景
-function onNoticeClose() {
-  showNotice.value = false
-  if (pendingType === 'high') {
-    showWorkBg.value = true
-  } else {
-    // 低压暂不展示工作背景，直接启动
-    doStartExperiment(pendingType)
-  }
-}
-
-// 关闭工作背景 → 启动实验
-function onWorkBgClose() {
-  showWorkBg.value = false
-  doStartExperiment(pendingType)
+  // 直接启动（内部会检查未完成实验，从存档恢复则跳过提示弹窗）
+  await doStartExperiment(type)
 }
 
 async function doStartExperiment(type) {
@@ -75,7 +57,7 @@ async function doStartExperiment(type) {
             distinguishCancelAndClose: true
           }
         )
-        // 继续 → 跳转到当前未完成步骤
+        // 继续 → 跳转到当前未完成步骤（不展示提示弹窗）
         sessionStorage.setItem('experimentId', exp.experimentId)
         const stepRouteMap = type === 'high'
           ? { 1: '/HWT', 2: '/HTS' }
@@ -92,11 +74,29 @@ async function doStartExperiment(type) {
         }
       }
     }
-    // 无未完成记录 或 重新开始 → 启动实验
-    await startNewExperiment(type)
+    // 无未完成记录 或 重新开始 → 展示提示弹窗，再启动实验
+    pendingType = type
+    showNotice.value = true
   } catch (_) {
     ElMessage.error('查询实验记录失败，请稍后重试')
   }
+}
+
+// 关闭须知 → 展示工作背景
+function onNoticeClose() {
+  showNotice.value = false
+  if (pendingType === 'high') {
+    showWorkBg.value = true
+  } else {
+    // 低压暂不展示工作背景，直接启动
+    startNewExperiment(pendingType)
+  }
+}
+
+// 关闭工作背景 → 启动实验
+function onWorkBgClose() {
+  showWorkBg.value = false
+  startNewExperiment(pendingType)
 }
 
 async function startNewExperiment(type) {
