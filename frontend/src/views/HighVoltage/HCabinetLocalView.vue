@@ -1,9 +1,9 @@
 <!-- 柜体局部操作：进线柜+计量柜+出线柜一体化操作界面 -->
 <template>
   <div class="cabinet-local-page">
-    <SceneFrame :src="localBg" alt="柜体局部操作" aspect-ratio="16 / 9">
+    <HSceneFrame :src="localBg" alt="柜体局部操作" aspect-ratio="16 / 9">
       <!-- TODO: 热区/操作控件待后续需求实现 -->
-    </SceneFrame>
+    </HSceneFrame>
 
     <!-- 右下角保存进度 -->
     <div class="save-bar-fixed">
@@ -19,7 +19,7 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { FolderOpened } from '@element-plus/icons-vue'
-import SceneFrame from '@/components/HighVoltage/SceneFrame.vue'
+import HSceneFrame from '@/components/HighVoltage/HSceneFrame.vue'
 import { saveDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import localBg from '@/assets/images/CabinetLocalOperation.png'

@@ -13,6 +13,8 @@ applyTo: "**"
 | ------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Vue 组件            | **PascalCase**                  | `LoginForm.vue`, `ExperimentView.vue`, `HWorkTicketForm.vue`,`LWorkTicketForm.vue`                                               |
 | 视图页面            | **PascalCase** + `View` 后缀    | `AdminView.vue`, `LoginView.vue`, `TestView.vue`                                                                                 |
+| 高压场景文件        | **大写 H 开头** 区分低压         | `HWorkTicketView.vue`, `HSceneFrame.vue`, `HToolSelectionView.vue`                                                               |
+| 低压场景文件        | **大写 L 开头** 区分高压         | `LWorkTicketView.vue`, `LWorkTicketForm.vue`                                                                                     |
 | JS 工具/API         | **kebab-case**                  | `tool-selection-config.js`, `request.js`                                                                                         |
 | CSS 样式            | **kebab-case**                  | `base.css`, `main.css`                                                                                                           |
 | 图片资源            | **PascalCase** 或 **camelCase** | `ExperimentViewBackgroundImage.jpg`, `logo.png`, `HWTBackgroundImage.jpg`, `HighVoltageButton.png`, `HighVoltageButtonHover.png` |

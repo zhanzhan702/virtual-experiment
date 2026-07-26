@@ -1,7 +1,7 @@
 <!-- 配电室总览：全景背景 + 设备区热区 -->
 <template>
   <div class="scene-page">
-    <SceneFrame :src="sceneBg" alt="配电室总览" aspect-ratio="16 / 9">
+    <HSceneFrame :src="sceneBg" alt="配电室总览" aspect-ratio="16 / 9">
       <!-- 覆盖进线柜+计量柜+出线柜的梯形热区 -->
       <div
         class="cabinet-hotspot"
@@ -10,13 +10,13 @@
       >
         <span class="hotspot-label">点击进入设备区操作</span>
       </div>
-    </SceneFrame>
+    </HSceneFrame>
   </div>
 </template>
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import SceneFrame from '@/components/HighVoltage/SceneFrame.vue'
+import HSceneFrame from '@/components/HighVoltage/HSceneFrame.vue'
 import sceneBg from '@/assets/images/DistributionRoomPanorama.png'
 
 const route = useRoute()
