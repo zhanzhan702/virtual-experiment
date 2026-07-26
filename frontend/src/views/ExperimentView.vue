@@ -11,6 +11,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
 import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
+import { getHighVoltageStepPath } from '@/constants/experiment-step-routes'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -33,10 +34,9 @@ async function onScenarioSelect(type) {
         )
         // 继续 → 跳转到当前未完成步骤
         sessionStorage.setItem('experimentId', exp.experimentId)
-        const stepRouteMap = type === 'high'
-          ? { 1: '/HWT', 2: '/HTS' }
-          : { 1: '/LWT', 2: '/LTS' }
-        const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
+        const path = type === 'high'
+          ? getHighVoltageStepPath(exp.nextStepOrder)
+          : ({ 1: '/LWT', 2: '/LTS' }[exp.nextStepOrder] || '/LWT')
         router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
         return
       } catch (action) {

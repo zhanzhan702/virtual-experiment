@@ -20,6 +20,8 @@ import { ElMessage } from 'element-plus'
 import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
+import { cabinetVisitedKey } from '@/constants/scene-hotspot-config'
+import { saveSelectedTools } from '@/utils/selectedTools'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 
@@ -102,10 +104,14 @@ const handleToolSelectionSubmit = async (selectedMap) => {
 
   try {
     await submitStep(payload)
-    ElMessage.success('工器具选择已完成，即将进入下一步...')
+    ElMessage.success('工器具选择已完成，即将进入配电室...')
+    // 保存已选工具到 sessionStorage，供后续柜内操作右侧面板展示
+    saveSelectedTools(selectedMap)
+    // 进入 A1 配电室总览（前端子流程，不单独占用库表步骤）
+    sessionStorage.setItem(cabinetVisitedKey, JSON.stringify({ incoming: false, metering: false }))
     setTimeout(() => {
       router.push({
-        path: '/',
+        path: '/HScene',
         query: { experimentId: experimentId.value }
       })
     }, 1000)

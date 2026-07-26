@@ -21,11 +21,11 @@ INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name,
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), @tpl_id, 4, 'HANG_SIGN', '悬挂标示牌', 60, 5.00);
 
---步骤 5：三步验电（计量小室）
+-- 步骤 5：三步验电（计量小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), @tpl_id, 5, 'THREE_STEP_CHECK', '三步验电（计量小室）', 60, 10.00);
 
---- 步骤 6：挂表
+-- 步骤 6：挂表
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), @tpl_id, 6, 'HANG_METER', '挂表', 60, 5.00);
 
@@ -53,7 +53,7 @@ INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name,
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), @tpl_id, 12, 'SEAL', '打铅封', 60, 5.00);
 
---- 步骤 13：三步验电（终端小室）
+-- 步骤 13：三步验电（终端小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), @tpl_id, 13, 'THREE_STEP_CHECK', '三步验电（终端小室）', 60, 10.00);
 -- TODO: 补充后续步骤 (step_order 从 14 开始)
