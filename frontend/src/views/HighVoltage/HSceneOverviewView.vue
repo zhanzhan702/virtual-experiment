@@ -56,17 +56,18 @@ function enterCabinet() {
   background: #020617;
 }
 
-/* 自适应容器：shrink-wrap 到 img 实际渲染尺寸，热区百分比始终准确 */
+/* 全视口容器：object-fit contain 自动取 min(100vw, 100vh) 等比缩放 */
 .image-wrapper {
   position: relative;
-  line-height: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
 .scene-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  /* 无 width/height → 浏览器按原始比例缩放至 max 约束内最大尺寸 */
 }
 
 /* 横放等腰梯形热区 — 左底长(高)、右底短(低) */
