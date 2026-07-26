@@ -3,7 +3,8 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper" ref="wrapperRef">
-      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg" draggable="false" />
+      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg"
+        draggable="false" />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
         <span class="hotspot-label">点击进入设备区操作</span>
@@ -114,7 +115,7 @@ onUnmounted(() => {
   top: calc(var(--oy, 0px) + 10 * var(--ry, 1px) / 100);
   width: calc(80 * var(--rx, 1px) / 100);
   height: calc(80 * var(--ry, 1px) / 100);
-  clip-path: polygon(28% 27%, 69% 31%, 69% 70%, 28% 89%);
+  clip-path: polygon(28% 27%, 62% 30%, 62% 73%, 28% 89%);
   cursor: pointer;
   z-index: 5;
   transition: background 0.25s, box-shadow 0.25s;
