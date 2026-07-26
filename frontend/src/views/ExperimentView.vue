@@ -3,20 +3,62 @@
 <template>
   <div class="experiment-view">
     <ScenarioSelector @select="onScenarioSelect" />
+
+    <!-- 差异介绍须知弹窗（图片预留） -->
+    <PromptModal :visible="showNotice" @close="onNoticeClose">
+      <div class="placeholder-notice">
+        <span>与真实场景差异介绍须知</span>
+        <span class="placeholder-hint">（图片待制作）</span>
+      </div>
+    </PromptModal>
+
+    <!-- 高压工作背景弹窗 -->
+    <PromptModal :visible="showWorkBg" @close="onWorkBgClose">
+      <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+    </PromptModal>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
+import PromptModal from '@/components/PromptModal.vue'
 import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+const showNotice = ref(false)
+const showWorkBg = ref(false)
+let pendingType = null  // 暂存场景类型，供弹窗关闭后使用
+
 async function onScenarioSelect(type) {
+  pendingType = type
+  // 先展示差异介绍须知
+  showNotice.value = true
+}
+
+// 关闭须知 → 展示工作背景
+function onNoticeClose() {
+  showNotice.value = false
+  if (pendingType === 'high') {
+    showWorkBg.value = true
+  } else {
+    // 低压暂不展示工作背景，直接启动
+    doStartExperiment(pendingType)
+  }
+}
+
+// 关闭工作背景 → 启动实验
+function onWorkBgClose() {
+  showWorkBg.value = false
+  doStartExperiment(pendingType)
+}
+
+async function doStartExperiment(type) {
   // 先检查是否有未完成实验（按场景类型过滤）
   try {
     const category = type === 'high' ? 'high_voltage' : 'low_voltage'
@@ -28,8 +70,10 @@ async function onScenarioSelect(type) {
         await ElMessageBox.confirm(
           `检测到未完成实验「${exp.templateName}」，已完成 ${exp.completedSteps}/${exp.totalSteps} 步。是否继续？`,
           '恢复实验',
-          { confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info',
-            distinguishCancelAndClose: true }
+          {
+            confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info',
+            distinguishCancelAndClose: true
+          }
         )
         // 继续 → 跳转到当前未完成步骤
         sessionStorage.setItem('experimentId', exp.experimentId)
@@ -49,13 +93,13 @@ async function onScenarioSelect(type) {
       }
     }
     // 无未完成记录 或 重新开始 → 启动实验
-    await doStartExperiment(type)
+    await startNewExperiment(type)
   } catch (_) {
     ElMessage.error('查询实验记录失败，请稍后重试')
   }
 }
 
-async function doStartExperiment(type) {
+async function startNewExperiment(type) {
   const templateCode = type == 'high' ? 'HV_TRAIN_V1' : 'LV_TRAIN_V1'
   try {
     const res = await startExperiment(templateCode)
@@ -76,15 +120,35 @@ async function doStartExperiment(type) {
   width: 100vw;
   height: 100vh;
   padding: 10vh 10vw;
-  background-image: url(@/assets/images/ExperimentViewBackgroundImage.jpg);
+  background-image: url(@/assets/images/ExperimentViewBackground.jpg);
   background-size: contain;
-  /* 让图片等比缩放铺满容器，多余部分裁剪 */
   background-position: center;
-  /* 居中显示 */
   background-repeat: no-repeat;
-  /* 不重复 */
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.placeholder-notice {
+  text-align: center;
+  font-size: 20px;
+  color: #fff;
+  padding: 40px;
+  border: 2px dashed rgba(255, 255, 255, .4);
+  border-radius: 12px;
+  min-width: 400px;
+}
+
+.placeholder-hint {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, .5);
+}
+
+.work-bg-img {
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
 }
 </style>

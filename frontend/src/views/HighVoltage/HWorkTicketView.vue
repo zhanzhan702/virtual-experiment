@@ -10,6 +10,14 @@
                 </el-icon> 保存进度
             </el-button>
         </div>
+
+        <!-- 查看工作背景按钮（左下角） -->
+        <div class="work-bg-btn" @click="showWorkBg = true" title="查看工作背景" />
+
+        <!-- 高压工作背景弹窗 -->
+        <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
+            <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+        </PromptModal>
     </div>
 </template>
 
@@ -20,12 +28,14 @@ import { ElMessage } from 'element-plus'
 import { FolderOpened } from '@element-plus/icons-vue'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
+import PromptModal from '@/components/PromptModal.vue'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const formRef = ref(null)
+const showWorkBg = ref(false)
 
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
@@ -162,5 +172,32 @@ const handleTicketSubmit = async (result) => {
     bottom: 24px;
     right: 24px;
     z-index: 100;
+}
+
+/* 查看工作背景按钮（左下角，图片预留） */
+.work-bg-btn {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 100;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    /* TODO: 替换为实际按钮图片 */
+    background: rgba(255, 255, 255, .6);
+    border: 1px dashed #73BCBB;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.work-bg-btn:hover {
+    transform: scale(1.05);
+}
+
+.work-bg-img {
+    max-width: 80vw;
+    max-height: 70vh;
+    border-radius: 8px;
+
 }
 </style>
