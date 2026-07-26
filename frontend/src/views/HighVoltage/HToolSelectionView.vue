@@ -11,8 +11,8 @@
       </el-button>
     </div>
 
-<!-- 查看工作任务按钮（左下角） -->
-        <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
+    <!-- 查看工作任务按钮（左下角） -->
+    <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
     <!-- 高压工作背景弹窗 -->
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
