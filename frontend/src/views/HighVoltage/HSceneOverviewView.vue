@@ -1,15 +1,20 @@
-<!-- 配电室总览：全景背景(contain) + 梯形热区 + 工作背景弹窗 + 保存按钮(占位) -->
+<!-- 配电室总览：<img> + 等比容器 + 横放等腰梯形热区 + 工作背景弹窗 + 保存按钮(占位) -->
 <template>
   <div class="scene-page">
-    <!-- 梯形热区 — 覆盖进线柜+计量柜+出线柜，左底长右底短 -->
-    <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
-      <span class="hotspot-label">点击进入设备区操作</span>
+    <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
+    <div class="image-wrapper">
+      <img src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览"
+        class="scene-bg" draggable="false" />
+      <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
+      <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
+        <span class="hotspot-label">点击进入设备区操作</span>
+      </div>
     </div>
 
     <!-- 查看工作背景按钮（左下角） -->
     <div class="work-bg-btn" @click="showWorkBg = true" title="查看工作背景" />
 
-    <!-- 保存进度按钮（右下角，仅样式占位，不实际保存） -->
+    <!-- 保存进度按钮（右下角，仅样式占位） -->
     <div class="save-bar-fixed">
       <el-button type="info" size="default" disabled>
         <el-icon><FolderOpened /></el-icon> 保存进度
@@ -45,27 +50,47 @@ function enterCabinet() {
 .scene-page {
   width: 100vw;
   height: 100vh;
-  position: relative;
-  background-image: url('@/assets/images/DistributionRoomPanorama.png');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #020617;
 }
 
-/* 梯形热区 — 左底长、右底短，覆盖进线柜+计量柜+出线柜 */
+/* 等比容器：max + aspect-ratio 自动适应宽/窄屏 */
+.image-wrapper {
+  position: relative;
+  max-width: 100vw;
+  max-height: 100vh;
+  aspect-ratio: 16 / 9;
+  /* 留白由容器自身缩小处理 */;
+}
+
+.scene-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 横放等腰梯形热区 — 左底长(高)、右底短(低) */
 .cabinet-hotspot {
   position: absolute;
-  /* 坐标需根据实际图片微调 */
-  top: 18%;
-  left: 8%;
-  width: 58%;
-  height: 55%;
-  clip-path: polygon(0% 15%, 58% 15%, 65% 60%, 5% 60%);
+  top: 10%;
+  left: 5%;
+  width: 68%;
+  height: 75%;
+  clip-path: polygon(
+    2% 2%,      /* 左上 */
+    72% 15%,    /* 右上（靠右靠上→右底短） */
+    72% 85%,    /* 右下 */
+    2% 98%      /* 左下（贴左贴底→左底长） */
+  );
   cursor: pointer;
   z-index: 5;
   transition: background 0.25s, box-shadow 0.25s;
 }
+
+/* 以下样式不变 */
 
 .cabinet-hotspot:hover {
   background: rgba(0, 210, 255, 0.12);
