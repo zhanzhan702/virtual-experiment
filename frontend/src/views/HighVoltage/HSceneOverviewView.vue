@@ -15,15 +15,18 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import SceneFrame from '@/components/HighVoltage/SceneFrame.vue'
-import sceneBg from '@/assets/images/scene-distribution-room.png'
+import sceneBg from '@/assets/images/DistributionRoomPanorama.png'
 
+const route = useRoute()
 const router = useRouter()
 
 function enterCabinet() {
-  // TODO: 根据后续需求决定跳转目标
-  router.push('/experiment')
+  router.push({
+    path: '/HCabinetLocal',
+    query: { experimentId: route.query.experimentId || '' }
+  })
 }
 </script>
 
