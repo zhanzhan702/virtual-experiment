@@ -60,31 +60,32 @@ function enterCabinet() {
 /* 容器紧贴 img 实际渲染尺寸，热区百分比与图片等比例缩放 */
 .image-wrapper {
   position: relative;
-  display: inline-block;
+  width: 100vw;
+  height: 100vh;
   line-height: 0;
 }
 
 .scene-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  /* 无 width/height → 取 min(按宽缩放, 按高缩放)，等比不压缩 */
 }
 
 /* 横放等腰梯形热区 — 左底长(高)、右底短(低) */
 .cabinet-hotspot {
   position: absolute;
   top: 10%;
-  left: 5%;
-  width: 68%;
-  height: 75%;
-  clip-path: polygon(2% 2%,
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  clip-path: polygon(28% 27%,
       /* 左上 */
-      72% 15%,
+      69% 31%,
       /* 右上（靠右靠上→右底短） */
-      72% 85%,
+      69% 70%,
       /* 右下 */
-      2% 98%
+      28% 89%
       /* 左下（贴左贴底→左底长） */
     );
   cursor: pointer;
