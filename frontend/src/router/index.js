@@ -13,8 +13,6 @@ const routes = [
   { path: '/HWT', component: () => import('@/views/HighVoltage/HWorkTicketView.vue') },
   { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') },
   { path: '/HScene', component: () => import('@/views/HighVoltage/HSceneOverviewView.vue') },
-  { path: '/HIncomingCabinet', component: () => import('@/views/HighVoltage/HIncomingCabinetView.vue') },
-  { path: '/HMeteringCabinet', component: () => import('@/views/HighVoltage/HMeteringCabinetView.vue') },
   { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
 ]
 

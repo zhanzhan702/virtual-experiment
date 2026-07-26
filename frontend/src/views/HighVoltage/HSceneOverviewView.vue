@@ -1,100 +1,29 @@
+<!-- 配电室总览：全景背景 + 设备区热区 -->
 <template>
   <div class="scene-page">
-    <div class="scene-toolbar">
-      <div class="scene-title">{{ sceneOverview.title }}</div>
-      <div class="scene-tip">{{ sceneOverview.tip }}</div>
-      <div class="scene-actions">
-        <el-tag v-if="visited.incoming" type="success" effect="plain">进线柜已进入</el-tag>
-        <el-tag v-else type="info" effect="plain">进线柜未进入</el-tag>
-        <el-tag v-if="visited.metering" type="success" effect="plain">计量柜已进入</el-tag>
-        <el-tag v-else type="info" effect="plain">计量柜未进入</el-tag>
-        <el-button type="primary" :disabled="!bothVisited" @click="goNextExperimentStep">
-          继续后续步骤
-        </el-button>
+    <SceneFrame :src="sceneBg" alt="配电室总览" aspect-ratio="16 / 9">
+      <!-- 覆盖进线柜+计量柜+出线柜的梯形热区 -->
+      <div
+        class="cabinet-hotspot"
+        title="点击进入设备区操作"
+        @click="enterCabinet"
+      >
+        <span class="hotspot-label">点击进入设备区操作</span>
       </div>
-    </div>
-
-    <SceneFrame
-      :src="sceneOverview.background"
-      alt="配电室总览"
-      :aspect-ratio="sceneOverview.aspectRatio"
-    >
-      <SceneHotspotOverlay
-        :hotspots="sceneOverview.hotspots"
-        :debug="debugHotspot"
-        @select="onHotspotSelect"
-      />
     </SceneFrame>
   </div>
 </template>
 
 <script setup>
-import { computed, reactive, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import SceneFrame from '@/components/HighVoltage/SceneFrame.vue'
-import SceneHotspotOverlay from '@/components/HighVoltage/SceneHotspotOverlay.vue'
-import {
-  sceneOverview,
-  cabinetVisitedKey,
-  HOTSPOT_DEBUG_DEFAULT
-} from '@/constants/scene-hotspot-config'
+import sceneBg from '@/assets/images/scene-distribution-room.png'
 
-const route = useRoute()
 const router = useRouter()
 
-const experimentId = computed(() => route.query.experimentId || '')
-const debugHotspot = computed(
-  () => route.query.debugHotspot === '1' || HOTSPOT_DEBUG_DEFAULT
-)
-
-const visited = reactive({
-  incoming: false,
-  metering: false
-})
-
-const bothVisited = computed(() => visited.incoming && visited.metering)
-
-function loadVisited() {
-  try {
-    const raw = sessionStorage.getItem(cabinetVisitedKey)
-    if (!raw) return
-    const data = JSON.parse(raw)
-    visited.incoming = !!data.incoming
-    visited.metering = !!data.metering
-  } catch (_) { /* ignore */ }
-}
-
-onMounted(loadVisited)
-
-async function onHotspotSelect(zone) {
-  if (!zone) return
-
-  if (!zone.correct) {
-    await ElMessageBox.alert('选择错误', '提示', {
-      confirmButtonText: '确定',
-      type: 'warning',
-      center: true
-    }).catch(() => {})
-    return
-  }
-
-  if (!zone.targetRoute) return
-  router.push({
-    path: zone.targetRoute,
-    query: {
-      experimentId: experimentId.value,
-      ...(debugHotspot.value ? { debugHotspot: '1' } : {})
-    }
-  })
-}
-
-function goNextExperimentStep() {
-  if (!bothVisited.value) {
-    ElMessage.warning('请先进入进线柜与计量柜')
-    return
-  }
-  ElMessage.info('进线柜与计量柜已完成进入，后续步骤（设置围栏等）待接入')
+function enterCabinet() {
+  // TODO: 根据后续需求决定跳转目标
+  router.push('/experiment')
 }
 </script>
 
@@ -103,39 +32,47 @@ function goNextExperimentStep() {
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: column;
-  background: #0f172a;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.scene-toolbar {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
-  padding: 10px 16px;
-  background: rgba(15, 23, 42, 0.92);
-  color: #e2e8f0;
-  z-index: 3;
+  justify-content: center;
+  background: #020617;
 }
 
-.scene-title {
-  font-size: 18px;
+/* 梯形热区 — 覆盖进线柜+计量柜+出线柜 */
+.cabinet-hotspot {
+  position: absolute;
+  /* 坐标需根据实际图片调试 */
+  top: 18%;
+  left: 25%;
+  width: 50%;
+  height: 55%;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+.cabinet-hotspot:hover {
+  background: rgba(0, 210, 255, 0.12);
+  box-shadow: inset 0 0 0 2px #00d2ff, 0 0 24px rgba(0, 210, 255, 0.25);
+}
+
+.cabinet-hotspot:hover .hotspot-label {
+  opacity: 1;
+}
+
+.hotspot-label {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00d2ff;
+  font-size: 16px;
   font-weight: 600;
-}
-
-.scene-tip {
-  flex: 1;
-  min-width: 200px;
-  font-size: 13px;
-  color: #94a3b8;
-}
-
-.scene-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  text-shadow: 0 1px 4px rgba(0,0,0,.7);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  user-select: none;
 }
 </style>
