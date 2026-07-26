@@ -3,8 +3,7 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper">
-      <img src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览"
-        class="scene-bg" draggable="false" />
+      <img src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg" draggable="false" />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
         <span class="hotspot-label">点击进入设备区操作</span>
@@ -17,7 +16,9 @@
     <!-- 保存进度按钮（右下角，仅样式占位） -->
     <div class="save-bar-fixed">
       <el-button type="info" size="default" disabled>
-        <el-icon><FolderOpened /></el-icon> 保存进度
+        <el-icon>
+          <FolderOpened />
+        </el-icon> 保存进度
       </el-button>
     </div>
 
@@ -53,21 +54,21 @@ function enterCabinet() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #020617;
+  background: #FFFFFF;
 }
 
-/* 全视口容器：object-fit contain 自动取 min(100vw, 100vh) 等比缩放 */
+/* 容器紧贴 img 实际渲染尺寸，热区百分比与图片等比例缩放 */
 .image-wrapper {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  display: inline-block;
+  line-height: 0;
 }
 
 .scene-bg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
   display: block;
+  max-width: 100vw;
+  max-height: 100vh;
+  /* 无 width/height → 取 min(按宽缩放, 按高缩放)，等比不压缩 */
 }
 
 /* 横放等腰梯形热区 — 左底长(高)、右底短(低) */
@@ -77,12 +78,15 @@ function enterCabinet() {
   left: 5%;
   width: 68%;
   height: 75%;
-  clip-path: polygon(
-    2% 2%,      /* 左上 */
-    72% 15%,    /* 右上（靠右靠上→右底短） */
-    72% 85%,    /* 右下 */
-    2% 98%      /* 左下（贴左贴底→左底长） */
-  );
+  clip-path: polygon(2% 2%,
+      /* 左上 */
+      72% 15%,
+      /* 右上（靠右靠上→右底短） */
+      72% 85%,
+      /* 右下 */
+      2% 98%
+      /* 左下（贴左贴底→左底长） */
+    );
   cursor: pointer;
   z-index: 5;
   transition: background 0.25s, box-shadow 0.25s;
