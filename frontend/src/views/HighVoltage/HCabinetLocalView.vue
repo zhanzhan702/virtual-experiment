@@ -1,14 +1,17 @@
-<!-- 柜体局部操作：进线柜+计量柜+出线柜一体化操作界面 -->
+<!-- 柜体局部操作：Leafer UI 画布 + 进线柜/计量柜/出线柜交互 -->
 <template>
   <div class="cabinet-local-page">
+    <!-- TODO: 使用·leafer ui实现该页面 -->
     <HSceneFrame :src="localBg" alt="柜体局部操作" aspect-ratio="16 / 9">
-      <!-- TODO: 热区/操作控件待后续需求实现 -->
+
     </HSceneFrame>
 
     <!-- 右下角保存进度 -->
     <div class="save-bar-fixed">
       <el-button type="info" size="default" @click="saveProgress" :loading="saving">
-        <el-icon><FolderOpened /></el-icon> 保存进度
+        <el-icon>
+          <FolderOpened />
+        </el-icon> 保存进度
       </el-button>
     </div>
   </div>
