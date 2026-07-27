@@ -7,4 +7,4 @@ SET @tpl_id = (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1');
 
 -- 步骤 1：填写工作票
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 1, 'FILL_TICKET', '填写工作票', 600, 25.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 1, 'FILL_TICKET', '填写工作票', 300, 25.00);
