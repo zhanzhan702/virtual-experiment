@@ -71,7 +71,15 @@ function alignHotspot() {
 
 let observer = null
 onMounted(() => {
-  alignHotspot()
+  // 等待图片加载完成后再测量（否则 naturalWidth/Height 为 0）
+  const img = imgRef.value
+  if (img) {
+    if (img.complete) {
+      alignHotspot()
+    } else {
+      img.addEventListener('load', alignHotspot, { once: true })
+    }
+  }
   observer = new ResizeObserver(alignHotspot)
   if (imgRef.value) observer.observe(imgRef.value)
   if (wrapperRef.value) observer.observe(wrapperRef.value)
