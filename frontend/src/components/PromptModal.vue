@@ -6,7 +6,7 @@
         <!-- 内容区域（确认按钮覆盖在上方） -->
         <div class="modal-content">
           <slot />
-          <div class="confirm-btn" @click.stop="$emit('close')" />
+          <div class="confirm-btn" :style="{ bottom: buttonBottom }" @click.stop="$emit('close')" />
         </div>
       </div>
     </div>
@@ -15,7 +15,9 @@
 
 <script setup>
 defineProps({
-  visible: { type: Boolean, default: false }
+  visible: { type: Boolean, default: false },
+  /** 确认按钮距底部百分比，默认 12% */
+  buttonBottom: { type: String, default: '12%' }
 })
 defineEmits(['close'])
 </script>
