@@ -5,7 +5,7 @@
     <ScenarioSelector @select="onScenarioSelect" />
 
     <!-- 差异介绍须知弹窗 -->
-    <PromptModal :visible="showNotice" @close="onNoticeClose">
+    <PromptModal :visible="showNotice" @close="onNoticeClose" :button-bottom="'10%'">
       <img src="@/assets/images/SimulationDisclaimerNotice.png" alt="差异介绍须知" class="work-bg-img" />
     </PromptModal>
 

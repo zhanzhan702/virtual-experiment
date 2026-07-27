@@ -58,8 +58,8 @@ defineEmits(['close'])
   bottom: 12%;
   left: 50%;
   transform: translateX(-50%);
-  width: 140px;
-  height: 50px;
+  width: 15%;
+  height: 10%;
   cursor: pointer;
   background-image: url('@/assets/images/ConfirmButton.png');
   background-size: contain;
