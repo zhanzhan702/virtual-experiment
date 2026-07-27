@@ -157,19 +157,19 @@ const handleToolSelectionSubmit = async (selectedMap) => {
 
 .save-bar-fixed {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 1.5rem;
+  right: 1.5rem;
   z-index: 100;
 }
 
 /* 查看工作任务按钮（左下角） */
 .work-task-btn {
   position: fixed;
-  bottom: 24px;
-  left: 24px;
+  bottom: 1.5rem;
+  left: 1.5rem;
   z-index: 100;
-  width: 160px;
-  height: 40px;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
   cursor: pointer;
   background-image: url('@/assets/images/WorkTaskButton.png');
   background-size: contain;

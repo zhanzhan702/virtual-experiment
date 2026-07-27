@@ -23,8 +23,9 @@ function select(type) {
 }
 
 .scenario-btn {
-  width: 300px;
-  height: 133px;
+  width: clamp(180px, 25vw, 300px);
+  height: auto;
+  aspect-ratio: 300 / 133;
   cursor: pointer;
   border-radius: 12px;
   transition: transform 0.2s;
