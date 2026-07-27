@@ -4,12 +4,9 @@
   <div class="experiment-view">
     <ScenarioSelector @select="onScenarioSelect" />
 
-    <!-- 差异介绍须知弹窗（图片预留） -->
+    <!-- 差异介绍须知弹窗 -->
     <PromptModal :visible="showNotice" @close="onNoticeClose">
-      <div class="placeholder-notice">
-        <span>与真实场景差异介绍须知</span>
-        <span class="placeholder-hint">（图片待制作）</span>
-      </div>
+      <img src="@/assets/images/SimulationDisclaimerNotice.png" alt="差异介绍须知" class="work-bg-img" />
     </PromptModal>
 
     <!-- 高压工作背景弹窗 -->
@@ -127,23 +124,6 @@ async function startNewExperiment(type) {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.placeholder-notice {
-  text-align: center;
-  font-size: 20px;
-  color: #fff;
-  padding: 40px;
-  border: 2px dashed rgba(255, 255, 255, .4);
-  border-radius: 12px;
-  min-width: 400px;
-}
-
-.placeholder-hint {
-  display: block;
-  margin-top: 12px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, .5);
 }
 
 .work-bg-img {
