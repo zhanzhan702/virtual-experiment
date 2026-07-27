@@ -3,7 +3,7 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper" ref="wrapperRef">
-      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.png" alt="配电室总览" class="scene-bg"
+      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.jpg" alt="配电室总览" class="scene-bg"
         draggable="false" />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
