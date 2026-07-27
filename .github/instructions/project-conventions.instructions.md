@@ -62,15 +62,15 @@ applyTo: "**"
 | 箭头函数参数括号 | 单参数时省略 (`arrowParens: "avoid"`) |
 
 ```js
-// ✅ 正确
-import { ref, computed } from "vue";
-const msg = "hello";
-const fn = (x) => x * 2;
+// ✅ 正确：单引号、无分号、箭头单参省括号
+import { ref, computed } from 'vue'
+const msg = 'hello'
+const fn = x => x * 2
 
-// ❌ 错误
-import { ref, computed } from "vue";
-const msg = "hello";
-const fn = (x) => x * 2;
+// ❌ 错误：双引号、有分号、箭头单参有括号
+import { ref, computed } from "vue"
+const msg = "hello"
+const fn = (x) => x * 2
 ```
 
 ### 后端格式（Spotless + Google Java Format）
@@ -291,17 +291,21 @@ git pull origin develop
 | `perf`     | 性能优化               | `perf(query): 优化实验列表查询`                 |
 | `chore`    | 构建/工具/依赖         | `chore(deps): 升级 Element Plus 到 2.14`        |
 
-#### 范围标识（scope）— 可选
+#### 范围标识（scope）— 必填
 
-| 范围         | 涉及内容           |
-| ------------ | ------------------ |
-| `frontend`   | 前端通用变更       |
-| `backend`    | 后端通用变更       |
-| `auth`       | 认证/登录/注册相关 |
-| `experiment` | 实验业务相关       |
-| `component`  | Vue 组件相关       |
-| `api`        | API 接口层         |
-| `config`     | 配置文件           |
+| 范围         | 涉及内容                                   |
+| ------------ | ------------------------------------------ |
+| `frontend`   | 前端通用变更                               |
+| `backend`    | 后端通用变更                               |
+| `auth`       | 认证/登录/注册相关                         |
+| `experiment` | 实验业务相关                               |
+| `scene`      | 场景页面（全景/柜体/热区）                 |
+| `component`  | Vue 组件相关                               |
+| `api`        | API 接口层                                 |
+| `config`     | 配置文件                                   |
+| `naming`     | 文件/路由/变量命名规范                     |
+| `archive`    | 存档/恢复/草稿功能                         |
+| `deps`       | 依赖管理                                   |
 
 ### 提交示例
 
