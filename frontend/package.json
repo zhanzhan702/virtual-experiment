@@ -16,8 +16,10 @@
     ]
   },
   "dependencies": {
+    "@leafer-in/animate": "^2.2.5",
     "axios": "^1.16.1",
     "element-plus": "^2.14.1",
+    "leafer-ui": "^2.2.5",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4"
