@@ -51,6 +51,13 @@
 
     <!-- 右下角保存进度 -->
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
+
+    <!-- 查看工作任务按钮（左下角） -->
+    <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
+
+    <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
+      <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+    </PromptModal>
   </div>
 </template>
 
@@ -69,6 +76,7 @@ import signPersonWorking from '@/assets/images/SignPersonWorking.png'
 import safetyNotice from '@/assets/images/safetyNotice.png'
 import voltageTesterNormal from '@/assets/images/voltageTesterNormal.png'
 import voltageTesterWarning from '@/assets/images/voltageTesterWarning.png'
+import PromptModal from '@/components/PromptModal.vue'
 
 const leftTools = [leftFence, signStopHighVoltage, signPersonWorking, safetyNotice]
 
@@ -77,6 +85,7 @@ const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)
+const showWorkBg = ref(false)
 
 const cabinetGroupRef = ref(null)
 const leftBarStyle = ref({})
@@ -617,5 +626,32 @@ onUnmounted(() => {
 .save-bar-fixed.saving {
   opacity: .6;
   pointer-events: none;
+}
+
+/* 查看工作任务按钮（左下角） */
+.work-task-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: url('@/assets/images/WorkTaskButton.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
+}
+
+.work-task-btn:hover {
+  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  transform: scale(1.05);
+}
+
+.work-bg-img {
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
 }
 </style>
