@@ -181,6 +181,17 @@ onUnmounted(() => {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    transition: transform 0.2s;
+}
+
+.save-bar-fixed:hover {
+    background-image: url('@/assets/images/SaveProgressIconHover.png');
+    transform: scale(1.05);
+}
+
+.save-bar-fixed.disabled {
+    opacity: .4;
+    pointer-events: none;
 }
 
 .save-bar-fixed.disabled {
