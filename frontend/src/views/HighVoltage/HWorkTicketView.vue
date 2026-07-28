@@ -3,13 +3,7 @@
         <div class="scroll-wrapper">
             <WorkTicketForm ref="formRef" @submit-ticket="handleTicketSubmit" />
         </div>
-        <div class="save-bar-fixed">
-            <el-button type="info" size="default" @click="saveProgress" :loading="saving">
-                <el-icon>
-                    <FolderOpened />
-                </el-icon> 保存进度
-            </el-button>
-        </div>
+        <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
 
         <!-- 查看工作任务按钮（左下角） -->
         <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
@@ -172,6 +166,29 @@ const handleTicketSubmit = async (result) => {
     bottom: 1.5rem;
     right: 1.5rem;
     z-index: 100;
+    width: clamp(120px, 14vw, 160px);
+    height: clamp(32px, 5vh, 40px);
+    cursor: pointer;
+    background-image: url('@/assets/images/SaveProgressIcon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s;
+}
+
+.save-bar-fixed:hover {
+    background-image: url('@/assets/images/SaveProgressIconHover.png');
+    transform: scale(1.05);
+}
+
+.save-bar-fixed.saving {
+    opacity: .6;
+    pointer-events: none;
+}
+
+.save-bar-fixed.disabled {
+    opacity: .4;
+    pointer-events: none;
 }
 
 /* 查看工作任务按钮（左下角） */

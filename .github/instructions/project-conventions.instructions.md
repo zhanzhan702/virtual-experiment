@@ -13,8 +13,8 @@ applyTo: "**"
 | ------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Vue 组件            | **PascalCase**                  | `LoginForm.vue`, `ExperimentView.vue`, `HWorkTicketForm.vue`,`LWorkTicketForm.vue`                                               |
 | 视图页面            | **PascalCase** + `View` 后缀    | `AdminView.vue`, `LoginView.vue`, `TestView.vue`                                                                                 |
-| 高压场景文件        | **大写 H 开头** 区分低压         | `HWorkTicketView.vue`, `HSceneFrame.vue`, `HToolSelectionView.vue`                                                               |
-| 低压场景文件        | **大写 L 开头** 区分高压         | `LWorkTicketView.vue`, `LWorkTicketForm.vue`                                                                                     |
+| 高压场景文件        | **大写 H 开头** 区分低压        | `HWorkTicketView.vue`, `HSceneFrame.vue`, `HToolSelectionView.vue`                                                               |
+| 低压场景文件        | **大写 L 开头** 区分高压        | `LWorkTicketView.vue`, `LWorkTicketForm.vue`                                                                                     |
 | JS 工具/API         | **kebab-case**                  | `tool-selection-config.js`, `request.js`                                                                                         |
 | CSS 样式            | **kebab-case**                  | `base.css`, `main.css`                                                                                                           |
 | 图片资源            | **PascalCase** 或 **camelCase** | `ExperimentViewBackgroundImage.jpg`, `logo.png`, `HWTBackgroundImage.jpg`, `HighVoltageButton.png`, `HighVoltageButtonHover.png` |
@@ -63,14 +63,14 @@ applyTo: "**"
 
 ```js
 // ✅ 正确：单引号、无分号、箭头单参省括号
-import { ref, computed } from 'vue'
-const msg = 'hello'
-const fn = x => x * 2
+import { ref, computed } from "vue";
+const msg = "hello";
+const fn = (x) => x * 2;
 
 // ❌ 错误：双引号、有分号、箭头单参有括号
-import { ref, computed } from "vue"
-const msg = "hello"
-const fn = (x) => x * 2
+import { ref, computed } from "vue";
+const msg = "hello";
+const fn = (x) => x * 2;
 ```
 
 ### 后端格式（Spotless + Google Java Format）
@@ -293,19 +293,19 @@ git pull origin develop
 
 #### 范围标识（scope）— 必填
 
-| 范围         | 涉及内容                                   |
-| ------------ | ------------------------------------------ |
-| `frontend`   | 前端通用变更                               |
-| `backend`    | 后端通用变更                               |
-| `auth`       | 认证/登录/注册相关                         |
-| `experiment` | 实验业务相关                               |
-| `scene`      | 场景页面（全景/柜体/热区）                 |
-| `component`  | Vue 组件相关                               |
-| `api`        | API 接口层                                 |
-| `config`     | 配置文件                                   |
-| `naming`     | 文件/路由/变量命名规范                     |
-| `archive`    | 存档/恢复/草稿功能                         |
-| `deps`       | 依赖管理                                   |
+| 范围         | 涉及内容                   |
+| ------------ | -------------------------- |
+| `frontend`   | 前端通用变更               |
+| `backend`    | 后端通用变更               |
+| `auth`       | 认证/登录/注册相关         |
+| `experiment` | 实验业务相关               |
+| `scene`      | 场景页面（全景/柜体/热区） |
+| `component`  | Vue 组件相关               |
+| `api`        | API 接口层                 |
+| `config`     | 配置文件                   |
+| `naming`     | 文件/路由/变量命名规范     |
+| `archive`    | 存档/恢复/草稿功能         |
+| `deps`       | 依赖管理                   |
 
 ### 提交示例
 

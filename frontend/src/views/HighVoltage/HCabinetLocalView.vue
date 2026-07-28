@@ -1,15 +1,15 @@
 <!-- 柜体局部操作：进线柜+计量柜+出线柜一体化操作界面 -->
 <template>
-  <div class="cabinet-local-page"
-    :class="{ 'is-following': isFollowing || vtActive }"
-    @mousemove="onPageMouseMove"
+  <div class="cabinet-local-page" :class="{ 'is-following': isFollowing || vtActive }" @mousemove="onPageMouseMove"
     @click="onPageClick">
     <div class="cabinet-group" ref="cabinetGroupRef">
       <img :src="localBg" alt="柜体局部操作" class="cabinet-img" draggable="false" />
       <img :src="powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
       <!-- 工作牌（相对柜体图定位，保证不超出 CabinetGroupOverview.png） -->
-      <img v-if="placedSignWorkingVisible" :src="signPersonWorking" class="placed-fence placed-on-cabinet" :style="SIGN_WORKING_STYLE" draggable="false" />
-      <img v-if="placedSafetyNoticeVisible" :src="safetyNotice" class="placed-fence placed-on-cabinet" :style="SAFETY_NOTICE_STYLE" draggable="false" />
+      <img v-if="placedSignWorkingVisible" :src="signPersonWorking" class="placed-fence placed-on-cabinet"
+        :style="SIGN_WORKING_STYLE" draggable="false" />
+      <img v-if="placedSafetyNoticeVisible" :src="safetyNotice" class="placed-fence placed-on-cabinet"
+        :style="SAFETY_NOTICE_STYLE" draggable="false" />
     </div>
 
     <!-- 中间区域（用于放置围栏，基于物品栏边界） -->
@@ -17,18 +17,20 @@
 
     <!-- 已放置的围栏与警示牌（独立层级，避免被中间区域遮挡） -->
     <div class="placed-layer" :style="middleAreaStyle">
-      <img v-if="placedFenceVisible" :src="leftFence" class="placed-fence" :style="LEFT_FENCE_STYLE" draggable="false" />
-      <img v-if="placedFenceVisible" :src="rightFence" class="placed-fence" :style="RIGHT_FENCE_STYLE" draggable="false" />
-      <img v-if="placedSignHVVisible" :src="signStopHighVoltage" class="placed-fence" :style="LEFT_SIGN_HV_STYLE" draggable="false" />
-      <img v-if="placedSignHVVisible" :src="signStopHighVoltage" class="placed-fence" :style="RIGHT_SIGN_HV_STYLE" draggable="false" />
+      <img v-if="placedFenceVisible" :src="leftFence" class="placed-fence" :style="LEFT_FENCE_STYLE"
+        draggable="false" />
+      <img v-if="placedFenceVisible" :src="rightFence" class="placed-fence" :style="RIGHT_FENCE_STYLE"
+        draggable="false" />
+      <img v-if="placedSignHVVisible" :src="signStopHighVoltage" class="placed-fence" :style="LEFT_SIGN_HV_STYLE"
+        draggable="false" />
+      <img v-if="placedSignHVVisible" :src="signStopHighVoltage" class="placed-fence" :style="RIGHT_SIGN_HV_STYLE"
+        draggable="false" />
     </div>
 
     <!-- 左侧物品栏 -->
     <div class="tool-bar" :style="leftBarStyle">
-      <div class="tool-item tool-item-img"
-        v-for="(img, idx) in leftTools" :key="'L-img' + idx"
-        :class="{ 'tool-selected': followingToolIdx === idx }"
-        @click="selectTool(idx, $event)">
+      <div class="tool-item tool-item-img" v-for="(img, idx) in leftTools" :key="'L-img' + idx"
+        :class="{ 'tool-selected': followingToolIdx === idx }" @click="selectTool(idx, $event)">
         <img :src="img" alt="" draggable="false" />
       </div>
       <div class="tool-item" v-for="i in 17" :key="'L' + i"></div>
@@ -36,9 +38,7 @@
 
     <!-- 右侧物品栏 -->
     <div class="tool-bar" :style="rightBarStyle">
-      <div class="tool-item tool-item-img"
-        :class="{ 'tool-selected': vtActive }"
-        @click="selectVoltageTester($event)">
+      <div class="tool-item tool-item-img" :class="{ 'tool-selected': vtActive }" @click="selectVoltageTester($event)">
         <img :src="voltageTesterNormal" alt="验电笔" draggable="false" />
       </div>
       <div class="tool-item" v-for="i in 19" :key="'R' + i"></div>
@@ -50,11 +50,7 @@
     </div>
 
     <!-- 右下角保存进度 -->
-    <div class="save-bar-fixed">
-      <el-button type="info" size="default" @click="saveProgress" :loading="saving">
-        <el-icon><FolderOpened /></el-icon> 保存进度
-      </el-button>
-    </div>
+    <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
   </div>
 </template>
 
@@ -62,7 +58,6 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { FolderOpened } from '@element-plus/icons-vue'
 import { saveDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import localBg from '@/assets/images/CabinetGroupOverview.png'
@@ -265,11 +260,11 @@ function onPageMouseMove(e) {
 // 在柜体背景图区域内点击则放置对应图片；点错区域不提示、不放置
 function tryPlaceOnCabinet(visibleRef, e) {
   const img = e.currentTarget?.querySelector?.('.cabinet-img') ||
-              cabinetGroupRef.value?.querySelector('.cabinet-img')
+    cabinetGroupRef.value?.querySelector('.cabinet-img')
   if (img) {
     const imgRect = img.getBoundingClientRect()
     if (e.clientX >= imgRect.left && e.clientX <= imgRect.right &&
-        e.clientY >= imgRect.top && e.clientY <= imgRect.bottom) {
+      e.clientY >= imgRect.top && e.clientY <= imgRect.bottom) {
       visibleRef.value = true
       followingToolIdx.value = null
       isFollowing.value = false
@@ -298,9 +293,9 @@ function onMiddleAreaClick(e) {
     const px = (e.clientX - rect.left) / rect.width * 100
     const py = (e.clientY - rect.top) / rect.height * 100
     const inLeft = px >= LEFT_FENCE_RECT.x1 && px <= LEFT_FENCE_RECT.x2 &&
-                   py >= LEFT_FENCE_RECT.y1 && py <= LEFT_FENCE_RECT.y2
+      py >= LEFT_FENCE_RECT.y1 && py <= LEFT_FENCE_RECT.y2
     const inRight = px >= RIGHT_FENCE_RECT.x1 && px <= RIGHT_FENCE_RECT.x2 &&
-                    py >= RIGHT_FENCE_RECT.y1 && py <= RIGHT_FENCE_RECT.y2
+      py >= RIGHT_FENCE_RECT.y1 && py <= RIGHT_FENCE_RECT.y2
     if (inLeft || inRight) {
       placedSignHVVisible.value = true
       followingToolIdx.value = null
@@ -320,7 +315,7 @@ function hitTest(e, el) {
   if (!el) return false
   const r = el.getBoundingClientRect()
   return e.clientX >= r.left && e.clientX <= r.right &&
-         e.clientY >= r.top && e.clientY <= r.bottom
+    e.clientY >= r.top && e.clientY <= r.bottom
 }
 
 // 验电笔序列：点错一次回到起点（保持跟随模式，可立即重试）
@@ -530,8 +525,13 @@ onUnmounted(() => {
 }
 
 @keyframes fenceFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .tool-bar {
@@ -547,12 +547,15 @@ onUnmounted(() => {
   background: #1B7C78;
   border-radius: 12px;
   /* 隐藏滚动条但保留滚动功能 */
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE / 旧 Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE / 旧 Edge */
 }
 
 .tool-bar::-webkit-scrollbar {
-  display: none;                /* Chrome / Safari / 新 Edge */
+  display: none;
+  /* Chrome / Safari / 新 Edge */
 }
 
 .tool-item {
@@ -593,10 +596,26 @@ onUnmounted(() => {
 
 .save-bar-fixed {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 1.5rem;
+  right: 1.5rem;
   z-index: 100;
-  display: flex;
-  gap: 8px;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: url('@/assets/images/SaveProgressIcon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
+}
+
+.save-bar-fixed:hover {
+  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  transform: scale(1.05);
+}
+
+.save-bar-fixed.saving {
+  opacity: .6;
+  pointer-events: none;
 }
 </style>
