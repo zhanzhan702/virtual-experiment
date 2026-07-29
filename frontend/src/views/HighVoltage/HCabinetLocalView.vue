@@ -19,17 +19,20 @@
         <img :src="powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
         <img v-if="itemPlaced[0]" :src="leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
         <img v-if="itemPlaced[0]" :src="rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
-        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE" draggable="false" />
-        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE" draggable="false" />
-        <img v-if="itemPlaced[2]" :src="signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE" draggable="false" />
-        <img v-if="itemPlaced[3]" :src="safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[2]" :src="signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[3]" :src="safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
+          draggable="false" />
       </div>
     </div>
 
     <!-- 右侧物品栏（17 槽位，第 1 个为验电笔，其余留空） -->
     <div class="tool-bar tool-bar-right">
-      <div v-for="i in 17" :key="'R' + i"
-        class="tool-item"
+      <div v-for="i in 17" :key="'R' + i" class="tool-item tool-item-img"
         :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
         @click="i === 1 && selectVoltageTester($event)">
         <img v-if="i === 1" :src="voltageTesterNormal" alt="验电笔" draggable="false" />
@@ -151,12 +154,12 @@ function selectVoltageTester(e) {
 
 function onPageMouseMove(e) { if (isFollowing.value || vtActive.value) moveCursorTo(e) }
 
-/** 柜体区域内点击 → 放置 */
-function tryPlaceOnCabinet(visRef, e) {
+/** 柜体图像区域内点击命中检测 */
+function hitCabinetImg(e) {
   const cab = cabinetGroupRef.value?.querySelector('.cabinet-img')
   if (!cab) return false
   const r = cab.getBoundingClientRect()
-  return (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) && (visRef.value = true)
+  return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
 }
 
 function onMiddleAreaClick(e) {
@@ -172,7 +175,7 @@ function onMiddleAreaClick(e) {
     hit ? (itemPlaced[1] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
   }
   else if (idx === 2 || idx === 3) {
-    tryPlaceOnCabinet(itemPlaced[idx], e) ? finishPlacement() : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
+    hitCabinetImg(e) ? (itemPlaced[idx] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
   }
 }
 
