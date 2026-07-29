@@ -88,6 +88,15 @@ const showVideo = ref(false)
 const hasSubmitted = ref(false)
 const saving = ref(false)
 
+// ─── 步骤模式判定（步骤3=放置物品+验电，步骤4=仅验电） ───
+const stepsFromStore = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+const currentStepOrder = computed(() => {
+  if (!stepId.value) return 3 // 缺 stepId 默认按步骤3
+  const s = stepsFromStore.find(s => s.stepId === stepId.value)
+  return s ? s.stepOrder : 3
+})
+const isStep4 = computed(() => currentStepOrder.value === 4)
+
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const leftTools = [
   { img: leftFence }, { img: signStopHighVoltage },
@@ -122,19 +131,20 @@ const cabinetGroupRef = ref(null)
 const middleAreaStyle = ref({})
 
 // ★ 放置坐标（相对 cabinet-group 即柜体图像尺寸的 %，用户按需调整）
-const LEFT_FENCE_STYLE = { left: '19.4%', top: '46.8%', width: '26.5%', height: 'auto' }
-const RIGHT_FENCE_STYLE = { left: '54.9%', top: '49.3%', width: '26.4%', height: 'auto' }
-const LEFT_SIGN_HV_STYLE = { left: '26.5%', top: '64.2%', width: '6.1%', height: 'auto' }
-const RIGHT_SIGN_HV_STYLE = { left: '64.55%', top: '63.7%', width: '6.1%', height: 'auto' }
-const SIGN_WORKING_STYLE = { left: '42.5%', top: '43%', width: '12%', height: 'auto' }
-const SAFETY_NOTICE_STYLE = { left: '21.5%', top: '41%', width: '12%', height: 'auto' }
+const LEFT_FENCE_STYLE = { left: '-15.5%', top: '60.3%', width: '58.5%', height: 'auto' }
+const RIGHT_FENCE_STYLE = { left: '61.2%', top: '64.9%', width: '46.5%', height: 'auto' }
+const LEFT_SIGN_HV_STYLE = { left: '1.5%', top: '98.5%', width: '10.6%', height: 'auto' }
+const RIGHT_SIGN_HV_STYLE = { left: '78.3%', top: '97.2%', width: '10.6%', height: 'auto' }
+const SIGN_WORKING_STYLE = { left: '43.5%', top: '43%', width: '10%', height: 'auto' }
+const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: 'auto' }
 const LEFT_FENCE_RECT = { x1: 19.4, y1: 46.8, x2: 45.9, y2: 80.5 }
 const RIGHT_FENCE_RECT = { x1: 54.9, y1: 49.3, x2: 81.3, y2: 83.8 }
 
 // ============== 方法 ==============
 
-/** 选中工具：已放置则报错 */
+/** 选中工具：已放置则报错；步骤4禁止放置 */
 function selectTool(idx, e) {
+  if (isStep4.value) { ElMessage.warning('步骤4无需重复放置物品，请直接验电'); stats.error_count++; return }
   vtActive.value = false
   stats.operation_count++
   if (itemPlaced[idx]) { ElMessage.warning('该物品已放置'); stats.error_count++; return }
@@ -200,9 +210,11 @@ async function checkAllDone() {
 
 function closeVideo() {
   showVideo.value = false
-  const steps = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
-  const next = steps.find(s => s.stepOrder === 4)
-  if (next) router.push({ path: '/HCL', query: { experimentId: experimentId.value, stepId: next.stepId } })
+  const next = stepsFromStore.find(s => s.stepOrder === 4)
+  if (next) {
+    sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
+    router.push({ path: '/HCL', query: { experimentId: experimentId.value, stepId: next.stepId } })
+  }
 }
 
 // ─── 验电笔交互 ───
@@ -215,7 +227,22 @@ function onPageClick(e) {
   if (vtStep.value === 0) hitTest(e, s) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
   else if (vtStep.value === 1) hitTest(e, c) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
   else if (vtStep.value === 2) hitTest(e, s) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
-  if (vtStep.value === 3) { vtDone.value = true; vtActive.value = false }
+  if (vtStep.value === 3) { vtDone.value = true; vtActive.value = false; submitVoltageCheck() }
+}
+
+/** 步骤4验电完成 → 提交 */
+async function submitVoltageCheck() {
+  try {
+    await submitStep({
+      experimentId: experimentId.value, stepId: stepId.value, status: 1,
+      durationSeconds: stats.duration_seconds, operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      score: Math.max(0, 100 - stats.error_count * 10),
+      resultData: JSON.stringify({ vtDone: true, vtStep: 3 }),
+      startedAt: startedAt.value
+    })
+    ElMessage.success('验电操作完成！')
+  } catch (err) { ElMessage.error('提交失败') }
 }
 
 // ─── 存档 ───
@@ -238,6 +265,14 @@ function updateMiddleArea() {
   middleAreaStyle.value = { left: '12vw', right: '12vw', top: '5vh', bottom: '5vh' }
 }
 onMounted(async () => {
+  // 步骤4：没有草稿时自动标记物品已放置（步骤3已提交过）
+  if (isStep4.value) {
+    const skipFlag = sessionStorage.getItem('_hcl_step4_skip_placement')
+    if (skipFlag) {
+      itemPlaced.splice(0, 4, true, true, true, true)
+      sessionStorage.removeItem('_hcl_step4_skip_placement')
+    }
+  }
   if (experimentId.value && stepId.value) {
     try {
       const d = await getStepDraft(experimentId.value, stepId.value)
@@ -245,6 +280,10 @@ onMounted(async () => {
       if (d?.vtDone) vtDone.value = true
       if (d?.vtStep != null) vtStep.value = d.vtStep
     } catch (_) { }
+  }
+  // 步骤4无草稿时确保物品显示为已放置
+  if (isStep4.value && !itemPlaced.some(v => v)) {
+    itemPlaced.splice(0, 4, true, true, true, true)
   }
   updateMiddleArea()
   window.addEventListener('resize', updateMiddleArea)
@@ -264,15 +303,15 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 /* 物品栏 */
 .tool-bar {
   position: fixed;
-  top: 5vh;
-  height: 90vh;
+  top: 10vh;
+  height: 80vh;
   width: 10vw;
   min-width: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.2vh;
-  padding: 1vh 0;
+  padding: 10vh 0;
   z-index: 50;
   background: #1B7C78;
   border-radius: 1rem;
