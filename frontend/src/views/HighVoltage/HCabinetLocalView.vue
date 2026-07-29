@@ -137,9 +137,26 @@ const LEFT_SIGN_HV_STYLE = { left: '1.5%', top: '98.5%', width: '10.6%', height:
 const RIGHT_SIGN_HV_STYLE = { left: '78.3%', top: '97.2%', width: '10.6%', height: 'auto' }
 const SIGN_WORKING_STYLE = { left: '43.5%', top: '43%', width: '10%', height: 'auto' }
 const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: 'auto' }
-// ★ 围栏命中矩形（相对 cabinet-group 的 %，需与围栏视觉位置匹配，用户按需调整）
-const LEFT_FENCE_RECT = { x1: 19.4, y1: 46.8, x2: 45.9, y2: 80.5 }
-const RIGHT_FENCE_RECT = { x1: 54.9, y1: 49.3, x2: 81.3, y2: 83.8 }
+// ★ 围栏图片宽高比（运行时从实际图片获取，用于命中检测）
+const fenceAspect = reactive({ left: 1, right: 1 })
+function loadImageAspect(src, key) {
+  const img = new Image()
+  img.onload = () => { fenceAspect[key] = img.naturalWidth / img.naturalHeight }
+  img.src = src
+}
+
+/** 根据 STYLE + cabinet-group 实际尺寸 + 图片宽高比 命中检测 */
+function hitFenceFromStyle(e, style, aspectKey) {
+  const g = cabinetGroupRef.value
+  if (!g) return false
+  const r = g.getBoundingClientRect()
+  const imgLeft = r.left + r.width * parseFloat(style.left) / 100
+  const imgTop = r.top + r.height * parseFloat(style.top) / 100
+  const imgW = r.width * parseFloat(style.width) / 100
+  const imgH = imgW / fenceAspect[aspectKey]
+  return e.clientX >= imgLeft && e.clientX <= imgLeft + imgW &&
+         e.clientY >= imgTop && e.clientY <= imgTop + imgH
+}
 
 // ============== 方法 ==============
 
@@ -179,14 +196,9 @@ function onMiddleAreaClick(e) {
   const idx = followingToolIdx.value
   if (idx === 0) { itemPlaced[0] = true; finishPlacement() }
   else if (idx === 1) {
-    // 命中检测参照 cabinet-group（柜体图像），与 placed-img 视觉定位一致
-    const g = cabinetGroupRef.value
-    if (!g) return
-    const r = g.getBoundingClientRect()
-    const px = (e.clientX - r.left) / r.width * 100
-    const py = (e.clientY - r.top) / r.height * 100
-    const hit = (px >= LEFT_FENCE_RECT.x1 && px <= LEFT_FENCE_RECT.x2 && py >= LEFT_FENCE_RECT.y1 && py <= LEFT_FENCE_RECT.y2) ||
-      (px >= RIGHT_FENCE_RECT.x1 && px <= RIGHT_FENCE_RECT.x2 && py >= RIGHT_FENCE_RECT.y1 && py <= RIGHT_FENCE_RECT.y2)
+    // 命中检测根据 STYLE + 图片宽高比自动计算，只需维护 STYLE 即可
+    const hit = hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
+                hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
     hit ? (itemPlaced[1] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
   }
   else if (idx === 2 || idx === 3) {
@@ -304,6 +316,9 @@ onMounted(async () => {
   if (isStep4.value && !itemPlaced.some(v => v)) {
     itemPlaced.splice(0, 4, true, true, true, true)
   }
+  // 加载围栏图片宽高比（用于命中检测自动计算）
+  loadImageAspect(leftFence, 'left')
+  loadImageAspect(rightFence, 'right')
   updateMiddleArea()
   window.addEventListener('resize', updateMiddleArea)
 })
