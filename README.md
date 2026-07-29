@@ -96,7 +96,6 @@ virtual-experiment/
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
 │   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
-│   │   │   │   ├── HSceneFrame.vue          # 场景框体组件
 │   │   │   │   └── HSceneHotspotOverlay.vue # 场景热区叠加层
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
