@@ -233,15 +233,21 @@ function onPageClick(e) {
 
 /** 验电完成 → 提交当前步骤并跳转下一步 */
 async function submitVoltageCheck() {
+  //传递到后端的 payload
+  const payload = {
+    experimentId: experimentId.value,
+    stepId: stepId.value,
+    status: 1,
+    durationSeconds: stats.duration_seconds,
+    operationCount: stats.operation_count,
+    errorCount: stats.error_count,
+    score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
+    resultData: JSON.stringify({ vtDone: true, vtStep: 3 }),
+    startedAt: startedAt.value
+  }
+
   try {
-    await submitStep({
-      experimentId: experimentId.value, stepId: stepId.value, status: 1,
-      durationSeconds: stats.duration_seconds, operationCount: stats.operation_count,
-      errorCount: stats.error_count,
-      score: Math.max(0, 100 - stats.error_count * 10),
-      resultData: JSON.stringify({ vtDone: true, vtStep: 3 }),
-      startedAt: startedAt.value
-    })
+    await submitStep(payload)
     ElMessage.success('验电操作完成！')
 
     // 查找下一步
@@ -251,13 +257,15 @@ async function submitVoltageCheck() {
       const path = routeMap[nextStep.stepOrder] || '/HCL'
       setTimeout(() => {
         router.push({ path, query: { experimentId: experimentId.value, stepId: nextStep.stepId } })
-      }, 800)
+      }, 1000)
     } else {
       // 实验全部完成
       ElMessage.success('实验已全部完成！')
       setTimeout(() => router.push('/experiment'), 1500)
     }
-  } catch (err) { ElMessage.error('提交失败：' + (err.response?.data?.message || err.message)) }
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+  }
 }
 
 // ─── 存档 ───
@@ -483,58 +491,58 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 
 /* 固定按钮 */
 .save-bar-fixed {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 100;
-    width: clamp(120px, 14vw, 160px);
-    height: clamp(32px, 5vh, 40px);
-    cursor: pointer;
-    background-image: url('@/assets/images/SaveProgressIcon.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    transition: transform 0.2s;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: url('@/assets/images/SaveProgressIcon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
 }
 
 .save-bar-fixed:hover {
-    background-image: url('@/assets/images/SaveProgressIconHover.png');
-    transform: scale(1.05);
+  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  transform: scale(1.05);
 }
 
 .save-bar-fixed.saving {
-    opacity: .6;
-    pointer-events: none;
+  opacity: .6;
+  pointer-events: none;
 }
 
 .save-bar-fixed.disabled {
-    opacity: .4;
-    pointer-events: none;
+  opacity: .4;
+  pointer-events: none;
 }
 
 .work-task-btn {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    z-index: 100;
-    width: clamp(120px, 14vw, 160px);
-    height: clamp(32px, 5vh, 40px);
-    cursor: pointer;
-    background-image: url('@/assets/images/WorkTaskButton.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    transition: transform 0.2s;
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: url('@/assets/images/WorkTaskButton.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
 }
 
 .work-task-btn:hover {
-    background-image: url('@/assets/images/WorkTaskButtonHover.png');
-    transform: scale(1.05);
+  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  transform: scale(1.05);
 }
 
 .work-bg-img {
-    max-width: 80vw;
-    max-height: 70vh;
-    border-radius: 8px;
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
 }
 </style>
