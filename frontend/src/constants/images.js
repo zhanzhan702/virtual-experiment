@@ -99,3 +99,23 @@ export default {
   verifyMeterDataConsistency,
   verifyTerminalWiring
 }
+
+/**
+ * CSS 变量映射（供 main.js 注入）
+ * CSS 中用 var(--img-xxx) 引用，更换格式只改上方 import
+ */
+export const cssVars = {
+  '--img-confirm-btn': confirmButton,
+  '--img-confirm-btn-hover': confirmButtonHover,
+  '--img-high-voltage-btn': highVoltageButton,
+  '--img-high-voltage-btn-hover': highVoltageButtonHover,
+  '--img-low-voltage-btn': lowVoltageButton,
+  '--img-low-voltage-btn-hover': lowVoltageButtonHover,
+  '--img-experiment-bg': experimentViewBg,
+  '--img-save-icon': saveProgressIcon,
+  '--img-save-icon-hover': saveProgressIconHover,
+  '--img-work-task': workTaskButton,
+  '--img-work-task-hover': workTaskButtonHover,
+  '--img-tool-selection-bg': toolSelectionBg,
+  '--img-hwt-bg': hwtBackground
+}
