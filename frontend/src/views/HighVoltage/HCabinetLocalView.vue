@@ -249,20 +249,12 @@ async function submitVoltageCheck() {
   try {
     await submitStep(payload)
     ElMessage.success('验电操作完成！')
-
-    // 查找下一步
-    const nextStep = stepsFromStore.find(s => s.stepOrder === currentStepOrder.value + 1)
-    if (nextStep) {
-      const routeMap = { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL', 5: '/HCL' }
-      const path = routeMap[nextStep.stepOrder] || '/HCL'
-      setTimeout(() => {
-        router.push({ path, query: { experimentId: experimentId.value, stepId: nextStep.stepId } })
-      }, 1000)
-    } else {
-      // 实验全部完成
-      ElMessage.success('实验已全部完成！')
-      setTimeout(() => router.push('/experiment'), 1500)
-    }
+    setTimeout(() => {
+      router.push({
+        path: '/',
+        query: { experimentId: experimentId.value }
+      })
+    }, 1000)
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
