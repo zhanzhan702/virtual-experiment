@@ -206,7 +206,7 @@ async function checkAllDone() {
     })
     ElMessage.success('围栏与标示牌放置完成')
     showVideo.value = true
-  } catch (err) { ElMessage.error('提交失败'); hasSubmitted.value = false }
+  } catch (err) { ElMessage.error('提交失败：' + (err.response?.data?.message || err.message)); hasSubmitted.value = false }
 }
 
 function closeVideo() {
@@ -257,7 +257,7 @@ async function submitVoltageCheck() {
       ElMessage.success('实验已全部完成！')
       setTimeout(() => router.push('/experiment'), 1500)
     }
-  } catch (err) { ElMessage.error('提交失败') }
+  } catch (err) { ElMessage.error('提交失败：' + (err.response?.data?.message || err.message)) }
 }
 
 // ─── 存档 ───
@@ -272,7 +272,7 @@ const saveProgressDraft = async () => {
       startedAt: startedAt.value
     })
     ElMessage.success('进度已保存')
-  } catch (err) { ElMessage.error('保存失败') } finally { saving.value = false }
+  } catch (err) { ElMessage.error('保存失败：' + (err.response?.data?.message || err.message)) } finally { saving.value = false }
 }
 
 // ─── 恢复草稿 + 中间区域 ───
@@ -483,47 +483,58 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 
 /* 固定按钮 */
 .save-bar-fixed {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background: url('@/assets/images/SaveProgressIcon.png') center/contain no-repeat;
-  transition: transform .2s;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    width: clamp(120px, 14vw, 160px);
+    height: clamp(32px, 5vh, 40px);
+    cursor: pointer;
+    background-image: url('@/assets/images/SaveProgressIcon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s;
 }
 
 .save-bar-fixed:hover {
-  background-image: url('@/assets/images/SaveProgressIconHover.png');
-  transform: scale(1.05);
+    background-image: url('@/assets/images/SaveProgressIconHover.png');
+    transform: scale(1.05);
 }
 
 .save-bar-fixed.saving {
-  opacity: .6;
-  pointer-events: none;
+    opacity: .6;
+    pointer-events: none;
+}
+
+.save-bar-fixed.disabled {
+    opacity: .4;
+    pointer-events: none;
 }
 
 .work-task-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background: url('@/assets/images/WorkTaskButton.png') center/contain no-repeat;
-  transition: transform .2s;
+    position: fixed;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    z-index: 100;
+    width: clamp(120px, 14vw, 160px);
+    height: clamp(32px, 5vh, 40px);
+    cursor: pointer;
+    background-image: url('@/assets/images/WorkTaskButton.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.2s;
 }
 
 .work-task-btn:hover {
-  background-image: url('@/assets/images/WorkTaskButtonHover.png');
-  transform: scale(1.05);
+    background-image: url('@/assets/images/WorkTaskButtonHover.png');
+    transform: scale(1.05);
 }
 
 .work-bg-img {
-  max-width: 80vw;
-  max-height: 70vh;
-  border-radius: 8px;
+    max-width: 80vw;
+    max-height: 70vh;
+    border-radius: 8px;
 }
 </style>
