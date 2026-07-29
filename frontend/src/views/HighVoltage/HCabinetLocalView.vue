@@ -1,40 +1,38 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div class="cabinet-local-page"
-    :class="{ 'is-following': isFollowing || vtActive }"
-    @mousemove="onPageMouseMove" @click="onPageClick">
+  <div class="cabinet-local-page" :class="{ 'is-following': isFollowing || vtActive }" @mousemove="onPageMouseMove"
+    @click="onPageClick">
 
     <!-- 左侧物品栏 -->
     <div class="tool-bar tool-bar-left">
-      <div v-for="(item, idx) in leftTools" :key="'L' + idx"
-        class="tool-item tool-item-img"
+      <div v-for="(item, idx) in leftTools" :key="'L' + idx" class="tool-item tool-item-img"
         :class="{ 'tool-selected': followingToolIdx === idx, 'tool-placed': itemPlaced[idx] }"
         @click="selectTool(idx, $event)">
         <img :src="item.img" alt="" draggable="false" />
       </div>
     </div>
 
-    <!-- 中间交互区域 -->
+    <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
       <div class="cabinet-group" ref="cabinetGroupRef">
         <img :src="localBg" alt="柜体局部" class="cabinet-img" draggable="false" />
         <img :src="powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-        <img v-if="itemPlaced[2]" :src="signPersonWorking" class="placed-on-cabinet"
-          :style="SIGN_WORKING_STYLE" draggable="false" />
-        <img v-if="itemPlaced[3]" :src="safetyNotice" class="placed-on-cabinet"
-          :style="SAFETY_NOTICE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[0]" :src="leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[0]" :src="rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE" draggable="false" />
+        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE" draggable="false" />
+        <img v-if="itemPlaced[2]" :src="signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE" draggable="false" />
+        <img v-if="itemPlaced[3]" :src="safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE" draggable="false" />
       </div>
-      <img v-if="itemPlaced[0]" :src="leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
-      <img v-if="itemPlaced[0]" :src="rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
-      <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE" draggable="false" />
-      <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE" draggable="false" />
     </div>
 
-    <!-- 右侧物品栏 -->
+    <!-- 右侧物品栏（17 槽位，第 1 个为验电笔，其余留空） -->
     <div class="tool-bar tool-bar-right">
-      <div class="tool-item tool-item-img" :class="{ 'tool-selected': vtActive, 'tool-placed': vtDone }"
-        @click="selectVoltageTester($event)">
-        <img :src="voltageTesterNormal" alt="验电笔" draggable="false" />
+      <div v-for="i in 17" :key="'R' + i"
+        class="tool-item"
+        :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
+        @click="i === 1 && selectVoltageTester($event)">
+        <img v-if="i === 1" :src="voltageTesterNormal" alt="验电笔" draggable="false" />
       </div>
     </div>
 
@@ -120,7 +118,7 @@ function moveCursorTo(e) { if (e) cursorFollowingStyle.value = { left: (e.client
 const cabinetGroupRef = ref(null)
 const middleAreaStyle = ref({})
 
-// ★ 放置坐标（相对中间区域 %，用户按需调整）
+// ★ 放置坐标（相对 cabinet-group 即柜体图像尺寸的 %，用户按需调整）
 const LEFT_FENCE_STYLE = { left: '19.4%', top: '46.8%', width: '26.5%', height: 'auto' }
 const RIGHT_FENCE_STYLE = { left: '54.9%', top: '49.3%', width: '26.4%', height: 'auto' }
 const LEFT_SIGN_HV_STYLE = { left: '26.5%', top: '64.2%', width: '6.1%', height: 'auto' }
@@ -146,6 +144,7 @@ function selectTool(idx, e) {
 function selectVoltageTester(e) {
   e?.stopPropagation?.()
   stats.operation_count++
+  if (!allItemsPlaced.value) { ElMessage.warning('请先完成围栏与标示牌放置'); stats.error_count++; return }
   if (vtDone.value) { ElMessage.warning('验电已完成'); stats.error_count++; return }
   vtActive.value ? (vtActive.value = false, vtStep.value = 0) : (vtActive.value = true, vtStep.value = 0, moveCursorTo(e))
 }
@@ -233,7 +232,7 @@ const saveProgressDraft = async () => {
 
 // ─── 恢复草稿 + 中间区域 ───
 function updateMiddleArea() {
-  middleAreaStyle.value = { left: '12vw', top: '5vh', width: '76vw', height: '90vh' }
+  middleAreaStyle.value = { left: '12vw', right: '12vw', top: '5vh', bottom: '5vh' }
 }
 onMounted(async () => {
   if (experimentId.value && stepId.value) {
@@ -242,7 +241,7 @@ onMounted(async () => {
       if (d?.itemPlaced) d.itemPlaced.forEach((v, i) => { itemPlaced[i] = v })
       if (d?.vtDone) vtDone.value = true
       if (d?.vtStep != null) vtStep.value = d.vtStep
-    } catch (_) {}
+    } catch (_) { }
   }
   updateMiddleArea()
   window.addEventListener('resize', updateMiddleArea)
@@ -251,44 +250,223 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 </script>
 
 <style scoped>
-.cabinet-local-page { width: 100vw; height: 100vh; background: #fff; position: relative; overflow: hidden; }
+.cabinet-local-page {
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
 
 /* 物品栏 */
-.tool-bar { position: fixed; top: 5vh; height: 90vh; width: 10vw; min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 1.2vh; padding: 1vh 0; z-index: 50; background: #1B7C78; border-radius: 1rem; overflow-y: auto; scrollbar-width: none; }
-.tool-bar::-webkit-scrollbar { display: none; }
-.tool-bar-left { left: 1vw; }
-.tool-bar-right { right: 1vw; }
-.tool-item { width: 80%; aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(0,0,0,.2); background: rgba(0,0,0,.04); flex-shrink: 0; cursor: pointer; transition: border-color .2s, background .2s; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.tool-item:hover { border-color: rgba(100,180,255,.8); background: rgba(100,180,255,.12); }
-.tool-item-img img { width: 80%; height: 80%; object-fit: contain; pointer-events: none; }
-.tool-selected { border-color: #4ade80; background: rgba(74,222,128,.2); box-shadow: 0 0 12px rgba(74,222,128,.6); }
-.tool-placed { opacity: .4; border-color: #999; pointer-events: auto; }
+.tool-bar {
+  position: fixed;
+  top: 5vh;
+  height: 90vh;
+  width: 10vw;
+  min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2vh;
+  padding: 1vh 0;
+  z-index: 50;
+  background: #1B7C78;
+  border-radius: 1rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.tool-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tool-bar-left {
+  left: 1vw;
+}
+
+.tool-bar-right {
+  right: 1vw;
+}
+
+.tool-item {
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, .2);
+  background: rgba(0, 0, 0, .04);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tool-item:hover {
+  border-color: rgba(100, 180, 255, .8);
+  background: rgba(100, 180, 255, .12);
+}
+
+.tool-item-img img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.tool-selected {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, .2);
+  box-shadow: 0 0 12px rgba(74, 222, 128, .6);
+}
+
+.tool-placed {
+  opacity: .4;
+  border-color: #999;
+  pointer-events: auto;
+}
 
 /* 中间区域 */
-.middle-area { position: fixed; display: flex; align-items: center; justify-content: center; z-index: 5; }
-.is-following .middle-area { cursor: crosshair; }
-.cabinet-group { position: relative; display: inline-block; }
-.cabinet-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; pointer-events: auto; }
-.power-socket-img { position: absolute; left: -15%; top: 15%; width: 12%; max-width: 120px; object-fit: contain; pointer-events: auto; }
+.middle-area {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
 
-/* 已放置物品 */
-.placed-img { position: absolute; object-fit: fill; pointer-events: none; animation: fadeIn .6s ease-out forwards; }
-.placed-on-cabinet { position: absolute; object-fit: contain; pointer-events: none; z-index: 2; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.is-following .middle-area {
+  cursor: crosshair;
+}
+
+.cabinet-group {
+  position: relative;
+  display: inline-block;
+}
+
+.cabinet-img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.power-socket-img {
+  position: absolute;
+  left: -15%;
+  top: 15%;
+  width: 12%;
+  max-width: 120px;
+  object-fit: contain;
+  pointer-events: auto;
+}
+
+/* 已放置物品（全部位于 cabinet-group 内，% 定位） */
+.placed-img {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
+  animation: fadeIn .6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
 
 /* 鼠标跟随 */
-.cursor-following { position: fixed; z-index: 999; pointer-events: none; width: 5vw; min-width: 40px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; opacity: .85; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
-.cursor-following img { width: 90%; height: 90%; object-fit: contain; }
+.cursor-following {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  width: 5vw;
+  min-width: 40px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .85;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5));
+}
+
+.cursor-following img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
 
 /* 视频占位 */
-.video-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; }
-.video-placeholder { color: #fff; font-size: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-placeholder {
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
 
 /* 固定按钮 */
-.save-bar-fixed { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; width: clamp(120px,14vw,160px); height: clamp(32px,5vh,40px); cursor: pointer; background: url('@/assets/images/SaveProgressIcon.png') center/contain no-repeat; transition: transform .2s; }
-.save-bar-fixed:hover { background-image: url('@/assets/images/SaveProgressIconHover.png'); transform: scale(1.05); }
-.save-bar-fixed.saving { opacity: .6; pointer-events: none; }
-.work-task-btn { position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 100; width: clamp(120px,14vw,160px); height: clamp(32px,5vh,40px); cursor: pointer; background: url('@/assets/images/WorkTaskButton.png') center/contain no-repeat; transition: transform .2s; }
-.work-task-btn:hover { background-image: url('@/assets/images/WorkTaskButtonHover.png'); transform: scale(1.05); }
-.work-bg-img { max-width: 80vw; max-height: 70vh; border-radius: 8px; }
+.save-bar-fixed {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background: url('@/assets/images/SaveProgressIcon.png') center/contain no-repeat;
+  transition: transform .2s;
+}
+
+.save-bar-fixed:hover {
+  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  transform: scale(1.05);
+}
+
+.save-bar-fixed.saving {
+  opacity: .6;
+  pointer-events: none;
+}
+
+.work-task-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background: url('@/assets/images/WorkTaskButton.png') center/contain no-repeat;
+  transition: transform .2s;
+}
+
+.work-task-btn:hover {
+  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  transform: scale(1.05);
+}
+
+.work-bg-img {
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
+}
 </style>
