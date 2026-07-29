@@ -155,7 +155,7 @@ function hitFenceFromStyle(e, style, aspectKey) {
   const imgW = r.width * parseFloat(style.width) / 100
   const imgH = imgW / fenceAspect[aspectKey]
   return e.clientX >= imgLeft && e.clientX <= imgLeft + imgW &&
-         e.clientY >= imgTop && e.clientY <= imgTop + imgH
+    e.clientY >= imgTop && e.clientY <= imgTop + imgH
 }
 
 // ============== 方法 ==============
@@ -194,12 +194,11 @@ function hitCabinetImg(e) {
 function onMiddleAreaClick(e) {
   if (!isFollowing.value) return
   const idx = followingToolIdx.value
-  if (idx === 0) { itemPlaced[0] = true; finishPlacement() }
-  else if (idx === 1) {
+  if (idx == 0 || idx === 1) {
     // 命中检测根据 STYLE + 图片宽高比自动计算，只需维护 STYLE 即可
     const hit = hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
-                hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
-    hit ? (itemPlaced[1] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
+      hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
+    hit ? (itemPlaced[idx] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
   }
   else if (idx === 2 || idx === 3) {
     hitCabinetImg(e) ? (itemPlaced[idx] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
