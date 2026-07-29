@@ -40,8 +40,8 @@ export const categories = [
 
       { id: 10, name: '电力绝缘鞋', slot: 'foot', icon: '🥾', description: '绝缘防砸，作业必备' },
       { id: 11, name: '凉鞋', slot: 'foot', icon: '🩴', description: '不符合安全规范' },
-      { id: 12, name: '皮鞋', slot: 'foot', icon: '👞', description: '不具备绝缘性能' },
-    ],
+      { id: 12, name: '皮鞋', slot: 'foot', icon: '👞', description: '不具备绝缘性能' }
+    ]
   },
 
   {
@@ -58,19 +58,19 @@ export const categories = [
         name: '三相三线专变终端',
         slot: 'device',
         icon: '📟',
-        description: '适用于三相三线专变用户',
+        description: '适用于三相三线专变用户'
       },
       {
         id: 22,
         name: '三相四线专变终端',
         slot: 'device',
         icon: '📟',
-        description: '适用于三相四线专变用户',
+        description: '适用于三相四线专变用户'
       },
       { id: 23, name: '230M终端', slot: 'device', icon: '📡', description: '230MHz无线通信终端' },
       { id: 24, name: '集中器', slot: 'device', icon: '🖥️', description: '低压集抄用集中器' },
-      { id: 25, name: '采集器', slot: 'device', icon: '📷', description: '低压集抄用采集器' },
-    ],
+      { id: 25, name: '采集器', slot: 'device', icon: '📷', description: '低压集抄用采集器' }
+    ]
   },
 
   {
@@ -88,15 +88,15 @@ export const categories = [
         name: '十字螺丝刀',
         slot: 'tool',
         icon: '🪛',
-        description: '十字口螺丝刀，接线必备',
+        description: '十字口螺丝刀，接线必备'
       },
       { id: 33, name: '活动扳手', slot: 'tool', icon: '🔧', description: '可调开口扳手' },
       { id: 34, name: '尖嘴钳', slot: 'tool', icon: '🔧', description: '尖嘴夹持工具' },
       { id: 35, name: '老虎钳', slot: 'tool', icon: '🔧', description: '通用夹持剪切工具' },
       { id: 36, name: '剥线钳', slot: 'tool', icon: '🔧', description: '剥除导线绝缘层' },
       { id: 37, name: '验电笔', slot: 'tool', icon: '🖊️', description: '检验设备是否带电' },
-      { id: 38, name: '铅封', slot: 'tool', icon: '🔒', description: '防止私自开启设备' },
-    ],
+      { id: 38, name: '铅封', slot: 'tool', icon: '🔒', description: '防止私自开启设备' }
+    ]
   },
 
   {
@@ -115,7 +115,7 @@ export const categories = [
         name: '2.5MM²黄黑色导线',
         slot: 'wire',
         icon: '🟡⚫',
-        description: '2.5平方毫米黄黑双色',
+        description: '2.5平方毫米黄黑双色'
       },
       { id: 53, name: '2.5MM²绿色导线', slot: 'wire', icon: '🟢', description: '2.5平方毫米绿色' },
       { id: 54, name: '2.5MM²红色导线', slot: 'wire', icon: '🔴', description: '2.5平方毫米红色' },
@@ -124,7 +124,7 @@ export const categories = [
         name: '2.5MM²红黑色导线',
         slot: 'wire',
         icon: '🔴⚫',
-        description: '2.5平方毫米红黑双色',
+        description: '2.5平方毫米红黑双色'
       },
       { id: 56, name: '2.5MM²黑色导线', slot: 'wire', icon: '⚫', description: '2.5平方毫米黑色' },
 
@@ -134,7 +134,7 @@ export const categories = [
         name: '4.0MM²黄黑色导线',
         slot: 'wire',
         icon: '🟡⚫',
-        description: '4.0平方毫米黄黑双色',
+        description: '4.0平方毫米黄黑双色'
       },
       { id: 59, name: '4.0MM²绿色导线', slot: 'wire', icon: '🟢', description: '4.0平方毫米绿色' },
       { id: 60, name: '4.0MM²红色导线', slot: 'wire', icon: '🔴', description: '4.0平方毫米红色' },
@@ -143,7 +143,7 @@ export const categories = [
         name: '4.0MM²红黑色导线',
         slot: 'wire',
         icon: '🔴⚫',
-        description: '4.0平方毫米红黑双色',
+        description: '4.0平方毫米红黑双色'
       },
 
       { id: 62, name: '扎带标示牌', slot: 'wire', icon: '🏷️', description: '线缆扎带和标示牌' },
@@ -154,9 +154,9 @@ export const categories = [
 
       { id: 67, name: '通信模块', slot: 'wire', icon: '📶', description: '无线通信模块' },
       { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳', description: '终端通信SIM卡' },
-      { id: 69, name: '天线', slot: 'wire', icon: '📡', description: '终端通信天线' },
-    ],
-  },
+      { id: 69, name: '天线', slot: 'wire', icon: '📡', description: '终端通信天线' }
+    ]
+  }
 ]
 
 /**
@@ -170,5 +170,5 @@ export const slotLabels = {
   foot: '足部',
   device: '终端',
   tool: '工器具',
-  wire: '线材',
+  wire: '线材'
 }

@@ -6,7 +6,13 @@
       <div class="left-panel">
         <div class="left-header">
           <span class="left-title">已选工具</span>
-          <el-button text size="small" type="danger" :disabled="totalSelected === 0" @click="resetCurrent">
+          <el-button
+            text
+            size="small"
+            type="danger"
+            :disabled="totalSelected === 0"
+            @click="resetCurrent"
+          >
             <el-icon>
               <Delete />
             </el-icon>
@@ -14,8 +20,13 @@
         </div>
         <div v-if="totalSelected === 0" class="left-empty">暂未选择工具</div>
         <div v-else class="left-list">
-          <div v-for="tool in allSelectedTools" :key="tool.id" class="left-item"
-            :class="{ 'left-err': isWrong(tool.categoryKey, tool.id) }" @click="removeTool(tool)">
+          <div
+            v-for="tool in allSelectedTools"
+            :key="tool.id"
+            class="left-item"
+            :class="{ 'left-err': isWrong(tool.categoryKey, tool.id) }"
+            @click="removeTool(tool)"
+          >
             <span class="left-ico">{{ tool.icon }}</span>
             <span class="left-name">{{ tool.name }}</span>
             <span class="left-cat">{{ tool.categoryTitle }}</span>
@@ -30,10 +41,16 @@
       <div class="center-column">
         <!-- Tab 标签栏 -->
         <div class="tabs-bar">
-          <div v-for="(cat, index) in categories" :key="cat.key" class="tab-item" :class="{
-            active: index === activeStep,
-            done: index < activeStep
-          }" @click="goToStep(index)">
+          <div
+            v-for="(cat, index) in categories"
+            :key="cat.key"
+            class="tab-item"
+            :class="{
+              active: index === activeStep,
+              done: index < activeStep
+            }"
+            @click="goToStep(index)"
+          >
             <el-icon class="tab-icon">
               <component :is="cat.icon" />
             </el-icon>
@@ -48,9 +65,15 @@
         <div class="tool-panel">
           <!-- 工具卡片网格（分页） -->
           <div class="tool-grid" ref="gridContainer">
-            <div v-for="tool in currentPageTools" :key="tool.id" class="tool-card" :class="{
-              selected: isSelected(currentCategory.key, tool.id)
-            }" @click="toggleTool(tool)">
+            <div
+              v-for="tool in currentPageTools"
+              :key="tool.id"
+              class="tool-card"
+              :class="{
+                selected: isSelected(currentCategory.key, tool.id)
+              }"
+              @click="toggleTool(tool)"
+            >
               <div class="card-img">
                 <span class="card-emoji">{{ tool.icon }}</span>
                 <div v-if="isSelected(currentCategory.key, tool.id)" class="card-check">
@@ -73,7 +96,12 @@
               </el-icon>
             </button>
             <div class="pagi-dots">
-              <span v-for="p in totalPages" :key="p" class="pagi-dot" :class="{ active: p - 1 === toolPage }" />
+              <span
+                v-for="p in totalPages"
+                :key="p"
+                class="pagi-dot"
+                :class="{ active: p - 1 === toolPage }"
+              />
             </div>
             <button class="pagi-btn" :disabled="toolPage >= totalPages - 1" @click="nextToolPage">
               <el-icon>
@@ -87,16 +115,29 @@
             <el-button size="default" @click="prevStep" :disabled="activeStep === 0">
               <el-icon>
                 <ArrowLeft />
-              </el-icon> 上一步
+              </el-icon>
+              上一步
             </el-button>
-            <el-button v-if="!isLastStep" size="default" type="primary" :disabled="!canProceed" @click="nextStep">
+            <el-button
+              v-if="!isLastStep"
+              size="default"
+              type="primary"
+              :disabled="!canProceed"
+              @click="nextStep"
+            >
               下一步
               <el-icon>
                 <ArrowRight />
               </el-icon>
             </el-button>
-            <el-button v-else size="default" type="success" :disabled="!allPagesFilled" @click="submitSelection"
-              :loading="submitting">
+            <el-button
+              v-else
+              size="default"
+              type="success"
+              :disabled="!allPagesFilled"
+              @click="submitSelection"
+              :loading="submitting"
+            >
               <el-icon>
                 <Finished />
               </el-icon>
@@ -110,9 +151,7 @@
       <div class="avatar-panel">
         <div class="avatar-header">
           <span class="avatar-header-title">作业人员装备</span>
-          <el-tag size="small" type="info" effect="plain">
-            共 {{ totalEquipped }} 件
-          </el-tag>
+          <el-tag size="small" type="info" effect="plain"> 共 {{ totalEquipped }} 件 </el-tag>
         </div>
 
         <div class="character-section">
@@ -121,10 +160,23 @@
               <!-- 使用 SVG 人物剪影 -->
               <svg viewBox="0 0 140 260" class="person-svg">
                 <!-- 头部 -->
-                <ellipse cx="70" cy="42" rx="28" ry="32" class="person-head"
-                  :class="{ equipped: hasSlotItem('head') }" />
+                <ellipse
+                  cx="70"
+                  cy="42"
+                  rx="28"
+                  ry="32"
+                  class="person-head"
+                  :class="{ equipped: hasSlotItem('head') }"
+                />
                 <!-- 安全帽 -->
-                <ellipse v-if="hasSlotItem('head')" cx="70" cy="28" rx="34" ry="14" class="person-helmet" />
+                <ellipse
+                  v-if="hasSlotItem('head')"
+                  cx="70"
+                  cy="28"
+                  rx="34"
+                  ry="14"
+                  class="person-helmet"
+                />
                 <!-- 眼睛/护目镜 -->
                 <g v-if="hasSlotItem('eye')">
                   <rect x="48" y="38" width="18" height="10" rx="3" class="person-goggle" />
@@ -132,24 +184,87 @@
                   <line x1="66" y1="43" x2="74" y2="43" class="person-goggle-bridge" />
                 </g>
                 <!-- 身体 -->
-                <rect x="34" y="72" width="72" height="90" rx="12" class="person-body"
-                  :class="{ equipped: hasSlotItem('body') }" />
+                <rect
+                  x="34"
+                  y="72"
+                  width="72"
+                  height="90"
+                  rx="12"
+                  class="person-body"
+                  :class="{ equipped: hasSlotItem('body') }"
+                />
                 <!-- 手臂 -->
-                <rect x="10" y="78" width="28" height="60" rx="12" class="person-arm"
-                  :class="{ equipped: hasSlotItem('hand') }" />
-                <rect x="102" y="78" width="28" height="60" rx="12" class="person-arm"
-                  :class="{ equipped: hasSlotItem('hand') }" />
+                <rect
+                  x="10"
+                  y="78"
+                  width="28"
+                  height="60"
+                  rx="12"
+                  class="person-arm"
+                  :class="{ equipped: hasSlotItem('hand') }"
+                />
+                <rect
+                  x="102"
+                  y="78"
+                  width="28"
+                  height="60"
+                  rx="12"
+                  class="person-arm"
+                  :class="{ equipped: hasSlotItem('hand') }"
+                />
                 <!-- 手部手套 -->
-                <ellipse v-if="hasSlotItem('hand')" cx="24" cy="142" rx="16" ry="12" class="person-glove" />
-                <ellipse v-if="hasSlotItem('hand')" cx="116" cy="142" rx="16" ry="12" class="person-glove" />
+                <ellipse
+                  v-if="hasSlotItem('hand')"
+                  cx="24"
+                  cy="142"
+                  rx="16"
+                  ry="12"
+                  class="person-glove"
+                />
+                <ellipse
+                  v-if="hasSlotItem('hand')"
+                  cx="116"
+                  cy="142"
+                  rx="16"
+                  ry="12"
+                  class="person-glove"
+                />
                 <!-- 腿部 -->
-                <rect x="42" y="160" width="22" height="70" rx="8" class="person-leg"
-                  :class="{ equipped: hasSlotItem('foot') }" />
-                <rect x="76" y="160" width="22" height="70" rx="8" class="person-leg"
-                  :class="{ equipped: hasSlotItem('foot') }" />
+                <rect
+                  x="42"
+                  y="160"
+                  width="22"
+                  height="70"
+                  rx="8"
+                  class="person-leg"
+                  :class="{ equipped: hasSlotItem('foot') }"
+                />
+                <rect
+                  x="76"
+                  y="160"
+                  width="22"
+                  height="70"
+                  rx="8"
+                  class="person-leg"
+                  :class="{ equipped: hasSlotItem('foot') }"
+                />
                 <!-- 鞋子 -->
-                <ellipse v-if="hasSlotItem('foot')" cx="53" cy="234" rx="18" ry="10" class="person-shoe" />
-                <ellipse v-if="hasSlotItem('foot')" cx="87" cy="234" rx="18" ry="10" class="person-shoe" />
+                <ellipse
+                  v-if="hasSlotItem('foot')"
+                  cx="53"
+                  cy="234"
+                  rx="18"
+                  ry="10"
+                  class="person-shoe"
+                />
+                <ellipse
+                  v-if="hasSlotItem('foot')"
+                  cx="87"
+                  cy="234"
+                  rx="18"
+                  ry="10"
+                  class="person-shoe"
+                />
               </svg>
             </div>
           </div>
@@ -164,8 +279,14 @@
               <span>{{ slot.label }}</span>
             </div>
             <div class="slot-tags">
-              <el-tag v-for="(name, idx) in slot.items" :key="idx" size="small"
-                :type="slot.hasError ? 'danger' : 'success'" effect="light" round>
+              <el-tag
+                v-for="(name, idx) in slot.items"
+                :key="idx"
+                size="small"
+                :type="slot.hasError ? 'danger' : 'success'"
+                effect="light"
+                round
+              >
                 {{ name }}
               </el-tag>
               <span v-if="slot.items.length === 0" class="slot-empty">--</span>
@@ -176,14 +297,27 @@
     </div>
 
     <!-- 提交错误反馈对话框 -->
-    <el-dialog v-model="errorDialogVisible" title="校验不通过" width="560px" :close-on-click-modal="false" center>
+    <el-dialog
+      v-model="errorDialogVisible"
+      title="校验不通过"
+      width="560px"
+      :close-on-click-modal="false"
+      center
+    >
       <div class="err-dialog">
         <el-icon :size="44" color="#f56c6c">
           <WarningFilled />
         </el-icon>
-        <p>共 <strong>{{ errorMessages.length }}</strong> 处错误：</p>
+        <p>
+          共 <strong>{{ errorMessages.length }}</strong> 处错误：
+        </p>
         <div class="err-list">
-          <div v-for="(msg, idx) in errorMessages" :key="idx" class="err-item" @click="goToErrorPage(msg.categoryKey)">
+          <div
+            v-for="(msg, idx) in errorMessages"
+            :key="idx"
+            class="err-item"
+            @click="goToErrorPage(msg.categoryKey)"
+          >
             <el-tag type="danger" size="small" round>{{ msg.categoryTitle }}</el-tag>
             <span>{{ msg.text }}</span>
             <el-icon>
@@ -203,9 +337,24 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Check, Close, Delete, ArrowLeft, ArrowRight, Finished,
-  InfoFilled, WarningFilled, Right, UserFilled, Monitor,
-  SetUp, Connection, Box, Aim, Headset, Pointer, TakeawayBox
+  Check,
+  Close,
+  Delete,
+  ArrowLeft,
+  ArrowRight,
+  Finished,
+  InfoFilled,
+  WarningFilled,
+  Right,
+  UserFilled,
+  Monitor,
+  SetUp,
+  Connection,
+  Box,
+  Aim,
+  Headset,
+  Pointer,
+  TakeawayBox
 } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -310,7 +459,7 @@ const totalEquipped = computed(() => {
 const allSelectedTools = computed(() => {
   const result = []
   props.categories.forEach(cat => {
-    (selectedMap.value[cat.key] || []).forEach(id => {
+    ;(selectedMap.value[cat.key] || []).forEach(id => {
       const tool = cat.tools.find(t => t.id === id)
       if (tool) {
         result.push({
@@ -339,15 +488,21 @@ const slotIconMap = {
 const equipmentSlots = computed(() => {
   const slotOrder = ['body', 'head', 'eye', 'hand', 'foot', 'device', 'tool', 'wire']
   const slotLabelMap = {
-    body: '身体', head: '头部', eye: '眼部', hand: '手部',
-    foot: '足部', device: '终端', tool: '工器具', wire: '线材'
+    body: '身体',
+    head: '头部',
+    eye: '眼部',
+    hand: '手部',
+    foot: '足部',
+    device: '终端',
+    tool: '工器具',
+    wire: '线材'
   }
 
   const slots = {}
 
   // 收集所有分类的选中项
   props.categories.forEach(cat => {
-    (selectedMap.value[cat.key] || []).forEach(id => {
+    ;(selectedMap.value[cat.key] || []).forEach(id => {
       const tool = cat.tools.find(t => t.id === id)
       if (!tool || !tool.slot) return
       if (!slots[tool.slot]) slots[tool.slot] = { items: [], hasError: false }
@@ -357,7 +512,7 @@ const equipmentSlots = computed(() => {
 
   // 检查错误
   props.categories.forEach(cat => {
-    (errorMap.value[cat.key] || []).forEach(id => {
+    ;(errorMap.value[cat.key] || []).forEach(id => {
       const tool = cat.tools.find(t => t.id === id)
       if (!tool || !tool.slot) return
       if (slots[tool.slot]) {
@@ -428,9 +583,7 @@ function hasStepError(catKey) {
 }
 
 function hasSlotItem(slotKey) {
-  return equipmentSlots.value.some(
-    s => s.key === slotKey && s.items.length > 0
-  )
+  return equipmentSlots.value.some(s => s.key === slotKey && s.items.length > 0)
 }
 
 function toggleTool(tool) {
@@ -581,11 +734,11 @@ defineExpose({ selectedMap })
   align-items: stretch;
   gap: 0;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, .85);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   border-radius: 10px 10px 0 0;
   overflow: hidden;
-  box-shadow: 0 -1px 8px rgba(0, 0, 0, .04);
+  box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.04);
 }
 
 .tab-item {
@@ -597,7 +750,7 @@ defineExpose({ selectedMap })
   padding: 12px 10px;
   cursor: pointer;
   user-select: none;
-  transition: all .25s;
+  transition: all 0.25s;
   background: #f5f7fa;
   border-bottom: 3px solid transparent;
   position: relative;
@@ -642,7 +795,7 @@ defineExpose({ selectedMap })
 
 .tab-count {
   font-size: 11px;
-  background: rgba(0, 0, 0, .06);
+  background: rgba(0, 0, 0, 0.06);
   padding: 1px 7px;
   border-radius: 8px;
   color: inherit;
@@ -664,7 +817,7 @@ defineExpose({ selectedMap })
   flex: 0 0 200px;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, .85);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(4px);
   border-radius: 10px;
   padding: 12px;
@@ -722,7 +875,7 @@ defineExpose({ selectedMap })
   background: #f5f7fa;
   border: 1px solid #e4e7ed;
   cursor: pointer;
-  transition: all .2s;
+  transition: all 0.2s;
   font-size: 12px;
 }
 
@@ -773,7 +926,7 @@ defineExpose({ selectedMap })
 .tool-panel {
   flex: 1;
   min-width: 0;
-  background: rgba(255, 255, 255, .88);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(4px);
   border-radius: 0 0 10px 10px;
   padding: 16px;
@@ -807,7 +960,7 @@ defineExpose({ selectedMap })
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  transition: all .25s;
+  transition: all 0.25s;
   background: #fff;
   position: relative;
 }
@@ -815,17 +968,17 @@ defineExpose({ selectedMap })
 .tool-card:hover {
   border-color: #b3d8ff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(64, 158, 255, .1);
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.1);
 }
 
 .tool-card:active {
-  transform: translateY(-1px) scale(.98);
+  transform: translateY(-1px) scale(0.98);
 }
 
 .tool-card.selected {
   border-color: #67c23a;
   background: linear-gradient(135deg, #f0f9eb, #e1f3d8);
-  box-shadow: 0 4px 16px rgba(103, 194, 58, .15);
+  box-shadow: 0 4px 16px rgba(103, 194, 58, 0.15);
 }
 
 .card-img {
@@ -835,7 +988,7 @@ defineExpose({ selectedMap })
   justify-content: center;
   background: #fafbfc;
   position: relative;
-  transition: background .3s;
+  transition: background 0.3s;
 }
 
 .tool-card.selected .card-img {
@@ -844,7 +997,7 @@ defineExpose({ selectedMap })
 
 .card-emoji {
   font-size: 36px;
-  transition: transform .3s;
+  transition: transform 0.3s;
 }
 
 .tool-card:hover .card-emoji {
@@ -887,7 +1040,7 @@ defineExpose({ selectedMap })
 /* ========== 右侧人物面板 ========== */
 .avatar-panel {
   flex: 0 0 280px;
-  background: rgba(255, 255, 255, .88);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(4px);
   border-radius: 10px;
   display: flex;
@@ -930,7 +1083,7 @@ defineExpose({ selectedMap })
   fill: #fde8d0;
   stroke: #d4b896;
   stroke-width: 1.5;
-  transition: fill .3s;
+  transition: fill 0.3s;
 }
 
 .person-head.equipped {
@@ -958,7 +1111,7 @@ defineExpose({ selectedMap })
   fill: #e8eaed;
   stroke: #c0c4cc;
   stroke-width: 1.5;
-  transition: fill .3s;
+  transition: fill 0.3s;
 }
 
 .person-body.equipped {
@@ -970,7 +1123,7 @@ defineExpose({ selectedMap })
   fill: #e8eaed;
   stroke: #c0c4cc;
   stroke-width: 1.5;
-  transition: fill .3s;
+  transition: fill 0.3s;
 }
 
 .person-arm.equipped {
@@ -988,7 +1141,7 @@ defineExpose({ selectedMap })
   fill: #e8eaed;
   stroke: #c0c4cc;
   stroke-width: 1.5;
-  transition: fill .3s;
+  transition: fill 0.3s;
 }
 
 .person-leg.equipped {
@@ -1090,7 +1243,7 @@ defineExpose({ selectedMap })
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all .2s;
+  transition: all 0.2s;
 }
 
 .pagi-btn:hover {
@@ -1099,7 +1252,7 @@ defineExpose({ selectedMap })
 }
 
 .pagi-btn:disabled {
-  opacity: .3;
+  opacity: 0.3;
   cursor: default;
   border-color: #e4e7ed;
   color: #c0c4cc;
@@ -1115,7 +1268,7 @@ defineExpose({ selectedMap })
   height: 7px;
   border-radius: 50%;
   background: #dcdfe6;
-  transition: all .3s;
+  transition: all 0.3s;
 }
 
 .pagi-dot.active {
@@ -1152,7 +1305,7 @@ defineExpose({ selectedMap })
   border: 1px solid #fde2e2;
   border-radius: 8px;
   cursor: pointer;
-  transition: all .2s;
+  transition: all 0.2s;
   font-size: 13px;
 }
 
@@ -1168,7 +1321,7 @@ defineExpose({ selectedMap })
 }
 
 /* ========== 响应式 ========== */
-@media (max-width:900px) {
+@media (max-width: 900px) {
   .content-layout {
     flex-direction: column;
     align-items: stretch;

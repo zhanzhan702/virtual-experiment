@@ -95,7 +95,9 @@ virtual-experiment/
 │   │   │   ├── PromptModal.vue              # 通用弹窗（确认按钮叠加）
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
-│   │   │   │   └── HWizardInventorySelection.vue # 工器具选择向导
+│   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
+│   │   │   │   ├── HSceneFrame.vue          # 场景框体组件
+│   │   │   │   └── HSceneHotspotOverlay.vue # 场景热区叠加层
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
 │   │   ├── views/
@@ -119,6 +121,7 @@ virtual-experiment/
 │   │   │   ├── request.js                   # Axios 拦截器（JWT 注入 / 错误处理）
 │   │   │   └── time.js                      # 本地时间格式化工具
 │   │   ├── constants/
+│   │   │   ├── images.js                   # 图片资源集中管理
 │   │   │   └── tool-selection-config.js     # 工器具选择配置
 │   │   ├── App.vue
 │   │   └── main.js

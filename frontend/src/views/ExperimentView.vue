@@ -31,7 +31,7 @@ const authStore = useAuthStore()
 
 const showNotice = ref(false)
 const showWorkBg = ref(false)
-let pendingType = null  // 暂存场景类型，供弹窗关闭后使用
+let pendingType = null // 暂存场景类型，供弹窗关闭后使用
 
 async function onScenarioSelect(type) {
   // 直接启动（内部会检查未完成实验，从存档恢复则跳过提示弹窗）
@@ -51,15 +51,18 @@ async function doStartExperiment(type) {
           `检测到未完成实验「${exp.templateName}」，已完成 ${exp.completedSteps}/${exp.totalSteps} 步。是否继续？`,
           '恢复实验',
           {
-            confirmButtonText: '继续实验', cancelButtonText: '重新开始', type: 'info',
+            confirmButtonText: '继续实验',
+            cancelButtonText: '重新开始',
+            type: 'info',
             distinguishCancelAndClose: true
           }
         )
         // 继续 → 跳转到当前未完成步骤（不展示提示弹窗）
         sessionStorage.setItem('experimentId', exp.experimentId)
-        const stepRouteMap = type === 'high'
-          ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL' }
-          : { 1: '/LWT', 2: '/LTS' }
+        const stepRouteMap =
+          type === 'high'
+            ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL' }
+            : { 1: '/LWT', 2: '/LTS' }
         const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
         router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
         return
@@ -68,7 +71,11 @@ async function doStartExperiment(type) {
         if (action !== 'cancel') return
         // 点"重新开始" → 删除所有未完成实验
         for (const e of list) {
-          try { await deleteExperiment(e.experimentId) } catch (_) { /* ignore */ }
+          try {
+            await deleteExperiment(e.experimentId)
+          } catch (_) {
+            /* ignore */
+          }
         }
       }
     }

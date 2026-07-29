@@ -1,13 +1,20 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div class="cabinet-local-page" :class="{ 'is-following': isFollowing || vtActive }" @mousemove="onPageMouseMove"
-    @click="onPageClick">
-
+  <div
+    class="cabinet-local-page"
+    :class="{ 'is-following': isFollowing || vtActive }"
+    @mousemove="onPageMouseMove"
+    @click="onPageClick"
+  >
     <!-- 左侧物品栏 -->
     <div class="tool-bar tool-bar-left">
-      <div v-for="(item, idx) in leftTools" :key="'L' + idx" class="tool-item tool-item-img"
+      <div
+        v-for="(item, idx) in leftTools"
+        :key="'L' + idx"
+        class="tool-item tool-item-img"
         :class="{ 'tool-selected': followingToolIdx === idx, 'tool-placed': itemPlaced[idx] }"
-        @click="selectTool(idx, $event)">
+        @click="selectTool(idx, $event)"
+      >
         <img :src="item.img" alt="" draggable="false" />
       </div>
     </div>
@@ -15,26 +22,67 @@
     <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
       <div class="cabinet-group" ref="cabinetGroupRef">
-        <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
+        <img
+          :src="Images.cabinetGroupOverview"
+          alt="柜体局部"
+          class="cabinet-img"
+          draggable="false"
+        />
         <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-        <img v-if="itemPlaced[0]" :src="Images.leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
-        <img v-if="itemPlaced[0]" :src="Images.rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
-        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[2]" :src="Images.signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[3]" :src="Images.safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
-          draggable="false" />
+        <img
+          v-if="itemPlaced[0]"
+          :src="Images.leftFence"
+          class="placed-img"
+          :style="LEFT_FENCE_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[0]"
+          :src="Images.rightFence"
+          class="placed-img"
+          :style="RIGHT_FENCE_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[1]"
+          :src="Images.signStopHighVoltage"
+          class="placed-img"
+          :style="LEFT_SIGN_HV_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[1]"
+          :src="Images.signStopHighVoltage"
+          class="placed-img"
+          :style="RIGHT_SIGN_HV_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[2]"
+          :src="Images.signPersonWorking"
+          class="placed-img"
+          :style="SIGN_WORKING_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[3]"
+          :src="Images.safetyNotice"
+          class="placed-img"
+          :style="SAFETY_NOTICE_STYLE"
+          draggable="false"
+        />
       </div>
     </div>
 
     <!-- 右侧物品栏（17 槽位，第 1 个为验电笔，其余留空） -->
     <div class="tool-bar tool-bar-right">
-      <div v-for="i in 17" :key="'R' + i" class="tool-item tool-item-img"
+      <div
+        v-for="i in 17"
+        :key="'R' + i"
+        class="tool-item tool-item-img"
         :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
-        @click="i === 1 && selectVoltageTester($event)">
+        @click="i === 1 && selectVoltageTester($event)"
+      >
         <img v-if="i === 1" :src="Images.voltageTesterNormal" alt="验电笔" draggable="false" />
       </div>
     </div>
@@ -91,8 +139,10 @@ const isStep4 = computed(() => currentStepOrder.value === 4)
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const leftTools = [
-  { img: Images.leftFence }, { img: Images.signStopHighVoltage },
-  { img: Images.signPersonWorking }, { img: Images.safetyNotice }
+  { img: Images.leftFence },
+  { img: Images.signStopHighVoltage },
+  { img: Images.signPersonWorking },
+  { img: Images.safetyNotice }
 ]
 const itemPlaced = reactive([false, false, false, false])
 const allItemsPlaced = computed(() => itemPlaced.every(v => v))
@@ -101,22 +151,36 @@ const allItemsPlaced = computed(() => itemPlaced.every(v => v))
 const vtActive = ref(false)
 const vtStep = ref(0)
 const vtDone = ref(false)
-const vtImg = computed(() => (vtStep.value === 1 || vtStep.value === 3) ? Images.voltageTesterWarning : Images.voltageTesterNormal)
+const vtImg = computed(() =>
+  vtStep.value === 1 || vtStep.value === 3
+    ? Images.voltageTesterWarning
+    : Images.voltageTesterNormal
+)
 
 // ─── 操作统计 ───
 const stats = reactive({ duration_seconds: 0, operation_count: 0, error_count: 0 })
 let timer = null
-onMounted(() => { timer = setInterval(() => { stats.duration_seconds++ }, 1000) })
-onUnmounted(() => { if (timer) clearInterval(timer) })
+onMounted(() => {
+  timer = setInterval(() => {
+    stats.duration_seconds++
+  }, 1000)
+})
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 // ─── 跟随 ───
 const followingToolIdx = ref(null)
 const isFollowing = ref(false)
 const cursorFollowingStyle = ref({})
-const followingImg = computed(() => followingToolIdx.value != null ? leftTools[followingToolIdx.value].img : Images.leftFence)
+const followingImg = computed(() =>
+  followingToolIdx.value != null ? leftTools[followingToolIdx.value].img : Images.leftFence
+)
 const showFollowing = computed(() => isFollowing.value || vtActive.value)
-const followImg = computed(() => vtActive.value ? vtImg.value : followingImg.value)
-function moveCursorTo(e) { if (e) cursorFollowingStyle.value = { left: (e.clientX + 12) + 'px', top: (e.clientY + 12) + 'px' } }
+const followImg = computed(() => (vtActive.value ? vtImg.value : followingImg.value))
+function moveCursorTo(e) {
+  if (e) cursorFollowingStyle.value = { left: e.clientX + 12 + 'px', top: e.clientY + 12 + 'px' }
+}
 
 // ─── 中间区域 ───
 const cabinetGroupRef = ref(null)
@@ -133,7 +197,9 @@ const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: '
 const fenceAspect = reactive({ left: 1, right: 1 })
 function loadImageAspect(src, key) {
   const img = new Image()
-  img.onload = () => { fenceAspect[key] = img.naturalWidth / img.naturalHeight }
+  img.onload = () => {
+    fenceAspect[key] = img.naturalWidth / img.naturalHeight
+  }
   img.src = src
 }
 
@@ -142,22 +208,34 @@ function hitFenceFromStyle(e, style, aspectKey) {
   const g = cabinetGroupRef.value
   if (!g) return false
   const r = g.getBoundingClientRect()
-  const imgLeft = r.left + r.width * parseFloat(style.left) / 100
-  const imgTop = r.top + r.height * parseFloat(style.top) / 100
-  const imgW = r.width * parseFloat(style.width) / 100
+  const imgLeft = r.left + (r.width * parseFloat(style.left)) / 100
+  const imgTop = r.top + (r.height * parseFloat(style.top)) / 100
+  const imgW = (r.width * parseFloat(style.width)) / 100
   const imgH = imgW / fenceAspect[aspectKey]
-  return e.clientX >= imgLeft && e.clientX <= imgLeft + imgW &&
-    e.clientY >= imgTop && e.clientY <= imgTop + imgH
+  return (
+    e.clientX >= imgLeft &&
+    e.clientX <= imgLeft + imgW &&
+    e.clientY >= imgTop &&
+    e.clientY <= imgTop + imgH
+  )
 }
 
 // ============== 方法 ==============
 
 /** 选中工具：已放置则报错；步骤4禁止放置 */
 function selectTool(idx, e) {
-  if (isStep4.value) { ElMessage.warning('步骤4无需重复放置物品，请直接验电'); stats.error_count++; return }
+  if (isStep4.value) {
+    ElMessage.warning('步骤4无需重复放置物品，请直接验电')
+    stats.error_count++
+    return
+  }
   vtActive.value = false
   stats.operation_count++
-  if (itemPlaced[idx]) { ElMessage.warning('该物品已放置'); stats.error_count++; return }
+  if (itemPlaced[idx]) {
+    ElMessage.warning('该物品已放置')
+    stats.error_count++
+    return
+  }
   const on = followingToolIdx.value !== idx
   followingToolIdx.value = on ? idx : null
   isFollowing.value = on
@@ -167,13 +245,29 @@ function selectTool(idx, e) {
 function selectVoltageTester(e) {
   e?.stopPropagation?.()
   stats.operation_count++
-  if (!isStep4.value) { ElMessage.warning('请先观看教学视频，进入验电步骤后再操作'); stats.error_count++; return }
-  if (!allItemsPlaced.value) { ElMessage.warning('请先完成围栏与标示牌放置'); stats.error_count++; return }
-  if (vtDone.value) { ElMessage.warning('验电已完成'); stats.error_count++; return }
-  vtActive.value ? (vtActive.value = false, vtStep.value = 0) : (vtActive.value = true, vtStep.value = 0, moveCursorTo(e))
+  if (!isStep4.value) {
+    ElMessage.warning('请先观看教学视频，进入验电步骤后再操作')
+    stats.error_count++
+    return
+  }
+  if (!allItemsPlaced.value) {
+    ElMessage.warning('请先完成围栏与标示牌放置')
+    stats.error_count++
+    return
+  }
+  if (vtDone.value) {
+    ElMessage.warning('验电已完成')
+    stats.error_count++
+    return
+  }
+  vtActive.value
+    ? ((vtActive.value = false), (vtStep.value = 0))
+    : ((vtActive.value = true), (vtStep.value = 0), moveCursorTo(e))
 }
 
-function onPageMouseMove(e) { if (isFollowing.value || vtActive.value) moveCursorTo(e) }
+function onPageMouseMove(e) {
+  if (isFollowing.value || vtActive.value) moveCursorTo(e)
+}
 
 /** 柜体图像区域内点击命中检测 */
 function hitCabinetImg(e) {
@@ -188,24 +282,35 @@ function onMiddleAreaClick(e) {
   const idx = followingToolIdx.value
   if (idx == 0 || idx === 1) {
     // 命中检测根据 STYLE + 图片宽高比自动计算，只需维护 STYLE 即可
-    const hit = hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
+    const hit =
+      hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
       hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
-    hit ? (itemPlaced[idx] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
-  }
-  else if (idx === 2 || idx === 3) {
-    hitCabinetImg(e) ? (itemPlaced[idx] = true, finishPlacement()) : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
+    hit
+      ? ((itemPlaced[idx] = true), finishPlacement())
+      : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
+  } else if (idx === 2 || idx === 3) {
+    hitCabinetImg(e)
+      ? ((itemPlaced[idx] = true), finishPlacement())
+      : (ElMessage.warning('请选择正确的放置位置'), stats.error_count++)
   }
 }
 
-function finishPlacement() { followingToolIdx.value = null; isFollowing.value = false; checkAllDone() }
+function finishPlacement() {
+  followingToolIdx.value = null
+  isFollowing.value = false
+  checkAllDone()
+}
 
 async function checkAllDone() {
   if (!allItemsPlaced.value || hasSubmitted.value) return
   hasSubmitted.value = true
   try {
     await submitStep({
-      experimentId: experimentId.value, stepId: stepId.value, status: 1,
-      durationSeconds: stats.duration_seconds, operationCount: stats.operation_count,
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 1,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
       errorCount: stats.error_count,
       score: Math.max(0, 100 - stats.error_count * 10),
       resultData: JSON.stringify({ itemPlaced: [...itemPlaced] }),
@@ -213,7 +318,10 @@ async function checkAllDone() {
     })
     ElMessage.success('围栏与标示牌放置完成')
     showVideo.value = true
-  } catch (err) { ElMessage.error('提交失败：' + (err.response?.data?.message || err.message)); hasSubmitted.value = false }
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    hasSubmitted.value = false
+  }
 }
 
 function closeVideo() {
@@ -226,16 +334,28 @@ function closeVideo() {
 }
 
 // ─── 验电笔交互 ───
-function hitTest(e, el) { if (!el) return false; const r = el.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom }
+function hitTest(e, el) {
+  if (!el) return false
+  const r = el.getBoundingClientRect()
+  return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+}
 function onPageClick(e) {
   if (!vtActive.value || vtStep.value === 3) return
   stats.operation_count++
-  const g = cabinetGroupRef.value; if (!g) return
-  const s = g.querySelector('.power-socket-img'); const c = g.querySelector('.cabinet-img')
-  if (vtStep.value === 0) hitTest(e, s) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
-  else if (vtStep.value === 1) hitTest(e, c) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
-  else if (vtStep.value === 2) hitTest(e, s) ? vtStep.value++ : (vtStep.value = 0, stats.error_count++)
-  if (vtStep.value === 3) { vtDone.value = true; vtActive.value = false; submitVoltageCheck() }
+  const g = cabinetGroupRef.value
+  if (!g) return
+  const s = g.querySelector('.power-socket-img')
+  const c = g.querySelector('.cabinet-img')
+  if (vtStep.value === 0) hitTest(e, s) ? vtStep.value++ : ((vtStep.value = 0), stats.error_count++)
+  else if (vtStep.value === 1)
+    hitTest(e, c) ? vtStep.value++ : ((vtStep.value = 0), stats.error_count++)
+  else if (vtStep.value === 2)
+    hitTest(e, s) ? vtStep.value++ : ((vtStep.value = 0), stats.error_count++)
+  if (vtStep.value === 3) {
+    vtDone.value = true
+    vtActive.value = false
+    submitVoltageCheck()
+  }
 }
 
 /** 验电完成 → 提交当前步骤并跳转下一步 */
@@ -248,7 +368,7 @@ async function submitVoltageCheck() {
     durationSeconds: stats.duration_seconds,
     operationCount: stats.operation_count,
     errorCount: stats.error_count,
-    score: 100.00 - (stats.error_count * 10) > 0 ? 100.00 - (stats.error_count * 10) : 0,//最低得分为0分
+    score: 100.0 - stats.error_count * 10 > 0 ? 100.0 - stats.error_count * 10 : 0, //最低得分为0分
     resultData: JSON.stringify({ vtDone: true, vtStep: 3 }),
     startedAt: startedAt.value
   }
@@ -272,14 +392,25 @@ const saveProgressDraft = async () => {
   saving.value = true
   try {
     await saveDraft({
-      experimentId: experimentId.value, stepId: stepId.value, status: 0,
-      durationSeconds: stats.duration_seconds, operationCount: stats.operation_count,
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 0,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
       errorCount: stats.error_count,
-      resultData: JSON.stringify({ itemPlaced: [...itemPlaced], vtDone: vtDone.value, vtStep: vtStep.value }),
+      resultData: JSON.stringify({
+        itemPlaced: [...itemPlaced],
+        vtDone: vtDone.value,
+        vtStep: vtStep.value
+      }),
       startedAt: startedAt.value
     })
     ElMessage.success('进度已保存')
-  } catch (err) { ElMessage.error('保存失败：' + (err.response?.data?.message || err.message)) } finally { saving.value = false }
+  } catch (err) {
+    ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+  } finally {
+    saving.value = false
+  }
 }
 
 // ─── 恢复草稿 + 中间区域 ───
@@ -298,10 +429,13 @@ onMounted(async () => {
   if (experimentId.value && stepId.value) {
     try {
       const d = await getStepDraft(experimentId.value, stepId.value)
-      if (d?.itemPlaced) d.itemPlaced.forEach((v, i) => { itemPlaced[i] = v })
+      if (d?.itemPlaced)
+        d.itemPlaced.forEach((v, i) => {
+          itemPlaced[i] = v
+        })
       if (d?.vtDone) vtDone.value = true
       if (d?.vtStep != null) vtStep.value = d.vtStep
-    } catch (_) { }
+    } catch (_) {}
   }
   // 步骤4无草稿时确保物品显示为已放置
   if (isStep4.value && !itemPlaced.some(v => v)) {
@@ -313,7 +447,9 @@ onMounted(async () => {
   updateMiddleArea()
   window.addEventListener('resize', updateMiddleArea)
 })
-onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMiddleArea)
+})
 </script>
 
 <style scoped>
@@ -338,7 +474,7 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
   gap: 1.2vh;
   padding: 10vh 0;
   z-index: 50;
-  background: #1B7C78;
+  background: #1b7c78;
   border-radius: 1rem;
   overflow-y: auto;
   scrollbar-width: none;
@@ -360,11 +496,13 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
   width: 80%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, .2);
-  background: rgba(0, 0, 0, .04);
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
   cursor: pointer;
-  transition: border-color .2s, background .2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,8 +510,8 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 }
 
 .tool-item:hover {
-  border-color: rgba(100, 180, 255, .8);
-  background: rgba(100, 180, 255, .12);
+  border-color: rgba(100, 180, 255, 0.8);
+  background: rgba(100, 180, 255, 0.12);
 }
 
 .tool-item-img img {
@@ -385,12 +523,12 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 
 .tool-selected {
   border-color: #4ade80;
-  background: rgba(74, 222, 128, .2);
-  box-shadow: 0 0 12px rgba(74, 222, 128, .6);
+  background: rgba(74, 222, 128, 0.2);
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
 }
 
 .tool-placed {
-  opacity: .4;
+  opacity: 0.4;
   border-color: #999;
   pointer-events: auto;
 }
@@ -437,7 +575,7 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
   object-fit: contain;
   pointer-events: none;
   z-index: 2;
-  animation: fadeIn .6s ease-out forwards;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 @keyframes fadeIn {
@@ -461,8 +599,8 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: .85;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5));
+  opacity: 0.85;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
 .cursor-following img {
@@ -476,7 +614,7 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, .85);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -513,12 +651,12 @@ onUnmounted(() => { window.removeEventListener('resize', updateMiddleArea) })
 }
 
 .save-bar-fixed.saving {
-  opacity: .6;
+  opacity: 0.6;
   pointer-events: none;
 }
 
 .save-bar-fixed.disabled {
-  opacity: .4;
+  opacity: 0.4;
   pointer-events: none;
 }
 

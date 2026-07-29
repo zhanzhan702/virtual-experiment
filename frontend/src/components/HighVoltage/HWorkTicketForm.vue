@@ -59,12 +59,8 @@
 
       <!-- 第3点 -->
       <div class="form-line">
-        <span class="line-label">
-          3、工作的变配电站名称及设备双重名称：
-        </span>
-        <span>
-          福州市台江区鳌峰路雪花水泥厂配电室计量柜
-        </span>
+        <span class="line-label"> 3、工作的变配电站名称及设备双重名称： </span>
+        <span> 福州市台江区鳌峰路雪花水泥厂配电室计量柜 </span>
       </div>
 
       <!-- 第4点 -->
@@ -73,7 +69,7 @@
       <table class="task-table">
         <thead>
           <tr>
-            <th style="width: 70%;">工作地点或地段</th>
+            <th style="width: 70%">工作地点或地段</th>
             <th>工作内容</th>
           </tr>
         </thead>
@@ -99,19 +95,15 @@
           {{ String(new Date().getMonth() + 1).padStart(2, '0') }}月
           {{ String(new Date().getDate()).padStart(2, '0') }}日
           {{ String(new Date().getHours()).padStart(2, '0') }}时
-          {{ String(new Date().getMinutes()).padStart(2, '0') }}分
-          至__________________
+          {{ String(new Date().getMinutes()).padStart(2, '0') }}分 至__________________
         </span>
       </div>
 
       <!-- 第6点 -->
       <div class="form-line">
-        <span class="line-label">
-          6、工作条件（停电或不停电，或邻近及保留带电设备名称）：
-        </span>
+        <span class="line-label"> 6、工作条件（停电或不停电，或邻近及保留带电设备名称）： </span>
         <span>不停电</span>
       </div>
-
 
       <!-- 7、安全措施 -->
       <div class="section-title">7、注意事项（安全措施）</div>
@@ -132,9 +124,7 @@
 
       <!-- 第8点 -->
       <div class="form-line">
-        <span class="line-label">
-          8、补充安全措施（工作许可人填写）：
-        </span>
+        <span class="line-label"> 8、补充安全措施（工作许可人填写）： </span>
         <span>无</span>
       </div>
 
@@ -155,8 +145,6 @@
         <span class="line-label">工作许可人签名：</span>
         <span>__________________</span>
       </div>
-
-
 
       <!-- 10、危险点分析 -->
       <div class="section-title">10、危险点分析及防范措施</div>
@@ -185,11 +173,8 @@
         </span>
       </div>
 
-
       <!-- 第11点 -->
-      <div class="section-title">
-        11、确认工作负责人布置的任务和本施工项目安全措施
-      </div>
+      <div class="section-title">11、确认工作负责人布置的任务和本施工项目安全措施</div>
 
       <div class="form-line">
         <span class="line-label">工作班人员签名：</span>
@@ -239,16 +224,11 @@
         <span>无</span>
       </div>
 
-
       <div class="submit-zone">
         <el-button type="warning" size="large" @click="validateAndSubmit">提交</el-button>
       </div>
     </el-form>
   </div>
-
-
-
-
 </template>
 
 <script setup>
@@ -275,11 +255,23 @@ const stats = reactive({
 })
 
 let timer = null
-onMounted(() => { timer = setInterval(() => { stats.duration_seconds++ }, 1000) })
-onUnmounted(() => { if (timer) clearInterval(timer) })
+onMounted(() => {
+  timer = setInterval(() => {
+    stats.duration_seconds++
+  }, 1000)
+})
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 // 监听所有表单字段变更，自动统计操作次数
-watch(formData, () => { stats.operation_count++ }, { deep: true })
+watch(
+  formData,
+  () => {
+    stats.operation_count++
+  },
+  { deep: true }
+)
 
 /** 手动校验 — 只在提交时调用，不在填表过程中显示任何错误 */
 const manualValidate = () => {
@@ -295,11 +287,15 @@ const manualValidate = () => {
   // else if (formData.member1 !== '李四') errors.member1 = '人员输入错误'
   if (!formData.member2) errors.member2 = '请选择工作班人员2'
   else if (formData.member2 !== '张三') errors.member2 = '人员选择错误'
-  if (!formData.safetyMeasures || !formData.safetyMeasures.length) errors.safetyMeasures = '请选择注意事项'
+  if (!formData.safetyMeasures || !formData.safetyMeasures.length)
+    errors.safetyMeasures = '请选择注意事项'
   else if (formData.safetyMeasures.length !== 3) errors.safetyMeasures = '需全选三项'
-  if (!formData.dangerInterval || !formData.dangerInterval.length) errors.dangerInterval = '请选择防范措施'
-  else if (formData.dangerInterval.length !== 3 || formData.dangerInterval.includes('4')) errors.dangerInterval = '选择错误，请排除无关项'
-  if (!formData.dangerShortCircuit || !formData.dangerShortCircuit.length) errors.dangerShortCircuit = '请选择防范措施'
+  if (!formData.dangerInterval || !formData.dangerInterval.length)
+    errors.dangerInterval = '请选择防范措施'
+  else if (formData.dangerInterval.length !== 3 || formData.dangerInterval.includes('4'))
+    errors.dangerInterval = '选择错误，请排除无关项'
+  if (!formData.dangerShortCircuit || !formData.dangerShortCircuit.length)
+    errors.dangerShortCircuit = '请选择防范措施'
   else if (formData.dangerShortCircuit.length !== 4) errors.dangerShortCircuit = '需全选四项'
   return errors
 }
@@ -315,7 +311,11 @@ const validateAndSubmit = async () => {
     emit('submit-ticket', { success: false, errors, errorCount: stats.error_count })
     return
   }
-  emit('submit-ticket', { success: true, data: { ticketNo: formData.ticketNo, member1: formData.member1 }, stats: { ...stats } })
+  emit('submit-ticket', {
+    success: true,
+    data: { ticketNo: formData.ticketNo, member1: formData.member1 },
+    stats: { ...stats }
+  })
 }
 
 defineExpose({ formData })
@@ -330,7 +330,7 @@ defineExpose({ formData })
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 30px 36px;
   box-sizing: border-box;
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
   color: #222;
 }
 
@@ -424,7 +424,7 @@ defineExpose({ formData })
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
-  border-bottom: 1.5px solid #FF0000 !important;
+  border-bottom: 1.5px solid #ff0000 !important;
   border-radius: 0 !important;
   padding: 0 4px !important;
 }
@@ -432,7 +432,7 @@ defineExpose({ formData })
 :deep(.inline-input .el-input__inner) {
   font-size: 14px;
   color: #222;
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
 }
 
 :deep(.inline-input .el-input__inner::placeholder) {
@@ -445,7 +445,7 @@ defineExpose({ formData })
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
-  border-bottom: 1.5px solid #FF0000 !important;
+  border-bottom: 1.5px solid #ff0000 !important;
   border-radius: 0 !important;
   padding: 0 4px !important;
 }
@@ -464,7 +464,7 @@ defineExpose({ formData })
   background: #fffef8 !important;
   border: none !important;
   border-radius: 0 !important;
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
   font-size: 14px;
   color: #222;
   margin: 1px 2px;
@@ -473,13 +473,13 @@ defineExpose({ formData })
 
 /* 选中后的显示文字与正文统一 */
 :deep(.inline-input .el-select__selected-item) {
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
   font-size: 14px;
   color: #222;
 }
 
 :deep(.inline-input .el-select__input) {
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
   font-size: 14px;
   color: #222;
 }
@@ -523,7 +523,7 @@ defineExpose({ formData })
   border-collapse: collapse;
   margin: 8px 0 14px 0;
   font-size: 14px;
-  font-family: "SimSun", "宋体", serif;
+  font-family: 'SimSun', '宋体', serif;
 }
 
 .task-table th,

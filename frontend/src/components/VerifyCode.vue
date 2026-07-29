@@ -1,17 +1,17 @@
 /* 验证码组件，生成并显示验证码图片，并提供输入框供用户输入验证码。 */
 
 <template>
-    <div class="code-row">
-        <input v-model="inputCode" placeholder="验证码" class="code-input" @input="handleInput" />
-        <canvas ref="canvasRef" width="120" height="45" @click="refreshCode" class="canvas" />
-    </div>
+  <div class="code-row">
+    <input v-model="inputCode" placeholder="验证码" class="code-input" @input="handleInput" />
+    <canvas ref="canvasRef" width="120" height="45" @click="refreshCode" class="canvas" />
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 
 const props = defineProps({
-    modelValue: { type: String, default: '' }
+  modelValue: { type: String, default: '' }
 })
 const emit = defineEmits(['update:modelValue', 'updateCode'])
 const canvasRef = ref()
@@ -20,65 +20,72 @@ let code = ''
 const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
 // 同步父组件 v-model 的值
-watch(() => props.modelValue, (val) => {
+watch(
+  () => props.modelValue,
+  val => {
     inputCode.value = val
-})
+  }
+)
 
 function handleInput() {
-    emit('update:modelValue', inputCode.value)
+  emit('update:modelValue', inputCode.value)
 }
 
 // 生成验证码并更新父组件的验证码值
 function createCode() {
-    code = ''
-    for (let i = 0; i < 4; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)]
-    }
-    emit('updateCode', code)
-    draw()
+  code = ''
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  emit('updateCode', code)
+  draw()
 }
 
 // 绘制验证码图片
 function draw() {
-    const canvas = canvasRef.value
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = '#fff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.font = '28px Arial'
-    ctx.fillStyle = '#000'
-    ctx.fillText(code, 15, 32)
-    for (let i = 0; i < 5; i++) {
-        ctx.beginPath()
-        ctx.moveTo(Math.random() * 120, Math.random() * 45)
-        ctx.lineTo(Math.random() * 120, Math.random() * 45)
-        ctx.stroke()
-    }
+  const canvas = canvasRef.value
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.font = '28px Arial'
+  ctx.fillStyle = '#000'
+  ctx.fillText(code, 15, 32)
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath()
+    ctx.moveTo(Math.random() * 120, Math.random() * 45)
+    ctx.lineTo(Math.random() * 120, Math.random() * 45)
+    ctx.stroke()
+  }
 }
 // 刷新验证码
-function refreshCode() { createCode() }
+function refreshCode() {
+  createCode()
+}
 
 // 初始化时生成验证码
-onMounted(() => { createCode() })
+onMounted(() => {
+  createCode()
+})
 
 defineExpose({ createCode })
 </script>
 
 <style scoped>
 .code-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .code-input {
-    flex: 1;
-    height: 45px;
-    padding-left: 10px;
+  flex: 1;
+  height: 45px;
+  padding-left: 10px;
 }
 
 .canvas {
-    cursor: pointer;
-    border: 1px solid #ddd;
+  cursor: pointer;
+  border: 1px solid #ddd;
 }
 </style>

@@ -3,8 +3,13 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper" ref="wrapperRef">
-      <img ref="imgRef" :src="Images.distributionRoomPanorama" alt="配电室总览" class="scene-bg"
-        draggable="false" />
+      <img
+        ref="imgRef"
+        :src="Images.distributionRoomPanorama"
+        alt="配电室总览"
+        class="scene-bg"
+        draggable="false"
+      />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
         <span class="hotspot-label">点击进入设备区操作</span>
@@ -50,14 +55,21 @@ function alignHotspot() {
   const img = imgRef.value
   const wrapper = wrapperRef.value
   if (!img || !wrapper) return
-  const wW = wrapper.clientWidth, wH = wrapper.clientHeight
+  const wW = wrapper.clientWidth,
+    wH = wrapper.clientHeight
   const ratio = img.naturalWidth / img.naturalHeight
   const wrapRatio = wW / wH
   let rW, rH, oX, oY
   if (ratio > wrapRatio) {
-    rW = wW; rH = wW / ratio; oX = 0; oY = (wH - rH) / 2
+    rW = wW
+    rH = wW / ratio
+    oX = 0
+    oY = (wH - rH) / 2
   } else {
-    rH = wH; rW = wH * ratio; oX = (wW - rW) / 2; oY = 0
+    rH = wH
+    rW = wH * ratio
+    oX = (wW - rW) / 2
+    oY = 0
   }
   wrapper.style.setProperty('--rx', rW + 'px')
   wrapper.style.setProperty('--ry', rH + 'px')
@@ -94,7 +106,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
+  background: #ffffff;
 }
 
 /* 容器紧贴 img 实际渲染尺寸，热区百分比与图片等比例缩放 */
@@ -122,14 +134,18 @@ onUnmounted(() => {
   clip-path: polygon(28% 27%, 62% 30%, 62% 73%, 28% 89%);
   cursor: pointer;
   z-index: 5;
-  transition: background 0.25s, box-shadow 0.25s;
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
 }
 
 /* 以下样式不变 */
 
 .cabinet-hotspot:hover {
   background: rgba(0, 210, 255, 0.12);
-  box-shadow: inset 0 0 0 3px #00d2ff, 0 0 24px rgba(0, 210, 255, 0.25);
+  box-shadow:
+    inset 0 0 0 3px #00d2ff,
+    0 0 24px rgba(0, 210, 255, 0.25);
 }
 
 .cabinet-hotspot:hover .hotspot-label {
@@ -144,7 +160,7 @@ onUnmounted(() => {
   color: #00d2ff;
   font-size: 16px;
   font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, .7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.3s;
@@ -193,12 +209,12 @@ onUnmounted(() => {
 }
 
 .save-bar-fixed.disabled {
-  opacity: .4;
+  opacity: 0.4;
   pointer-events: none;
 }
 
 .save-bar-fixed.disabled {
-  opacity: .4;
+  opacity: 0.4;
 }
 
 .work-bg-img {

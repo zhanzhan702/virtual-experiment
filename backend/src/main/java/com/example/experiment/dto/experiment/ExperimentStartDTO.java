@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ExperimentStartDTO {
-    private String templateId;
-    private String templateCode;
+  private String templateId;
+  private String templateCode;
 }

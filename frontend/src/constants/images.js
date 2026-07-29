@@ -97,5 +97,5 @@ export default {
   // 后续步骤
   checkMeterReading,
   verifyMeterDataConsistency,
-  verifyTerminalWiring,
+  verifyTerminalWiring
 }

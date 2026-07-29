@@ -194,14 +194,9 @@ public class ExperimentServiceImpl implements ExperimentService {
 
       // 找第一个未完成的步骤
       var finishedIds =
-          finishedSteps.stream()
-              .map(UserExperimentSteps::getStepId)
-              .collect(Collectors.toSet());
+          finishedSteps.stream().map(UserExperimentSteps::getStepId).collect(Collectors.toSet());
       var nextStep =
-          allSteps.stream()
-              .filter(s -> !finishedIds.contains(s.getId()))
-              .findFirst()
-              .orElse(null);
+          allSteps.stream().filter(s -> !finishedIds.contains(s.getId())).findFirst().orElse(null);
       if (nextStep != null) {
         vo.setNextStepId(nextStep.getId());
         vo.setNextStepOrder(nextStep.getStepOrder());
