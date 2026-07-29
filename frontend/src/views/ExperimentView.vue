@@ -57,7 +57,7 @@ async function doStartExperiment(type) {
         // 继续 → 跳转到当前未完成步骤（不展示提示弹窗）
         sessionStorage.setItem('experimentId', exp.experimentId)
         const stepRouteMap = type === 'high'
-          ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL', 5: '/HCL' }
+          ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL' }
           : { 1: '/LWT', 2: '/LTS' }
         const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
         router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
