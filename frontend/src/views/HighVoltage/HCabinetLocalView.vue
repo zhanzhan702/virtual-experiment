@@ -157,6 +157,7 @@ function selectTool(idx, e) {
 function selectVoltageTester(e) {
   e?.stopPropagation?.()
   stats.operation_count++
+  if (!isStep4.value) { ElMessage.warning('请先观看教学视频，进入验电步骤后再操作'); stats.error_count++; return }
   if (!allItemsPlaced.value) { ElMessage.warning('请先完成围栏与标示牌放置'); stats.error_count++; return }
   if (vtDone.value) { ElMessage.warning('验电已完成'); stats.error_count++; return }
   vtActive.value ? (vtActive.value = false, vtStep.value = 0) : (vtActive.value = true, vtStep.value = 0, moveCursorTo(e))
@@ -230,7 +231,7 @@ function onPageClick(e) {
   if (vtStep.value === 3) { vtDone.value = true; vtActive.value = false; submitVoltageCheck() }
 }
 
-/** 步骤4验电完成 → 提交 */
+/** 验电完成 → 提交当前步骤并跳转下一步 */
 async function submitVoltageCheck() {
   try {
     await submitStep({
@@ -242,6 +243,20 @@ async function submitVoltageCheck() {
       startedAt: startedAt.value
     })
     ElMessage.success('验电操作完成！')
+
+    // 查找下一步
+    const nextStep = stepsFromStore.find(s => s.stepOrder === currentStepOrder.value + 1)
+    if (nextStep) {
+      const routeMap = { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL', 5: '/HCL' }
+      const path = routeMap[nextStep.stepOrder] || '/HCL'
+      setTimeout(() => {
+        router.push({ path, query: { experimentId: experimentId.value, stepId: nextStep.stepId } })
+      }, 800)
+    } else {
+      // 实验全部完成
+      ElMessage.success('实验已全部完成！')
+      setTimeout(() => router.push('/experiment'), 1500)
+    }
   } catch (err) { ElMessage.error('提交失败') }
 }
 
