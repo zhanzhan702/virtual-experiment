@@ -2,11 +2,13 @@
 
 <template>
     <div class="preview-box">
-        <img src="@/assets/images/banner.png" class="preview-img" />
+        <img :src="Images.banner" class="preview-img" />
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+import Images from '@/assets/images'
+</script>
 
 <style scoped>
 .preview-box {

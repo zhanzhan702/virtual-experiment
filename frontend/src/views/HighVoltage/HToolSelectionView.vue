@@ -10,7 +10,7 @@
 
         <!-- 高压工作背景弹窗 -->
         <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
-            <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+            <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
         </PromptModal>
     </div>
 </template>
@@ -23,6 +23,7 @@ import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
+import Images from '@/assets/images'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 

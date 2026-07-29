@@ -6,12 +6,12 @@
 
     <!-- 差异介绍须知弹窗 -->
     <PromptModal :visible="showNotice" @close="onNoticeClose" :button-bottom="'10%'">
-      <img src="@/assets/images/SimulationDisclaimerNotice.png" alt="差异介绍须知" class="work-bg-img" />
+      <img :src="Images.simulationDisclaimerNotice" alt="差异介绍须知" class="work-bg-img" />
     </PromptModal>
 
     <!-- 高压工作背景弹窗 -->
     <PromptModal :visible="showWorkBg" @close="onWorkBgClose">
-      <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+      <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
   </div>
 </template>
@@ -22,6 +22,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import Images from '@/assets/images'
 import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
 import { ElMessage, ElMessageBox } from 'element-plus'
 

@@ -3,7 +3,7 @@
   <div class="scene-page">
     <!-- 等比容器：始终与图片实际渲染区域重合，热区基于此定位 -->
     <div class="image-wrapper" ref="wrapperRef">
-      <img ref="imgRef" src="@/assets/images/DistributionRoomPanorama.jpg" alt="配电室总览" class="scene-bg"
+      <img ref="imgRef" :src="Images.distributionRoomPanorama" alt="配电室总览" class="scene-bg"
         draggable="false" />
       <!-- 横放等腰梯形热区：左底长(高)、右底短(低) -->
       <div class="cabinet-hotspot" title="点击进入设备区操作" @click="enterCabinet">
@@ -18,7 +18,7 @@
 
     <!-- 高压工作背景弹窗 -->
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
-      <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+      <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
   </div>
 </template>
@@ -28,6 +28,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
+import Images from '@/assets/images'
 
 const route = useRoute()
 const router = useRouter()

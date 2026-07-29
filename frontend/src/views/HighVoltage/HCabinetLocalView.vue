@@ -15,17 +15,17 @@
     <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
       <div class="cabinet-group" ref="cabinetGroupRef">
-        <img :src="localBg" alt="柜体局部" class="cabinet-img" draggable="false" />
-        <img :src="powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-        <img v-if="itemPlaced[0]" :src="leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
-        <img v-if="itemPlaced[0]" :src="rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
-        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
+        <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
+        <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
+        <img v-if="itemPlaced[0]" :src="Images.leftFence" class="placed-img" :style="LEFT_FENCE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[0]" :src="Images.rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE" draggable="false" />
+        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
           draggable="false" />
-        <img v-if="itemPlaced[1]" :src="signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
+        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
           draggable="false" />
-        <img v-if="itemPlaced[2]" :src="signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
+        <img v-if="itemPlaced[2]" :src="Images.signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
           draggable="false" />
-        <img v-if="itemPlaced[3]" :src="safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
+        <img v-if="itemPlaced[3]" :src="Images.safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
           draggable="false" />
       </div>
     </div>
@@ -35,7 +35,7 @@
       <div v-for="i in 17" :key="'R' + i" class="tool-item tool-item-img"
         :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
         @click="i === 1 && selectVoltageTester($event)">
-        <img v-if="i === 1" :src="voltageTesterNormal" alt="验电笔" draggable="false" />
+        <img v-if="i === 1" :src="Images.voltageTesterNormal" alt="验电笔" draggable="false" />
       </div>
     </div>
 
@@ -56,7 +56,7 @@
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgressDraft" title="保存进度" />
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
-      <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+      <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
   </div>
 </template>
@@ -68,15 +68,7 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
-import localBg from '@/assets/images/CabinetGroupOverview.png'
-import powerSocket from '@/assets/images/PowerSocket.png'
-import leftFence from '@/assets/images/LeftFence.png'
-import rightFence from '@/assets/images/RightFence.png'
-import signStopHighVoltage from '@/assets/images/SignStopHighVoltage.png'
-import signPersonWorking from '@/assets/images/SignPersonWorking.png'
-import safetyNotice from '@/assets/images/safetyNotice.png'
-import voltageTesterNormal from '@/assets/images/voltageTesterNormal.png'
-import voltageTesterWarning from '@/assets/images/voltageTesterWarning.png'
+import Images from '@/assets/images'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,8 +91,8 @@ const isStep4 = computed(() => currentStepOrder.value === 4)
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const leftTools = [
-  { img: leftFence }, { img: signStopHighVoltage },
-  { img: signPersonWorking }, { img: safetyNotice }
+  { img: Images.leftFence }, { img: Images.signStopHighVoltage },
+  { img: Images.signPersonWorking }, { img: Images.safetyNotice }
 ]
 const itemPlaced = reactive([false, false, false, false])
 const allItemsPlaced = computed(() => itemPlaced.every(v => v))
@@ -109,7 +101,7 @@ const allItemsPlaced = computed(() => itemPlaced.every(v => v))
 const vtActive = ref(false)
 const vtStep = ref(0)
 const vtDone = ref(false)
-const vtImg = computed(() => (vtStep.value === 1 || vtStep.value === 3) ? voltageTesterWarning : voltageTesterNormal)
+const vtImg = computed(() => (vtStep.value === 1 || vtStep.value === 3) ? Images.voltageTesterWarning : Images.voltageTesterNormal)
 
 // ─── 操作统计 ───
 const stats = reactive({ duration_seconds: 0, operation_count: 0, error_count: 0 })
@@ -121,7 +113,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 const followingToolIdx = ref(null)
 const isFollowing = ref(false)
 const cursorFollowingStyle = ref({})
-const followingImg = computed(() => followingToolIdx.value != null ? leftTools[followingToolIdx.value].img : leftFence)
+const followingImg = computed(() => followingToolIdx.value != null ? leftTools[followingToolIdx.value].img : Images.leftFence)
 const showFollowing = computed(() => isFollowing.value || vtActive.value)
 const followImg = computed(() => vtActive.value ? vtImg.value : followingImg.value)
 function moveCursorTo(e) { if (e) cursorFollowingStyle.value = { left: (e.clientX + 12) + 'px', top: (e.clientY + 12) + 'px' } }
@@ -316,8 +308,8 @@ onMounted(async () => {
     itemPlaced.splice(0, 4, true, true, true, true)
   }
   // 加载围栏图片宽高比（用于命中检测自动计算）
-  loadImageAspect(leftFence, 'left')
-  loadImageAspect(rightFence, 'right')
+  loadImageAspect(Images.leftFence, 'left')
+  loadImageAspect(Images.rightFence, 'right')
   updateMiddleArea()
   window.addEventListener('resize', updateMiddleArea)
 })

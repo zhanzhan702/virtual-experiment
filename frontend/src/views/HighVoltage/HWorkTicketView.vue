@@ -10,7 +10,7 @@
 
         <!-- 高压工作背景弹窗 -->
         <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
-            <img src="@/assets/images/HighWorkBackground.png" alt="高压工作背景" class="work-bg-img" />
+            <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
         </PromptModal>
     </div>
 </template>
@@ -24,6 +24,7 @@ import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
+import Images from '@/assets/images'
 
 const route = useRoute()
 const router = useRouter()
