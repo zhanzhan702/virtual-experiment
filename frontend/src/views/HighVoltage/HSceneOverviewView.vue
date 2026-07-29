@@ -177,7 +177,7 @@ onUnmounted(() => {
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
   cursor: pointer;
-  background-image: url('@/assets/images/WorkTaskButton.png');
+  background-image: var(--img-work-task);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -185,7 +185,7 @@ onUnmounted(() => {
 }
 
 .work-task-btn:hover {
-  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  background-image: var(--img-work-task-hover);
   transform: scale(1.05);
 }
 
@@ -196,7 +196,7 @@ onUnmounted(() => {
   z-index: 100;
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
-  background-image: url('@/assets/images/SaveProgressIcon.png');
+  background-image: var(--img-save-icon);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -204,7 +204,7 @@ onUnmounted(() => {
 }
 
 .save-bar-fixed:hover {
-  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  background-image: var(--img-save-icon-hover);
   transform: scale(1.05);
 }
 

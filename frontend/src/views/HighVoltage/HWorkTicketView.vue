@@ -128,7 +128,7 @@ const handleTicketSubmit = async result => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('@/assets/images/HWTBackgroundImage.jpg');
+  background-image: var(--img-hwt-bg);
   /* 可以替换成你的高压场景背景图 */
   background-size: contain;
   background-position: center;
@@ -172,7 +172,7 @@ const handleTicketSubmit = async result => {
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
   cursor: pointer;
-  background-image: url('@/assets/images/SaveProgressIcon.png');
+  background-image: var(--img-save-icon);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -180,7 +180,7 @@ const handleTicketSubmit = async result => {
 }
 
 .save-bar-fixed:hover {
-  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  background-image: var(--img-save-icon-hover);
   transform: scale(1.05);
 }
 
@@ -203,7 +203,7 @@ const handleTicketSubmit = async result => {
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
   cursor: pointer;
-  background-image: url('@/assets/images/WorkTaskButton.png');
+  background-image: var(--img-work-task);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -211,7 +211,7 @@ const handleTicketSubmit = async result => {
 }
 
 .work-task-btn:hover {
-  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  background-image: var(--img-work-task-hover);
   transform: scale(1.05);
 }
 

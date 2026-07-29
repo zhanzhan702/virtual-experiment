@@ -125,7 +125,7 @@ async function startNewExperiment(type) {
   width: 100vw;
   height: 100vh;
   padding: 10vh 10vw;
-  background-image: url(@/assets/images/ExperimentViewBackground.jpg);
+  background-image: var(--img-experiment-bg);
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;

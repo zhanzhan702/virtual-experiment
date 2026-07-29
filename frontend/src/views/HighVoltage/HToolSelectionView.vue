@@ -151,7 +151,7 @@ const handleToolSelectionSubmit = async selectedMap => {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url('@/assets/images/ToolSelectionBackground.jpg');
+  background-image: var(--img-tool-selection-bg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -173,7 +173,7 @@ const handleToolSelectionSubmit = async selectedMap => {
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
   cursor: pointer;
-  background-image: url('@/assets/images/SaveProgressIcon.png');
+  background-image: var(--img-save-icon);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -181,7 +181,7 @@ const handleToolSelectionSubmit = async selectedMap => {
 }
 
 .save-bar-fixed:hover {
-  background-image: url('@/assets/images/SaveProgressIconHover.png');
+  background-image: var(--img-save-icon-hover);
   transform: scale(1.05);
 }
 
@@ -204,7 +204,7 @@ const handleToolSelectionSubmit = async selectedMap => {
   width: clamp(120px, 14vw, 160px);
   height: clamp(32px, 5vh, 40px);
   cursor: pointer;
-  background-image: url('@/assets/images/WorkTaskButton.png');
+  background-image: var(--img-work-task);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -212,7 +212,7 @@ const handleToolSelectionSubmit = async selectedMap => {
 }
 
 .work-task-btn:hover {
-  background-image: url('@/assets/images/WorkTaskButtonHover.png');
+  background-image: var(--img-work-task-hover);
   transform: scale(1.05);
 }
 

@@ -61,7 +61,7 @@ defineEmits(['close'])
   width: 15%;
   height: 10%;
   cursor: pointer;
-  background-image: url('@/assets/images/ConfirmButton.png');
+  background-image: var(--img-confirm-btn);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -70,7 +70,7 @@ defineEmits(['close'])
 }
 
 .confirm-btn:hover {
-  background-image: url('@/assets/images/ConfirmButtonHover.png');
+  background-image: var(--img-confirm-btn-hover);
   transform: translateX(-50%) scale(1.05);
 }
 

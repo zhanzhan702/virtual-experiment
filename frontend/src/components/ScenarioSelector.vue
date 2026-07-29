@@ -36,12 +36,12 @@ function select(type) {
 
 /* 高压 — 默认图片 */
 .scenario-btn.high {
-  background-image: url(@/assets/images/HighVoltageButton.png);
+  background-image: var(--img-high-voltage-btn);
 }
 
 /* TODO: 高压 — 悬停图片（制作好后替换路径） */
 .scenario-btn.high:hover {
-  background-image: url(@/assets/images/HighVoltageButtonHover.png);
+  background-image: var(--img-high-voltage-btn-hover);
   transform: scale(1.05);
 }
 
@@ -51,12 +51,12 @@ function select(type) {
 
 /* 低压 — 默认图片 */
 .scenario-btn.low {
-  background-image: url(@/assets/images/LowVoltageButton.png);
+  background-image: var(--img-low-voltage-btn);
 }
 
 /* TODO: 低压 — 悬停图片（制作好后替换路径） */
 .scenario-btn.low:hover {
-  background-image: url(@/assets/images/LowVoltageButtonHover.png);
+  background-image: var(--img-low-voltage-btn-hover);
   transform: scale(1.05);
 }
 
