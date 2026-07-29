@@ -137,6 +137,7 @@ const LEFT_SIGN_HV_STYLE = { left: '1.5%', top: '98.5%', width: '10.6%', height:
 const RIGHT_SIGN_HV_STYLE = { left: '78.3%', top: '97.2%', width: '10.6%', height: 'auto' }
 const SIGN_WORKING_STYLE = { left: '43.5%', top: '43%', width: '10%', height: 'auto' }
 const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: 'auto' }
+// ★ 围栏命中矩形（相对 cabinet-group 的 %，需与围栏视觉位置匹配，用户按需调整）
 const LEFT_FENCE_RECT = { x1: 19.4, y1: 46.8, x2: 45.9, y2: 80.5 }
 const RIGHT_FENCE_RECT = { x1: 54.9, y1: 49.3, x2: 81.3, y2: 83.8 }
 
@@ -178,7 +179,10 @@ function onMiddleAreaClick(e) {
   const idx = followingToolIdx.value
   if (idx === 0) { itemPlaced[0] = true; finishPlacement() }
   else if (idx === 1) {
-    const r = e.currentTarget.getBoundingClientRect()
+    // 命中检测参照 cabinet-group（柜体图像），与 placed-img 视觉定位一致
+    const g = cabinetGroupRef.value
+    if (!g) return
+    const r = g.getBoundingClientRect()
     const px = (e.clientX - r.left) / r.width * 100
     const py = (e.clientY - r.top) / r.height * 100
     const hit = (px >= LEFT_FENCE_RECT.x1 && px <= LEFT_FENCE_RECT.x2 && py >= LEFT_FENCE_RECT.y1 && py <= LEFT_FENCE_RECT.y2) ||
