@@ -68,7 +68,7 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
-import Images from '@/assets/images'
+import Images from '@/constants/images'
 
 const route = useRoute()
 const router = useRouter()

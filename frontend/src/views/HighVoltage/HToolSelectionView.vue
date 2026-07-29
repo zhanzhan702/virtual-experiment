@@ -23,7 +23,7 @@ import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
-import Images from '@/assets/images'
+import Images from '@/constants/images'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 

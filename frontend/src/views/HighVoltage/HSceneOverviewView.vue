@@ -28,7 +28,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
-import Images from '@/assets/images'
+import Images from '@/constants/images'
 
 const route = useRoute()
 const router = useRouter()

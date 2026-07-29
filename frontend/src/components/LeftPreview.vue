@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import Images from '@/assets/images'
+import Images from '@/constants/images'
 </script>
 
 <style scoped>

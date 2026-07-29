@@ -22,7 +22,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
 import PromptModal from '@/components/PromptModal.vue'
-import Images from '@/assets/images'
+import Images from '@/constants/images'
 import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
