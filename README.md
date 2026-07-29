@@ -87,25 +87,28 @@ virtual-experiment/
 │   │   │   └── experiment.js                # 实验 API（启动 / 提交 / 存档 / 恢复 / 删除）
 │   │   ├── assets/                          # 图片等静态资源
 │   │   ├── components/
-│   │   │   ├── LoginForm.vue                # 登录表单（Element Plus）
-│   │   │   ├── RegisterForm.vue             # 注册表单（Element Plus）
+│   │   │   ├── LoginForm.vue                # 登录表单
+│   │   │   ├── RegisterForm.vue             # 注册表单
 │   │   │   ├── LeftPreview.vue              # 左侧装饰图片
 │   │   │   ├── VerifyCode.vue               # Canvas 验证码组件
-│   │   │   ├── ScenarioSelector.vue         # 高 / 低压场景选择
+│   │   │   ├── ScenarioSelector.vue         # 高/低压场景选择
+│   │   │   ├── PromptModal.vue              # 通用弹窗（确认按钮叠加）
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
-│   │   │   │   └── HWizardInventorySelection.vue # 工器具选择向导（含分页）
+│   │   │   │   └── HWizardInventorySelection.vue # 工器具选择向导
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
 │   │   ├── views/
 │   │   │   ├── LoginView.vue                # 登录页
 │   │   │   ├── RegisterView.vue             # 学生注册页
-│   │   │   ├── ExperimentView.vue           # 学生实验页（场景选择 + 启动实验）
+│   │   │   ├── ExperimentView.vue           # 场景选择 + 启动实验 + 恢复
 │   │   │   ├── AdminView.vue                # 管理后台页
 │   │   │   ├── TestView.vue                 # 后端连通性测试页
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketView.vue      # 工作票填写步骤页
-│   │   │   │   └── HToolSelectionView.vue   # 工器具选择步骤页
+│   │   │   │   ├── HToolSelectionView.vue   # 工器具选择步骤页
+│   │   │   │   ├── HSceneOverviewView.vue   # 配电房全景图页
+│   │   │   │   └── HCabinetLocalView.vue    # 柜体局部操作页（步骤3+4）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketView.vue      # 低压工作票步骤页
 │   │   ├── stores/
@@ -135,22 +138,42 @@ flowchart LR
     B --> C[启动实验]
     C --> D[步骤 1<br/>填写工作票]
     D --> E[步骤 2<br/>工器具选择]
-    E --> F[后续步骤<br/>待补充...]
+    E --> F[全景图<br/>配电房漫游]
+    F --> G[步骤 3<br/>柜体操作<br/>设围栏 + 挂牌]
+    G --> H[教学视频]
+    H --> I[步骤 4<br/>三步验电]
+    I --> J[实验完成]
 ```
 
 ### 已实现
 
 | 步骤 | 页面路由 | 组件 | 说明 |
 |------|---------|------|------|
-| 场景选择 | `/experiment` | `ScenarioSelector` | 高 / 低压实验场景按钮 |
-| 步骤 1 | `/HWT` | `HWorkTicketForm` | 填写工作票（手动校验） |
-| 步骤 2 | `/WIS` | `HWizardInventorySelection` | 工器具选择向导 |
+| 场景选择 | `/experiment` | `ExperimentView` | 高/低压实验场景选择、未完成实验恢复 |
+| 全景漫游 | `/HSO` | `HSceneOverviewView` | 配电房全景图、梯形热区定位、柜体入口 |
+| 步骤 1 | `/HWT` | `HWorkTicketView` | 填写工作票（手动校验、存档/恢复） |
+| 步骤 2 | `/HTS` | `HToolSelectionView` | 工器具选择向导（分页、选项卡、存档/恢复） |
+| 步骤 3 | `/HCL` | `HCabinetLocalView` | 柜体局部操作：设围栏 + 挂告示牌（4 物品拖放） |
+| 步骤 4 | `/HCL` | `HCabinetLocalView` | 三步验电（电源→柜体→电源）、提交完成 |
+
+### 已实现功能
+
+- ✅ 用户注册/登录（JWT + BCrypt）
+- ✅ 实验启动、步骤提交、进度存档、草稿恢复
+- ✅ 未完成实验检测与恢复/删除
+- ✅ 鼠标跟随物品拖放、命中检测
+- ✅ 三步验电流程（电压检测笔交互）
+- ✅ 配电房全景图 + 梯形热区（CSS `clip-path`）
+- ✅ 响应式布局（`vw`/`vh`/`%` 相对定位）
+- ✅ 教学视频占位过渡
+- ✅ 操作统计（时长、操作次数、错误次数）与评分
 
 ### 待完善
 
-- 高压场景步骤 3-5（接线、调试、提交报告）
 - 低压场景全部步骤
 - 考试模式（当前仅支持训练模式）
+- 教师管理后台功能
+- 教学视频录制
 
 ---
 
@@ -273,10 +296,12 @@ npm run dev
 | `/`           | 登录页           | 公开              |
 | `/register`   | 学生注册页       | 公开              |
 | `/experiment` | 实验场景选择页   | 登录即可          |
-| `/admin`      | 管理后台         | 教师 / 管理员     |
-| `/HWT`        | 高压工作票填写步骤 | 登录即可          |
-| `/HTS`        | 高压工器具选择步骤 | 登录即可          |
-| `/LWT`        | 低压工作票填写步骤 | 登录即可          |
+| `/admin`      | 管理后台         | 教师/管理员       |
+| `/HSO`        | 高压配电房全景图 | 登录即可          |
+| `/HWT`        | 高压工作票填写   | 登录即可          |
+| `/HTS`        | 高压工器具选择   | 登录即可          |
+| `/HCL`        | 柜体局部操作     | 登录即可（步骤3/4共用） |
+| `/LWT`        | 低压工作票填写   | 登录即可          |
 
 ---
 
