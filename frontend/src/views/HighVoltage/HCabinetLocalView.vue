@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
@@ -129,10 +129,12 @@ const hasSubmitted = ref(false)
 const saving = ref(false)
 
 // ─── 步骤模式判定（步骤3=放置物品+验电，步骤4=仅验电） ───
-const stepsFromStore = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+function getStepsFromStore() {
+  return JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+}
 const currentStepOrder = computed(() => {
-  if (!stepId.value) return 3 // 缺 stepId 默认按步骤3
-  const s = stepsFromStore.find(s => s.stepId === stepId.value)
+  if (!stepId.value) return 3
+  const s = getStepsFromStore().find(s => s.stepId === stepId.value)
   return s ? s.stepOrder : 3
 })
 const isStep4 = computed(() => currentStepOrder.value === 4)
@@ -326,12 +328,25 @@ async function checkAllDone() {
 
 function closeVideo() {
   showVideo.value = false
-  const next = stepsFromStore.find(s => s.stepOrder === 4)
+  const next = getStepsFromStore().find(s => s.stepOrder === 4)
   if (next) {
     sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
     router.push({ path: '/HCL', query: { experimentId: experimentId.value, stepId: next.stepId } })
   }
 }
+
+// 同组件导航（步骤3→4）时，onMounted 不会重跑，需 watch 监听
+watch(isStep4, val => {
+  if (val) {
+    const skipFlag = sessionStorage.getItem('_hcl_step4_skip_placement')
+    if (skipFlag) {
+      itemPlaced.splice(0, 4, true, true, true, true)
+      sessionStorage.removeItem('_hcl_step4_skip_placement')
+    } else if (!itemPlaced.some(v => v)) {
+      itemPlaced.splice(0, 4, true, true, true, true)
+    }
+  }
+})
 
 // ─── 验电笔交互 ───
 function hitTest(e, el) {
