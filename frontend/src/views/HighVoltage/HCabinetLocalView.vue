@@ -183,7 +183,7 @@ const followingImg = computed(() =>
 const showFollowing = computed(() => isFollowing.value || vtActive.value)
 const followImg = computed(() => (vtActive.value ? vtImg.value : followingImg.value))
 function moveCursorTo(e) {
-  if (e) cursorFollowingStyle.value = { left: e.clientX + 12 + 'px', top: e.clientY + 12 + 'px' }
+  if (e) cursorFollowingStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
 }
 
 // ─── 中间区域 ───
@@ -626,6 +626,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   opacity: 0.85;
+  transform: translate(-50%, -50%);
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
