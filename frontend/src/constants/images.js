@@ -40,6 +40,20 @@ import hwtBackground from '@/assets/images/HWTBackgroundImage.jpg'
 // ─── 高压工器具选择 ───
 import toolSelectionBg from '@/assets/images/ToolSelectionBackground.jpg'
 
+// ─── 工器具选择 — 个人防护 ───
+import blueSafetyHelmet from '@/assets/images/BlueSafetyHelmet.png'
+import cottonGloves from '@/assets/images/CottonGloves.png'
+import electricalInsulatingShoes from '@/assets/images/ElectricalInsulatingShoes.png'
+import leatherShoes from '@/assets/images/LeatherShoes.png'
+import motorcycleHelmet from '@/assets/images/MotorcycleHelmet.png'
+import redSafetyHelmet from '@/assets/images/RedSafetyHelmet.png'
+import rubberGloves from '@/assets/images/RubberGloves.png'
+import safetyGoggles from '@/assets/images/SafetyGoggles.png'
+import sandal from '@/assets/images/Sandal.png'
+import tShirtAndShorts from '@/assets/images/TShirtAndShorts.png'
+import workClothes from '@/assets/images/WorkClothes.png'
+import workClothesTopAndJeans from '@/assets/images/WorkClothesTopAndJeans.png'
+
 // ─── 柜体局部操作 ───
 import cabinetGroupOverview from '@/assets/images/CabinetGroupOverview.png'
 import cabinetLocalOperation from '@/assets/images/CabinetLocalOperation.png'
@@ -48,9 +62,9 @@ import leftFence from '@/assets/images/LeftFence.png'
 import rightFence from '@/assets/images/RightFence.png'
 import signStopHighVoltage from '@/assets/images/SignStopHighVoltage.png'
 import signPersonWorking from '@/assets/images/SignPersonWorking.png'
-import safetyNotice from '@/assets/images/safetyNotice.png'
-import voltageTesterNormal from '@/assets/images/voltageTesterNormal.png'
-import voltageTesterWarning from '@/assets/images/voltageTesterWarning.png'
+import safetyNotice from '@/assets/images/SafetyNotice.png'
+import voltageTesterNormal from '@/assets/images/VoltageTesterNormal.png'
+import voltageTesterWarning from '@/assets/images/VoltageTesterWarning.png'
 
 // ─── 后续步骤（预留） ───
 import checkMeterReading from '@/assets/images/CheckMeterReading.png'
@@ -83,6 +97,20 @@ export default {
   hwtBackground,
   // 高压工器具
   toolSelectionBg,
+  // 工器具选择
+  // 1.个人防护
+  blueSafetyHelmet,
+  cottonGloves,
+  electricalInsulatingShoes,
+  leatherShoes,
+  motorcycleHelmet,
+  redSafetyHelmet,
+  rubberGloves,
+  safetyGoggles,
+  sandal,
+  tShirtAndShorts,
+  workClothes,
+  workClothesTopAndJeans,
   // 柜体操作
   cabinetGroupOverview,
   cabinetLocalOperation,

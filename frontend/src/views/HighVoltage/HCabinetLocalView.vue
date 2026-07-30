@@ -1,20 +1,12 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div
-    class="cabinet-local-page"
-    :class="{ 'is-following': isFollowing || vtActive }"
-    @mousemove="onPageMouseMove"
-    @click="onPageClick"
-  >
+  <div class="cabinet-local-page" :class="{ 'is-following': isFollowing || vtActive }" @mousemove="onPageMouseMove"
+    @click="onPageClick">
     <!-- 左侧物品栏 -->
     <div class="tool-bar tool-bar-left">
-      <div
-        v-for="(item, idx) in leftTools"
-        :key="'L' + idx"
-        class="tool-item tool-item-img"
+      <div v-for="(item, idx) in leftTools" :key="'L' + idx" class="tool-item tool-item-img"
         :class="{ 'tool-selected': followingToolIdx === idx, 'tool-placed': itemPlaced[idx] }"
-        @click="selectTool(idx, $event)"
-      >
+        @click="selectTool(idx, $event)">
         <img :src="item.img" alt="" draggable="false" />
       </div>
     </div>
@@ -22,67 +14,28 @@
     <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
       <div class="cabinet-group" ref="cabinetGroupRef">
-        <img
-          :src="Images.cabinetGroupOverview"
-          alt="柜体局部"
-          class="cabinet-img"
-          draggable="false"
-        />
+        <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
         <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-        <img
-          v-if="itemPlaced[0]"
-          :src="Images.leftFence"
-          class="placed-img"
-          :style="LEFT_FENCE_STYLE"
-          draggable="false"
-        />
-        <img
-          v-if="itemPlaced[0]"
-          :src="Images.rightFence"
-          class="placed-img"
-          :style="RIGHT_FENCE_STYLE"
-          draggable="false"
-        />
-        <img
-          v-if="itemPlaced[1]"
-          :src="Images.signStopHighVoltage"
-          class="placed-img"
-          :style="LEFT_SIGN_HV_STYLE"
-          draggable="false"
-        />
-        <img
-          v-if="itemPlaced[1]"
-          :src="Images.signStopHighVoltage"
-          class="placed-img"
-          :style="RIGHT_SIGN_HV_STYLE"
-          draggable="false"
-        />
-        <img
-          v-if="itemPlaced[2]"
-          :src="Images.signPersonWorking"
-          class="placed-img"
-          :style="SIGN_WORKING_STYLE"
-          draggable="false"
-        />
-        <img
-          v-if="itemPlaced[3]"
-          :src="Images.safetyNotice"
-          class="placed-img"
-          :style="SAFETY_NOTICE_STYLE"
-          draggable="false"
-        />
+        <img v-if="itemPlaced[0]" :src="Images.leftFence" class="placed-img" :style="LEFT_FENCE_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[0]" :src="Images.rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[2]" :src="Images.signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
+          draggable="false" />
+        <img v-if="itemPlaced[3]" :src="Images.safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
+          draggable="false" />
       </div>
     </div>
 
     <!-- 右侧物品栏（17 槽位，第 1 个为验电笔，其余留空） -->
     <div class="tool-bar tool-bar-right">
-      <div
-        v-for="i in 17"
-        :key="'R' + i"
-        class="tool-item tool-item-img"
+      <div v-for="i in 17" :key="'R' + i" class="tool-item tool-item-img"
         :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
-        @click="i === 1 && selectVoltageTester($event)"
-      >
+        @click="i === 1 && selectVoltageTester($event)">
         <img v-if="i === 1" :src="Images.voltageTesterNormal" alt="验电笔" draggable="false" />
       </div>
     </div>
@@ -378,7 +331,7 @@ async function submitVoltageCheck() {
     ElMessage.success('验电操作完成！')
     setTimeout(() => {
       router.push({
-        path: '/',
+        path: '/experiment',
         query: { experimentId: experimentId.value }
       })
     }, 1000)
@@ -435,7 +388,7 @@ onMounted(async () => {
         })
       if (d?.vtDone) vtDone.value = true
       if (d?.vtStep != null) vtStep.value = d.vtStep
-    } catch (_) {}
+    } catch (_) { }
   }
   // 步骤4无草稿时确保物品显示为已放置
   if (isStep4.value && !itemPlaced.some(v => v)) {
