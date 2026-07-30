@@ -133,6 +133,8 @@ function getStepsFromStore() {
   return JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
 }
 const currentStepOrder = computed(() => {
+  const fromQuery = Number(route.query.stepOrder)
+  if (fromQuery === 3 || fromQuery === 4) return fromQuery
   if (!stepId.value) return 3
   const s = getStepsFromStore().find(s => s.stepId === stepId.value)
   return s ? s.stepOrder : 3
@@ -331,7 +333,16 @@ function closeVideo() {
   const next = getStepsFromStore().find(s => s.stepOrder === 4)
   if (next) {
     sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
-    router.push({ path: '/HCL', query: { experimentId: experimentId.value, stepId: next.stepId } })
+    router.push({
+      path: '/HCL',
+      query: { experimentId: experimentId.value, stepId: next.stepId, stepOrder: 4 }
+    })
+  } else {
+    sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
+    router.push({
+      path: '/HCL',
+      query: { experimentId: experimentId.value, stepId: stepId.value, stepOrder: 4 }
+    })
   }
 }
 
