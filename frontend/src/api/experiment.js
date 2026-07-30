@@ -29,3 +29,8 @@ export function deleteExperiment(experimentId) {
 export function getStepDraft(experimentId, stepId) {
   return request.get('/experiment/step/draft', { params: { experimentId, stepId } })
 }
+
+/** 获取实验总耗时（所有步骤累加，含草稿） */
+export function getTotalDuration(experimentId) {
+  return request.get(`/experiment/${experimentId}/duration`)
+}

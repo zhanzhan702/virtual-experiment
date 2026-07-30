@@ -318,7 +318,7 @@ const validateAndSubmit = async () => {
   })
 }
 
-defineExpose({ formData })
+defineExpose({ formData, stats })
 </script>
 
 <style scoped>

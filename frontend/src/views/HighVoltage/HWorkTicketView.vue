@@ -61,7 +61,7 @@ const saveProgress = async () => {
       experimentId: experimentId.value,
       stepId: stepId.value,
       status: 0,
-      durationSeconds: 0,
+      durationSeconds: formRef.value?.stats?.duration_seconds ?? 0,
       resultData: JSON.stringify(fullData),
       startedAt: startedAt.value
     })

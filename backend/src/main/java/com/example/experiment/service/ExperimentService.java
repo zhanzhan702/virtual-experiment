@@ -26,4 +26,7 @@ public interface ExperimentService {
 
   /** 获取实验某步骤的草稿数据（用于恢复页面状态） */
   Map<String, Object> getStepDraftData(String experimentId, String stepId);
+
+  /** 获取实验总耗时（所有步骤 duration_seconds 之和，含草稿，用于存档恢复后累加计时） */
+  Integer getTotalDuration(String experimentId);
 }

@@ -106,11 +106,17 @@ public class ExperimentServiceImpl implements ExperimentService {
       }
     }
 
-    // 更新
+    // 更新（统计字段累加，支持存档恢复后继续计时）
     stepRecord.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
-    stepRecord.setDurationSeconds(dto.getDurationSeconds());
-    stepRecord.setOperationCount(dto.getOperationCount());
-    stepRecord.setErrorCount(dto.getErrorCount());
+    stepRecord.setDurationSeconds(
+        (stepRecord.getDurationSeconds() != null ? stepRecord.getDurationSeconds() : 0)
+            + (dto.getDurationSeconds() != null ? dto.getDurationSeconds() : 0));
+    stepRecord.setOperationCount(
+        (stepRecord.getOperationCount() != null ? stepRecord.getOperationCount() : 0)
+            + (dto.getOperationCount() != null ? dto.getOperationCount() : 0));
+    stepRecord.setErrorCount(
+        (stepRecord.getErrorCount() != null ? stepRecord.getErrorCount() : 0)
+            + (dto.getErrorCount() != null ? dto.getErrorCount() : 0));
     stepRecord.setScore(dto.getScore() != null ? new java.math.BigDecimal(dto.getScore()) : null);
     stepRecord.setResultData(dto.getResultData());
     stepRecord.setFinishedAt(LocalDateTime.now());
@@ -153,10 +159,16 @@ public class ExperimentServiceImpl implements ExperimentService {
       }
     }
 
-    // 只更新数据字段，不设置 finishedAt / score / status（保持草稿状态）
-    stepRecord.setDurationSeconds(dto.getDurationSeconds());
-    stepRecord.setOperationCount(dto.getOperationCount());
-    stepRecord.setErrorCount(dto.getErrorCount());
+    // 只更新数据字段（统计字段累加），不设置 finishedAt / score / status
+    stepRecord.setDurationSeconds(
+        (stepRecord.getDurationSeconds() != null ? stepRecord.getDurationSeconds() : 0)
+            + (dto.getDurationSeconds() != null ? dto.getDurationSeconds() : 0));
+    stepRecord.setOperationCount(
+        (stepRecord.getOperationCount() != null ? stepRecord.getOperationCount() : 0)
+            + (dto.getOperationCount() != null ? dto.getOperationCount() : 0));
+    stepRecord.setErrorCount(
+        (stepRecord.getErrorCount() != null ? stepRecord.getErrorCount() : 0)
+            + (dto.getErrorCount() != null ? dto.getErrorCount() : 0));
     stepRecord.setResultData(dto.getResultData());
     userExperimentStepsMapper.updateById(stepRecord);
   }
@@ -234,5 +246,17 @@ public class ExperimentServiceImpl implements ExperimentService {
     } catch (Exception e) {
       return Map.of();
     }
+  }
+
+  @Override
+  public Integer getTotalDuration(String experimentId) {
+    var steps =
+        userExperimentStepsMapper.selectList(
+            new LambdaQueryWrapper<UserExperimentSteps>()
+                .eq(UserExperimentSteps::getExperimentId, experimentId)
+                .select(UserExperimentSteps::getDurationSeconds));
+    return steps.stream()
+        .map(s -> s.getDurationSeconds() != null ? s.getDurationSeconds() : 0)
+        .reduce(0, Integer::sum);
   }
 }

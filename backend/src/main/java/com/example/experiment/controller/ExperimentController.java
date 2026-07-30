@@ -112,4 +112,15 @@ public class ExperimentController {
     var data = experimentService.getStepDraftData(experimentId, stepId);
     return ResponseEntity.ok(data);
   }
+
+  /** 获取实验总耗时（已用秒数，含草稿） */
+  @GetMapping("/{experimentId}/duration")
+  public ResponseEntity<?> getTotalDuration(
+      @PathVariable String experimentId,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null) return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    Integer seconds = experimentService.getTotalDuration(experimentId);
+    return ResponseEntity.ok(Map.of("durationSeconds", seconds));
+  }
 }
