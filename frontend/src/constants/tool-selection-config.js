@@ -35,8 +35,14 @@ export const categories = [
 
       { id: 7, name: '护目镜', slot: 'eye', icon: '🥽', description: '防飞溅物伤害眼睛' },
 
-      { id: 8, name: '橡胶手套', slot: 'hand', icon: '🧤', description: '绝缘防护，防触电' },
-      { id: 9, name: '纱手套', slot: 'hand', icon: '🧤', description: '具备绝缘性能' },
+      { id: 8, name: '橡胶手套', slot: 'hand', icon: '🧤', description: '具备绝缘性能、防触电' },
+      {
+        id: 9,
+        name: '纱手套',
+        slot: 'hand',
+        icon: '🧤',
+        description: '防滑、防刮、保持操作灵活性'
+      },
 
       { id: 10, name: '电力绝缘鞋', slot: 'foot', icon: '🥾', description: '绝缘防砸，作业必备' },
       { id: 11, name: '凉鞋', slot: 'foot', icon: '🩴', description: '不符合安全规范' },
