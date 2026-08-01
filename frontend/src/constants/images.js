@@ -67,6 +67,37 @@ import voltageTesterNormal from '@/assets/images/VoltageTesterNormal.png'
 import voltageTesterWarning from '@/assets/images/VoltageTesterWarning.png'
 import electrifyCompleteNotice from '@/assets/images/ElectrifyCompleteNotice.png'
 
+// ─── 柜体操作 — 右侧工具栏（终端/工器具/线材） ───
+import threePhaseThreeWireMeter from '@/assets/images/ThreePhaseThreeWireMeter.png'
+import threePhaseThreeWireTerminal from '@/assets/images/ThreePhaseThreeWireTerminal.png'
+import crossScrewdriver from '@/assets/images/CrossScrewdriver.png'
+import wireStripper from '@/assets/images/WireStripper.png'
+import seal from '@/assets/images/Seal.png'
+import wire25mm2Yellow from '@/assets/images/Wire25mm2Yellow.png'
+import wire4mm2Yellow from '@/assets/images/Wire4mm2Yellow.png'
+import wire4mm2YellowBlack from '@/assets/images/Wire4mm2YellowBlack.png'
+import wire25mm2Green from '@/assets/images/Wire25mm2Green.png'
+import wire25mm2Red from '@/assets/images/Wire25mm2Red.png'
+import wire4mm2Red from '@/assets/images/Wire4mm2Red.png'
+import wire4mm2RedBlack from '@/assets/images/Wire4mm2RedBlack.png'
+import cableTieLabel from '@/assets/images/CableTieLabel.png'
+import remoteControlCable2Core from '@/assets/images/RemoteControlCable2Core.png'
+import remoteSignalCable2Core from '@/assets/images/RemoteSignalCable2Core.png'
+import signalCable6Core from '@/assets/images/SignalCable6Core.png'
+import signalCable8Core from '@/assets/images/SignalCable8Core.png'
+import communicationModule from '@/assets/images/CommunicationModule.png'
+import simCard from '@/assets/images/SimCard.png'
+import antenna from '@/assets/images/Antenna.png'
+
+// ─── 计量小室（leafer ui 画布） ───
+import meteringRoomNoMeter from '@/assets/images/MeteringRoomNoMeter.png'
+import meteringRoomWithMeter from '@/assets/images/MeteringRoomWithMeter.png'
+import meteringRoomWired from '@/assets/images/MeteringRoomWired.png'
+import meteringRoomWithCableTies from '@/assets/images/MeteringRoomWithCableTies.png'
+import junctionBox from '@/assets/images/JunctionBox.png'
+import junctionBoxSwitch from '@/assets/images/JunctionBoxSwitch.png'
+import strippedSignalCable6Core from '@/assets/images/StrippedSignalCable6Core.png'
+
 // ─── 后续步骤（预留） ───
 import checkMeterReading from '@/assets/images/CheckMeterReading.png'
 import verifyMeterDataConsistency from '@/assets/images/VerifyMeterDataConsistency.png'
@@ -124,6 +155,35 @@ export default {
   voltageTesterNormal,
   voltageTesterWarning,
   electrifyCompleteNotice,
+  // 柜体操作 — 右侧工具栏
+  threePhaseThreeWireMeter,
+  threePhaseThreeWireTerminal,
+  crossScrewdriver,
+  wireStripper,
+  seal,
+  wire25mm2Yellow,
+  wire4mm2Yellow,
+  wire4mm2YellowBlack,
+  wire25mm2Green,
+  wire25mm2Red,
+  wire4mm2Red,
+  wire4mm2RedBlack,
+  cableTieLabel,
+  remoteControlCable2Core,
+  remoteSignalCable2Core,
+  signalCable6Core,
+  signalCable8Core,
+  communicationModule,
+  simCard,
+  antenna,
+  // 计量小室（leafer ui 画布）
+  meteringRoomNoMeter,
+  meteringRoomWithMeter,
+  meteringRoomWired,
+  meteringRoomWithCableTies,
+  junctionBox,
+  junctionBoxSwitch,
+  strippedSignalCable6Core,
   // 后续步骤
   checkMeterReading,
   verifyMeterDataConsistency,

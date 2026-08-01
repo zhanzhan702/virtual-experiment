@@ -74,16 +74,16 @@
       </div>
     </div>
 
-    <!-- 右侧物品栏（17 槽位，第 1 个为验电笔，其余留空） -->
+    <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
     <div class="tool-bar tool-bar-right">
       <div
-        v-for="i in 17"
-        :key="'R' + i"
+        v-for="(tool, idx) in rightTools"
+        :key="'R' + idx"
         class="tool-item tool-item-img"
-        :class="{ 'tool-selected': i === 1 && vtActive, 'tool-placed': i === 1 && vtDone }"
-        @click="i === 1 && selectVoltageTester($event)"
+        :class="{ 'tool-selected': idx === 4 && vtActive, 'tool-placed': idx === 4 && vtDone }"
+        @click="onRightToolClick(idx, $event)"
       >
-        <img v-if="i === 1" :src="Images.voltageTesterNormal" alt="验电笔" draggable="false" />
+        <img :src="tool.img" :alt="tool.name" draggable="false" />
       </div>
     </div>
 
@@ -157,6 +157,31 @@ const leftTools = [
 ]
 const itemPlaced = reactive([false, false, false, false])
 const allItemsPlaced = computed(() => itemPlaced.every(v => v))
+
+// ─── 右侧工具栏（顺序与工器具选择页一致，验电笔在 index 4） ───
+const rightTools = [
+  { name: '智能电表', img: Images.threePhaseThreeWireMeter },
+  { name: '三相三线专变终端', img: Images.threePhaseThreeWireTerminal },
+  { name: '十字螺丝刀', img: Images.crossScrewdriver },
+  { name: '剥线钳', img: Images.wireStripper },
+  { name: '验电笔', img: Images.voltageTesterNormal },
+  { name: '铅封', img: Images.seal },
+  { name: '2.5mm²黄色导线', img: Images.wire25mm2Yellow },
+  { name: '4mm²黄色导线', img: Images.wire4mm2Yellow },
+  { name: '4mm²黄黑色导线', img: Images.wire4mm2YellowBlack },
+  { name: '2.5mm²绿色导线', img: Images.wire25mm2Green },
+  { name: '2.5mm²红色导线', img: Images.wire25mm2Red },
+  { name: '4mm²红色导线', img: Images.wire4mm2Red },
+  { name: '4mm²红黑色导线', img: Images.wire4mm2RedBlack },
+  { name: '扎带标识牌', img: Images.cableTieLabel },
+  { name: '2芯遥控线', img: Images.remoteControlCable2Core },
+  { name: '2芯遥信线', img: Images.remoteSignalCable2Core },
+  { name: '6芯信号线', img: Images.signalCable6Core },
+  { name: '8芯信号线', img: Images.signalCable8Core },
+  { name: '通信模块', img: Images.communicationModule },
+  { name: 'SIM卡', img: Images.simCard },
+  { name: '天线', img: Images.antenna }
+]
 
 // ─── 验电笔 ───
 const vtActive = ref(false)
@@ -274,6 +299,16 @@ function selectVoltageTester(e) {
   vtActive.value
     ? ((vtActive.value = false), (vtStep.value = 0))
     : ((vtActive.value = true), (vtStep.value = 0), moveCursorTo(e))
+}
+
+// 右侧工具栏点击：验电笔走专用逻辑，其余工具待后续 leafer 画布交互
+function onRightToolClick(idx, e) {
+  if (idx === 4) {
+    selectVoltageTester(e)
+    return
+  }
+  stats.operation_count++
+  ElMessage.info('「' + rightTools[idx].name + '」将在计量小室操作中使用')
 }
 
 function onPageMouseMove(e) {
