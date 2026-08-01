@@ -16,7 +16,6 @@
 | 后端框架    | Spring Boot                     | 4.0       |
 | ORM         | MyBatis-Plus                    | 3.5       |
 | 数据库      | MySQL                           | 8.0       |
-| 数据库迁移  | Flyway                          | —         |
 | 身份认证    | JWT (jjwt)                      | 0.12      |
 | 密码加密    | BCrypt (spring-security-crypto) | —         |
 | 参数校验    | Jakarta Validation              | —         |
@@ -67,13 +66,13 @@ virtual-experiment/
 │   │   └── utils/
 │   │       └── JwtUtils.java                # JWT 生成 / 解析
 │   ├── src/main/resources/
-│   │   ├── application.yml                  # 主配置（数据源 / Flyway / MyBatis）
-│   │   ├── application.properties           # 数据源凭据
-│   │   └── db/migration/                    # Flyway 数据库迁移
-│   │       ├── V1__init_tables.sql           # 建表（8 张表）
-│   │       ├── V2__create_data.sql           # 初始数据（组织 / 角色 / 用户）
-│   │       ├── V3__experiment_templates.sql  # 高压实验模板 + 步骤 1
-│   │       └── V4__low_experiment_templates.sql # 低压实验模板 + 步骤
+│   │   ├── application.yml                  # 主配置（数据源 / MyBatis）
+│   │   └── application.properties           # 数据源凭据
+│   ├── docs/sql/                            # 手动建库 SQL 脚本（按顺序执行）
+│   │   ├── 01_init_tables.sql               # 建表（8 张表）
+│   │   ├── 02_create_data.sql               # 初始数据（组织 / 角色 / 用户）
+│   │   ├── 03_high_experiment_templates.sql # 高压实验模板 + 步骤
+│   │   └── 04_low_experiment_templates.sql  # 低压实验模板 + 步骤
 │   └── pom.xml
 │
 ├── .github/
@@ -187,7 +186,7 @@ flowchart LR
 mysql -u root -p -e "CREATE DATABASE virtual_experiment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-启动后端后，Flyway 自动执行 `db/migration/` 下的 SQL 脚本（V1 → V2 → V3）。
+数据库为**手动管理**：依次执行 `backend/docs/sql/` 下的脚本（01 → 02 → 03 → 04）。
 
 ### 2. 启动后端
 

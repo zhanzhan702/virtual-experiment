@@ -6,15 +6,6 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: ${MYSQL_PASSWORD}
-  # 启用Flyway，执行 db/migration 下的SQL脚本
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    baseline-version: 2
-logging:
-  level:
-    org.flywaydb: DEBUG
 server:
   port: 8080
 mybatis-plus:
