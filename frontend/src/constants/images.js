@@ -65,6 +65,7 @@ import signPersonWorking from '@/assets/images/SignPersonWorking.png'
 import safetyNotice from '@/assets/images/SafetyNotice.png'
 import voltageTesterNormal from '@/assets/images/VoltageTesterNormal.png'
 import voltageTesterWarning from '@/assets/images/VoltageTesterWarning.png'
+import electrifyCompleteNotice from '@/assets/images/ElectrifyCompleteNotice.png'
 
 // ─── 后续步骤（预留） ───
 import checkMeterReading from '@/assets/images/CheckMeterReading.png'
@@ -122,6 +123,7 @@ export default {
   safetyNotice,
   voltageTesterNormal,
   voltageTesterWarning,
+  electrifyCompleteNotice,
   // 后续步骤
   checkMeterReading,
   verifyMeterDataConsistency,

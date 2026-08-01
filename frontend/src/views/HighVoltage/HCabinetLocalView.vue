@@ -103,6 +103,12 @@
     <!-- 按钮 -->
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
+
+    <!-- 验电完成提示弹窗（提交后展示，确认后进入下一步） -->
+    <PromptModal :visible="showElectrifyNotice" @close="onElectrifyNoticeClose">
+      <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
+    </PromptModal>
+
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
@@ -125,6 +131,7 @@ const stepId = ref(route.query.stepId || '')
 const startedAt = ref(formatLocalTime(new Date()))
 const showWorkBg = ref(false)
 const showVideo = ref(false)
+const showElectrifyNotice = ref(false)
 const hasSubmitted = ref(false)
 const saving = ref(false)
 
@@ -402,15 +409,21 @@ async function submitVoltageCheck() {
   try {
     await submitStep(payload)
     ElMessage.success('验电操作完成！')
-    setTimeout(() => {
-      router.push({
-        path: '/experiment',
-        query: { experimentId: experimentId.value }
-      })
-    }, 1000)
+    showElectrifyNotice.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
+}
+
+// 验电完成弹窗确认 → 进入下一步
+function onElectrifyNoticeClose() {
+  showElectrifyNotice.value = false
+  setTimeout(() => {
+    router.replace({
+      path: '/experiment',
+      query: { experimentId: experimentId.value }
+    })
+  }, 500)
 }
 
 // ─── 存档 ───
