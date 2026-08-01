@@ -7,7 +7,7 @@ SET @tpl_id = (SELECT id FROM experiment_templates WHERE code = 'HV_TRAIN_V1');
 
 -- 步骤 1：填写工作票
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 1, 'FILL_TICKET', '填写工作票', 120, 25.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 1, 'FILL_TICKET', '填写工作票', 120, 20.00);
 
 -- 步骤 2：工器具选择
   INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
@@ -19,39 +19,115 @@ INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name,
 
 -- 步骤 4：三步验电（计量小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 4, 'THREE_STEP_CHECK', '三步验电（计量小室）', 60, 5.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 4, 'THREE_STEP_CHECK', '三步验电（计量小室）', 60, 3.00);
 
--- 步骤 5：挂表
+-- 步骤 5：挂电表（计量小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 5, 'HANG_METER', '挂表', 60, 5.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 5, 'HANG_METER_METERING', '挂电表（计量小室）', 30, 1.00);
 
--- 步骤 6：调整接线盒（接线前准备）
+-- 步骤 6：接线盒处理（计量小室第一次）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 6, 'ADJUST_JUNCTION_BOX_1', '调整接线盒', 30, 2.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 6, 'ADJUST_JUNCTION_BOX_METERING', '接线盒处理（计量小室第一次）', 120, 10.00);
 
--- 步骤 7：连接智能电表与接线盒（7根导线）
-INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 7, 'WIRE_METER_TO_JUNCTION', '接线：电表与接线盒', 300, 10.00);
 
--- 步骤 8：连接智能电表与排座（6芯信号线）
+-- 步骤 7：接电压、电流进出线（计量小室，7根导线）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 8, 'WIRE_METER_TO_TERMINAL', '接线：电表与排座', 180, 5.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 7, 'WIRE_VOLTAGE_CURRENT_METERING', '接电压电流进出线（计量小室）', 180, 15.00);
 
--- 步骤 9：绑扎带指示牌
+-- 步骤 8：6芯信号线连接（计量小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 9, 'BIND_CABLE_TIE', '绑扎带指示牌', 60, 2.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 8, 'WIRE_SIGNAL_6CORE_METERING', '6芯信号线连接（计量小室）', 240, 30.00);
 
--- 步骤 10：再次调整接线盒（接线后收尾）
+-- 步骤 9：添加扎带标识牌（计量小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 10, 'ADJUST_JUNCTION_BOX_2', '再次调整接线盒', 30, 1.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 9, 'BIND_CABLE_TIE_METERING', '添加扎带标识牌（计量小室）', 30, 1.00);
 
--- 步骤 11：打铅封
+-- 步骤 10：接线盒处理（计量小室第二次）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 11, 'SEAL', '打铅封', 60, 5.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 10, 'ADJUST_JUNCTION_BOX_METERING_2', '接线盒处理（计量小室第二次）', 120, 10.00);
+
+-- 步骤 11：计量小室加铅封
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 11, 'SEAL_METERING_ROOM', '计量小室加铅封', 90, 5.00);
 
 -- 步骤 12：三步验电（终端小室）
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
-(UUID_TO_BIN(UUID()), @tpl_id, 12, 'THREE_STEP_CHECK', '三步验电（终端小室）', 60, 10.00);
--- TODO: 补充后续步骤 (step_order 从 14 开始)
--- INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
--- (UUID_TO_BIN(UUID()), @tpl_id, 14, '', '后续步骤', 300, 10.00);
+(UUID_TO_BIN(UUID()), @tpl_id, 12, 'THREE_STEP_CHECK_TERMINAL', '三步验电（终端小室）', 60, 5.00);
+
+-- 步骤 13：挂表（终端小室）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 13, 'HANG_TERMINAL_TERMINAL', '挂表（终端小室）', 30, 1.00);
+
+-- 步骤 14：接线盒处理（终端小室）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 14, 'ADJUST_JUNCTION_BOX_TERMINAL', '接线盒处理（终端小室）', 90, 5.00);
+
+-- 步骤 15：接电压、电流进出线（终端小室，7根导线）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 15, 'WIRE_VOLTAGE_CURRENT_TERMINAL', '接电压电流进出线（终端小室）', 120, 10.00);
+
+-- 步骤 16：遥控压板处理
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 16, 'ADJUST_REMOTE_CONTROL', '遥控压板处理', 90, 4.00);
+
+-- 步骤 17：终端侧信号线连接（2芯遥控、2芯遥信、8芯信号线）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 17, 'WIRE_SIGNAL_TERMINAL', '终端侧信号线连接', 300, 40.00);
+
+-- 步骤 18：安装通信模块、SIM卡、天线
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 18, 'INSTALL_COMM_MODULE', '安装通信模块/SIM/天线', 90, 5.00);
+
+-- 步骤 19：绑扎带指示牌（终端小室）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 19, 'BIND_CABLE_TIE_TERMINAL', '绑扎带指示牌（终端小室）', 60, 3.00);
+
+-- 步骤 20：上电（合闸）
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 20, 'POWER_ON', '上电（合闸）', 30, 1.00);
+
+-- 步骤 21：终端小室加铅封【新增】
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 21, 'SEAL_TERMINAL_ROOM', '终端小室加铅封', 90, 5.00);
+
+-- 步骤 22：柜门门把加铅封
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 22, 'SEAL_CABINET', '柜门门把加铅封', 60, 2.00);
+
+-- 步骤 23：清理现场并办理工作票终结
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 23, 'CLEAN_SITE_AND_FINALIZE_TICKET', '清理现场并办理工作票终结', 60, 2.00);
+
+-- 完整重建（请先确认模板 ID）
+SET @tpl_id = (SELECT id FROM experiment_templates WHERE code = 'HV_TRAIN_V1');
+
+-- 清空该模板下原有步骤（谨慎！）
+DELETE FROM experiment_steps WHERE template_id = @tpl_id;
+
+
+-- 一次性全部插入
+INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
+(UUID_TO_BIN(UUID()), @tpl_id, 1, 'FILL_TICKET', '填写工作票', 120, 20.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 2, 'SELECT_TOOLS', '工器具选择', 180, 30.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 3, 'SET_FENCE_AND_HANG_SIGN', '架设围栏并悬挂标示牌', 60, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 4, 'THREE_STEP_CHECK', '三步验电（计量小室）', 60, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 5, 'HANG_METER_METERING', '挂电表（计量小室）', 30, 1.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 6, 'ADJUST_JUNCTION_BOX_METERING', '接线盒处理（计量小室第一次）', 120, 10.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 7, 'WIRE_VOLTAGE_CURRENT_METERING', '接电压电流进出线（计量小室）', 180, 15.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 8, 'WIRE_SIGNAL_6CORE_METERING', '6芯信号线连接（计量小室）', 240, 30.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 9, 'BIND_CABLE_TIE_METERING', '添加扎带标识牌（计量小室）', 30, 1.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 10, 'ADJUST_JUNCTION_BOX_METERING_2', '接线盒处理（计量小室第二次）', 120, 10.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 11, 'SEAL_METERING_ROOM', '计量小室加铅封', 90, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 12, 'THREE_STEP_CHECK_TERMINAL', '三步验电（终端小室）', 60, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 13, 'HANG_TERMINAL_TERMINAL', '挂表（终端小室）', 30, 1.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 14, 'ADJUST_JUNCTION_BOX_TERMINAL', '接线盒处理（终端小室）', 90, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 15, 'WIRE_VOLTAGE_CURRENT_TERMINAL', '接电压电流进出线（终端小室）', 120, 10.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 16, 'ADJUST_REMOTE_CONTROL', '遥控压板处理', 90, 4.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 17, 'WIRE_SIGNAL_TERMINAL', '终端侧信号线连接', 300, 40.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 18, 'INSTALL_COMM_MODULE', '安装通信模块/SIM/天线', 90, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 19, 'BIND_CABLE_TIE_TERMINAL', '绑扎带指示牌（终端小室）', 60, 3.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 20, 'POWER_ON', '上电（合闸）', 30, 1.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 21, 'SEAL_TERMINAL_ROOM', '终端小室加铅封', 90, 5.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 22, 'SEAL_CABINET', '柜门门把加铅封', 60, 2.00),
+(UUID_TO_BIN(UUID()), @tpl_id, 23, 'CLEAN_SITE_AND_FINALIZE_TICKET', '清理现场并办理工作票终结', 60, 2.00);
+
