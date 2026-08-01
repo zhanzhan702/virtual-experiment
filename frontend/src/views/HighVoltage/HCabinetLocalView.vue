@@ -1,12 +1,20 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div class="cabinet-local-page" :class="{ 'is-following': isFollowing || vtActive }" @mousemove="onPageMouseMove"
-    @click="onPageClick">
+  <div
+    class="cabinet-local-page"
+    :class="{ 'is-following': isFollowing || vtActive }"
+    @mousemove="onPageMouseMove"
+    @click="onPageClick"
+  >
     <!-- 左侧物品栏 -->
     <div class="tool-bar tool-bar-left">
-      <div v-for="(item, idx) in leftTools" :key="'L' + idx" class="tool-item tool-item-img"
+      <div
+        v-for="(item, idx) in leftTools"
+        :key="'L' + idx"
+        class="tool-item tool-item-img"
         :class="{ 'tool-selected': followingToolIdx === idx, 'tool-placed': itemPlaced[idx] }"
-        @click="selectTool(idx, $event)">
+        @click="selectTool(idx, $event)"
+      >
         <img :src="item.img" alt="" draggable="false" />
       </div>
     </div>
@@ -14,28 +22,67 @@
     <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
       <div class="cabinet-group" ref="cabinetGroupRef">
-        <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
+        <img
+          :src="Images.cabinetGroupOverview"
+          alt="柜体局部"
+          class="cabinet-img"
+          draggable="false"
+        />
         <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-        <img v-if="itemPlaced[0]" :src="Images.leftFence" class="placed-img" :style="LEFT_FENCE_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[0]" :src="Images.rightFence" class="placed-img" :style="RIGHT_FENCE_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[1]" :src="Images.signStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[2]" :src="Images.signPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
-          draggable="false" />
-        <img v-if="itemPlaced[3]" :src="Images.safetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
-          draggable="false" />
+        <img
+          v-if="itemPlaced[0]"
+          :src="Images.leftFence"
+          class="placed-img"
+          :style="LEFT_FENCE_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[0]"
+          :src="Images.rightFence"
+          class="placed-img"
+          :style="RIGHT_FENCE_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[1]"
+          :src="Images.signStopHighVoltage"
+          class="placed-img"
+          :style="LEFT_SIGN_HV_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[1]"
+          :src="Images.signStopHighVoltage"
+          class="placed-img"
+          :style="RIGHT_SIGN_HV_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[2]"
+          :src="Images.signPersonWorking"
+          class="placed-img"
+          :style="SIGN_WORKING_STYLE"
+          draggable="false"
+        />
+        <img
+          v-if="itemPlaced[3]"
+          :src="Images.safetyNotice"
+          class="placed-img"
+          :style="SAFETY_NOTICE_STYLE"
+          draggable="false"
+        />
       </div>
     </div>
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
     <div class="tool-bar tool-bar-right">
-      <div v-for="(tool, idx) in rightTools" :key="'R' + idx" class="tool-item tool-item-img"
+      <div
+        v-for="(tool, idx) in rightTools"
+        :key="'R' + idx"
+        class="tool-item tool-item-img"
         :class="{ 'tool-selected': idx === 4 && vtActive, 'tool-placed': idx === 4 && vtDone }"
-        @click="onRightToolClick(idx, $event)">
+        @click="onRightToolClick(idx, $event)"
+      >
         <img :src="tool.img" :alt="tool.name" draggable="false" />
       </div>
     </div>
@@ -119,13 +166,19 @@ const rightTools = [
   { name: '剥线钳', img: Images.wireStripper },
   { name: '验电笔', img: Images.voltageTesterNormal },
   { name: '铅封', img: Images.seal },
-  { name: '2.5mm²黄色导线', img: Images.wire25mm2Yellow },
-  { name: '4mm²黄色导线', img: Images.wire4mm2Yellow },
-  { name: '4mm²黄黑色导线', img: Images.wire4mm2YellowBlack },
-  { name: '2.5mm²绿色导线', img: Images.wire25mm2Green },
-  { name: '2.5mm²红色导线', img: Images.wire25mm2Red },
-  { name: '4mm²红色导线', img: Images.wire4mm2Red },
-  { name: '4mm²红黑色导线', img: Images.wire4mm2RedBlack },
+  // ── 2.5MM² 导线 ──
+  { name: '2.5MM²黄色导线', img: Images.wire25mm2Yellow },
+  { name: '2.5MM²黄黑色导线', img: Images.wire25mm2Yellow }, // TODO: 补充 Wire25mm2YellowBlack.png
+  { name: '2.5MM²绿色导线', img: Images.wire25mm2Green },
+  { name: '2.5MM²红色导线', img: Images.wire25mm2Red },
+  { name: '2.5MM²红黑色导线', img: Images.wire25mm2Red }, // TODO: 补充 Wire25mm2RedBlack.png
+  { name: '2.5MM²黑色导线', img: Images.wire25mm2Red }, // TODO: 补充 Wire25mm2Black.png
+  // ── 4.0MM² 导线 ──
+  { name: '4.0MM²黄色导线', img: Images.wire4mm2Yellow },
+  { name: '4.0MM²黄黑色导线', img: Images.wire4mm2YellowBlack },
+  { name: '4.0MM²绿色导线', img: Images.wire4mm2Red }, // TODO: 补充 Wire4mm2Green.png
+  { name: '4.0MM²红色导线', img: Images.wire4mm2Red },
+  { name: '4.0MM²红黑色导线', img: Images.wire4mm2RedBlack },
   { name: '扎带标识牌', img: Images.cableTieLabel },
   { name: '2芯遥控线', img: Images.remoteControlCable2Core },
   { name: '2芯遥信线', img: Images.remoteSignalCable2Core },
@@ -462,7 +515,7 @@ onMounted(async () => {
         })
       if (d?.vtDone) vtDone.value = true
       if (d?.vtStep != null) vtStep.value = d.vtStep
-    } catch (_) { }
+    } catch (_) {}
   }
   // 步骤4无草稿时确保物品显示为已放置
   if (isStep4.value && !itemPlaced.some(v => v)) {
