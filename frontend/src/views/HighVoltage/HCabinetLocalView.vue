@@ -166,17 +166,13 @@ const rightTools = [
   { name: '剥线钳', img: Images.wireStripper },
   { name: '验电笔', img: Images.voltageTesterNormal },
   { name: '铅封', img: Images.seal },
-  // ── 2.5MM² 导线 ──
+  // ── 2.5MM² 导线（按工器具选择页顺序） ──
   { name: '2.5MM²黄色导线', img: Images.wire25mm2Yellow },
-  { name: '2.5MM²黄黑色导线', img: Images.wire25mm2Yellow }, // TODO: 补充 Wire25mm2YellowBlack.png
   { name: '2.5MM²绿色导线', img: Images.wire25mm2Green },
   { name: '2.5MM²红色导线', img: Images.wire25mm2Red },
-  { name: '2.5MM²红黑色导线', img: Images.wire25mm2Red }, // TODO: 补充 Wire25mm2RedBlack.png
-  { name: '2.5MM²黑色导线', img: Images.wire25mm2Red }, // TODO: 补充 Wire25mm2Black.png
   // ── 4.0MM² 导线 ──
   { name: '4.0MM²黄色导线', img: Images.wire4mm2Yellow },
   { name: '4.0MM²黄黑色导线', img: Images.wire4mm2YellowBlack },
-  { name: '4.0MM²绿色导线', img: Images.wire4mm2Red }, // TODO: 补充 Wire4mm2Green.png
   { name: '4.0MM²红色导线', img: Images.wire4mm2Red },
   { name: '4.0MM²红黑色导线', img: Images.wire4mm2RedBlack },
   { name: '扎带标识牌', img: Images.cableTieLabel },
