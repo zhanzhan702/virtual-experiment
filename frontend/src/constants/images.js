@@ -71,17 +71,19 @@ import wireStripper from '@/assets/images/tool-selection/tools-and-equipment/Wir
 import voltageTester from '@/assets/images/tool-selection/tools-and-equipment/VoltageTester.png'
 import seal from '@/assets/images/tool-selection/tools-and-equipment/Seal.png'
 
-// ─── 柜体局部操作 ───
+// ─── 柜体局部操作 — 背景图 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
 
-// ─── 柜体操作 — 道具栏 ───
+// ─── 柜体操作 — 左侧工具栏（围栏/告示牌） ───
 import barLeftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
 import barRightFence from '@/assets/images/cabinet/toolbar/RightFence.png'
 import barSignStopHighVoltage from '@/assets/images/cabinet/toolbar/SignStopHighVoltage.png'
 import barSignPersonWorking from '@/assets/images/cabinet/toolbar/SignPersonWorking.png'
 import barSafetyNotice from '@/assets/images/cabinet/toolbar/SafetyNotice.png'
+
+// ─── 柜体操作 — 右侧工具栏（终端/工器具/线材） ───
 import barVoltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTesterNormal.png'
 import barVoltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
 import barThreePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
@@ -175,22 +177,23 @@ export default {
   wireStripper,
   voltageTester,
   seal,
-  // 柜体操作
+  // 柜体操作 — 背景图
   cabinetGroupOverview,
   powerSocket,
+  electrifyCompleteNotice,
+  // 柜体操作 — 左侧工具栏（围栏/告示牌）
   barLeftFence,
   barRightFence,
   barSignStopHighVoltage,
   barSignPersonWorking,
   barSafetyNotice,
-  barVoltageTesterNormal,
-  barVoltageTesterWarning,
-  electrifyCompleteNotice,
-  // 柜体操作 — 右侧工具栏
+  // 柜体操作 — 右侧工具栏（终端/工器具/线材）
   barThreePhaseThreeWireMeter,
   barThreePhaseThreeWireTerminal,
   barCrossScrewdriver,
   barWireStripper,
+  barVoltageTesterNormal,
+  barVoltageTesterWarning,
   barSeal,
   barWire25mm2Yellow,
   barWire4mm2Yellow,
