@@ -4,8 +4,8 @@
  *
  * 使用方式：
  *   import Images from '@/constants/images'
- *   // JS:  Images.leftFence
- *   // 模板: :src="Images.leftFence"
+ *   // JS:  Images.barLeftFence
+ *   // 模板: :src="Images.barLeftFence"
  */
 
 // ─── 通用 UI ───
@@ -54,39 +54,56 @@ import tShirtAndShorts from '@/assets/images/tool-selection/ppe/TShirtAndShorts.
 import workClothes from '@/assets/images/tool-selection/ppe/WorkClothes.png'
 import workClothesTopAndJeans from '@/assets/images/tool-selection/ppe/WorkClothesTopAndJeans.png'
 
+// ─── 工器具选择 — 终端（选择页默认无标记） ───
+import threePhaseThreeWireTerminal from '@/assets/images/tool-selection/terminal/ThreePhaseThreeWireTerminal.png'
+import threePhaseFourWireTerminal from '@/assets/images/tool-selection/terminal/ThreePhaseFourWireTerminal.png'
+import terminal230M from '@/assets/images/tool-selection/terminal/Terminal230M.png'
+import concentrator from '@/assets/images/tool-selection/terminal/Concentrator.png'
+import collector from '@/assets/images/tool-selection/terminal/Collector.png'
+
+// ─── 工器具选择 — 工器具 ───
+import flatheadScrewdriver from '@/assets/images/tool-selection/tools-and-equipment/FlatheadScrewdriver.png'
+import crossScrewdriver from '@/assets/images/tool-selection/tools-and-equipment/CrossScrewdriver.png'
+import adjustableWrench from '@/assets/images/tool-selection/tools-and-equipment/AdjustableWrench.png'
+import needleNosePliers from '@/assets/images/tool-selection/tools-and-equipment/NeedleNosePliers.png'
+import slipJointPliers from '@/assets/images/tool-selection/tools-and-equipment/SlipJointPliers.png'
+import wireStripper from '@/assets/images/tool-selection/tools-and-equipment/WireStripper.png'
+import voltageTester from '@/assets/images/tool-selection/tools-and-equipment/VoltageTester.png'
+import seal from '@/assets/images/tool-selection/tools-and-equipment/Seal.png'
+
 // ─── 柜体局部操作 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
 
 // ─── 柜体操作 — 道具栏 ───
-import leftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
-import rightFence from '@/assets/images/cabinet/toolbar/RightFence.png'
-import signStopHighVoltage from '@/assets/images/cabinet/toolbar/SignStopHighVoltage.png'
-import signPersonWorking from '@/assets/images/cabinet/toolbar/SignPersonWorking.png'
-import safetyNotice from '@/assets/images/cabinet/toolbar/SafetyNotice.png'
-import voltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTesterNormal.png'
-import voltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
-import threePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
-import threePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireTerminal.png'
-import crossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
-import wireStripper from '@/assets/images/cabinet/toolbar/WireStripper.png'
-import seal from '@/assets/images/cabinet/toolbar/Seal.png'
-import wire25mm2Yellow from '@/assets/images/cabinet/toolbar/Wire25mm2Yellow.png'
-import wire4mm2Yellow from '@/assets/images/cabinet/toolbar/Wire4mm2Yellow.png'
-import wire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
-import wire25mm2Green from '@/assets/images/cabinet/toolbar/Wire25mm2Green.png'
-import wire25mm2Red from '@/assets/images/cabinet/toolbar/Wire25mm2Red.png'
-import wire4mm2Red from '@/assets/images/cabinet/toolbar/Wire4mm2Red.png'
-import wire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
-import cableTieLabel from '@/assets/images/cabinet/toolbar/CableTieLabel.png'
-import remoteControlCable2Core from '@/assets/images/cabinet/toolbar/RemoteControlCable2Core.png'
-import remoteSignalCable2Core from '@/assets/images/cabinet/toolbar/RemoteSignalCable2Core.png'
-import signalCable6Core from '@/assets/images/cabinet/toolbar/SignalCable6Core.png'
-import signalCable8Core from '@/assets/images/cabinet/toolbar/SignalCable8Core.png'
-import communicationModule from '@/assets/images/cabinet/toolbar/CommunicationModule.png'
-import simCard from '@/assets/images/cabinet/toolbar/SimCard.png'
-import antenna from '@/assets/images/cabinet/toolbar/Antenna.png'
+import barLeftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
+import barRightFence from '@/assets/images/cabinet/toolbar/RightFence.png'
+import barSignStopHighVoltage from '@/assets/images/cabinet/toolbar/SignStopHighVoltage.png'
+import barSignPersonWorking from '@/assets/images/cabinet/toolbar/SignPersonWorking.png'
+import barSafetyNotice from '@/assets/images/cabinet/toolbar/SafetyNotice.png'
+import barVoltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTesterNormal.png'
+import barVoltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
+import barThreePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
+import barThreePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireTerminal.png'
+import barCrossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
+import barWireStripper from '@/assets/images/cabinet/toolbar/WireStripper.png'
+import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
+import barWire25mm2Yellow from '@/assets/images/cabinet/toolbar/Wire25mm2Yellow.png'
+import barWire4mm2Yellow from '@/assets/images/cabinet/toolbar/Wire4mm2Yellow.png'
+import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
+import barWire25mm2Green from '@/assets/images/cabinet/toolbar/Wire25mm2Green.png'
+import barWire25mm2Red from '@/assets/images/cabinet/toolbar/Wire25mm2Red.png'
+import barWire4mm2Red from '@/assets/images/cabinet/toolbar/Wire4mm2Red.png'
+import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
+import barCableTieLabel from '@/assets/images/cabinet/toolbar/CableTieLabel.png'
+import barRemoteControlCable2Core from '@/assets/images/cabinet/toolbar/RemoteControlCable2Core.png'
+import barRemoteSignalCable2Core from '@/assets/images/cabinet/toolbar/RemoteSignalCable2Core.png'
+import barSignalCable6Core from '@/assets/images/cabinet/toolbar/SignalCable6Core.png'
+import barSignalCable8Core from '@/assets/images/cabinet/toolbar/SignalCable8Core.png'
+import barCommunicationModule from '@/assets/images/cabinet/toolbar/CommunicationModule.png'
+import barSimCard from '@/assets/images/cabinet/toolbar/SimCard.png'
+import barAntenna from '@/assets/images/cabinet/toolbar/Antenna.png'
 
 // ─── 计量小室（leafer ui 画布） ───
 import meteringRoomNoMeter from '@/assets/images/metering-room/MeteringRoomNoMeter.png'
@@ -142,38 +159,54 @@ export default {
   tShirtAndShorts,
   workClothes,
   workClothesTopAndJeans,
+  // 工器具选择
+  // 2.终端
+  threePhaseThreeWireTerminal,
+  threePhaseFourWireTerminal,
+  terminal230M,
+  concentrator,
+  collector,
+  // 3.工器具
+  flatheadScrewdriver,
+  crossScrewdriver,
+  adjustableWrench,
+  needleNosePliers,
+  slipJointPliers,
+  wireStripper,
+  voltageTester,
+  seal,
   // 柜体操作
   cabinetGroupOverview,
   powerSocket,
-  leftFence,
-  rightFence,
-  signStopHighVoltage,
-  signPersonWorking,
-  safetyNotice,
-  voltageTesterNormal,
-  voltageTesterWarning,
+  barLeftFence,
+  barRightFence,
+  barSignStopHighVoltage,
+  barSignPersonWorking,
+  barSafetyNotice,
+  barVoltageTesterNormal,
+  barVoltageTesterWarning,
   electrifyCompleteNotice,
   // 柜体操作 — 右侧工具栏
-  threePhaseThreeWireMeter,
-  threePhaseThreeWireTerminal,
-  crossScrewdriver,
-  wireStripper,
-  seal,
-  wire25mm2Yellow,
-  wire4mm2Yellow,
-  wire4mm2YellowBlack,
-  wire25mm2Green,
-  wire25mm2Red,
-  wire4mm2Red,
-  wire4mm2RedBlack,
-  cableTieLabel,
-  remoteControlCable2Core,
-  remoteSignalCable2Core,
-  signalCable6Core,
-  signalCable8Core,
-  communicationModule,
-  simCard,
-  antenna,
+  barThreePhaseThreeWireMeter,
+  barThreePhaseThreeWireTerminal,
+  barCrossScrewdriver,
+  barWireStripper,
+  barSeal,
+  barWire25mm2Yellow,
+  barWire4mm2Yellow,
+  barWire4mm2YellowBlack,
+  barWire25mm2Green,
+  barWire25mm2Red,
+  barWire4mm2Red,
+  barWire4mm2RedBlack,
+  barCableTieLabel,
+  barRemoteControlCable2Core,
+  barRemoteSignalCable2Core,
+  barSignalCable6Core,
+  barSignalCable8Core,
+  barCommunicationModule,
+  barSimCard,
+  barAntenna,
   // 计量小室（leafer ui 画布）
   meteringRoomNoMeter,
   meteringRoomWithMeter,
