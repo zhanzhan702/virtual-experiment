@@ -57,6 +57,9 @@ import workClothesTopAndJeans from '@/assets/images/tool-selection/ppe/WorkCloth
 // ─── 柜体局部操作 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
+import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
+
+// ─── 柜体操作 — 道具栏 ───
 import leftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
 import rightFence from '@/assets/images/cabinet/toolbar/RightFence.png'
 import signStopHighVoltage from '@/assets/images/cabinet/toolbar/SignStopHighVoltage.png'
@@ -64,9 +67,6 @@ import signPersonWorking from '@/assets/images/cabinet/toolbar/SignPersonWorking
 import safetyNotice from '@/assets/images/cabinet/toolbar/SafetyNotice.png'
 import voltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTesterNormal.png'
 import voltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
-import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
-
-// ─── 柜体操作 — 道具栏（终端/工器具/线材） ───
 import threePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
 import threePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireTerminal.png'
 import crossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
