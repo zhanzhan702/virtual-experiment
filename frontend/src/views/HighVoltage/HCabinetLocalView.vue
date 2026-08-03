@@ -51,7 +51,11 @@
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
     <!-- 验电完成提示弹窗（提交后展示，确认后进入下一步） -->
-    <PromptModal :visible="showElectrifyNotice" @close="onElectrifyNoticeClose">
+    <PromptModal
+      :visible="showElectrifyNotice"
+      @close="onElectrifyNoticeClose"
+      :button-bottom="'18%'"
+    >
       <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
 

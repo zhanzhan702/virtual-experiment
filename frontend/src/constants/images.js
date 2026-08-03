@@ -75,6 +75,7 @@ import seal from '@/assets/images/tool-selection/tools-and-equipment/Seal.png'
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
+import meterRoomOperationSuccess from '@/assets/images/cabinet/MeterRoomOperationSuccess.png'
 
 // ─── 柜体操作 — 左侧工具栏（围栏/告示牌） ───
 import barLeftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
@@ -181,6 +182,7 @@ export default {
   cabinetGroupOverview,
   powerSocket,
   electrifyCompleteNotice,
+  meterRoomOperationSuccess,
   // 柜体操作 — 左侧工具栏（围栏/告示牌）
   barLeftFence,
   barRightFence,

@@ -54,9 +54,9 @@ const SWITCHES = [
   { orient: 'hU', target: 'on', on: { x: 0.173, y: 0.4 }, off: { x: 0.225, y: 0.4 } },
   { orient: 'hD', target: 'on', on: { x: 0.314, y: 0.66 }, off: { x: 0.26, y: 0.66 } },
   { orient: 'v', target: 'off', on: { x: 0.394, y: 0.41 }, off: { x: 0.394, y: 0.5 } },
-  { orient: 'hU', target: 'off', on: { x: 0.433, y: 0.4 }, off: { x: 0.485, y: 0.4 } },
+  { orient: 'hU', target: 'on', on: { x: 0.433, y: 0.4 }, off: { x: 0.485, y: 0.4 } },
   { orient: 'hD', target: 'on', on: { x: 0.574, y: 0.66 }, off: { x: 0.52, y: 0.66 } },
-  { orient: 'v', target: 'on', on: { x: 0.654, y: 0.41 }, off: { x: 0.654, y: 0.5 } },
+  { orient: 'v', target: 'off', on: { x: 0.654, y: 0.41 }, off: { x: 0.654, y: 0.5 } },
   { orient: 'hU', target: 'on', on: { x: 0.688, y: 0.4 }, off: { x: 0.74, y: 0.4 } },
   { orient: 'hD', target: 'on', on: { x: 0.829, y: 0.66 }, off: { x: 0.775, y: 0.66 } },
   { orient: 'v', target: 'on', on: { x: 0.907, y: 0.41 }, off: { x: 0.907, y: 0.5 } }
@@ -111,6 +111,9 @@ function handleDrop() {
   }
   isMeterFollowing.value = false
   meterPlaced.value = true
+  // 挂表完成后移除挂表热区
+  dropZoneRect?.remove()
+  dropZoneRect = null
   switchBackground(Images.meteringRoomWithMeter)
   emit('stepCompleted', props.stepOrder)
 }
@@ -127,8 +130,9 @@ function handleMiss() {
 // ─── 接线盒（步骤5 起显示，中层级）与开关（步骤6，最顶层） ───
 // 层级：背景图(bgLayer 最底) < 接线盒(zIndex 1) < 开关(zIndex 2) < 热区(zIndex 3)
 
-/** 挂表区域热区可视化（带颜色，便于调整定位） */
+/** 挂表区域热区可视化（带颜色，便于调整定位；挂表完成后不再显示） */
 function buildDropZone(w, h) {
+  if (meterPlaced.value) return
   dropZoneRect = new Rect({
     x: w * DROP_ZONE.x,
     y: h * DROP_ZONE.y,
