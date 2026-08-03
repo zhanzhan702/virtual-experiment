@@ -16,6 +16,8 @@
       </div>
     </div>
 
+    <ExperimentTimer :experiment-id="route.query.experimentId || ''" :current-step-seconds="0" />
+
     <!-- 查看工作任务按钮（左下角） -->
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
@@ -33,6 +35,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
 
 const route = useRoute()

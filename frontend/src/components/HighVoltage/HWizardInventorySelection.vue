@@ -75,16 +75,22 @@
               @click="toggleTool(tool)"
             >
               <div class="card-img">
-                <span class="card-emoji">{{ tool.icon }}</span>
+                <div
+                  v-if="tool.image"
+                  class="card-image"
+                  :style="{ backgroundImage: `url(${Images[tool.image]})` }"
+                ></div>
+                <span v-else class="card-emoji">{{ tool.icon }}</span>
                 <div v-if="isSelected(currentCategory.key, tool.id)" class="card-check">
                   <el-icon>
                     <Check />
                   </el-icon>
                 </div>
               </div>
-              <div class="card-body">
-                <div class="card-name">{{ tool.name }}</div>
-                <div class="card-desc">{{ tool.description }}</div>
+              <!-- 悬浮提示：物品名称 + 介绍 -->
+              <div class="card-tooltip">
+                <div class="tooltip-name">{{ tool.name }}</div>
+                <div class="tooltip-desc">{{ tool.description }}</div>
               </div>
             </div>
           </div>
@@ -356,6 +362,7 @@ import {
   Pointer,
   TakeawayBox
 } from '@element-plus/icons-vue'
+import Images from '@/constants/images'
 
 const props = defineProps({
   categories: {
@@ -982,7 +989,7 @@ defineExpose({ selectedMap })
 }
 
 .card-img {
-  height: 80px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1004,6 +1011,20 @@ defineExpose({ selectedMap })
   transform: scale(1.1);
 }
 
+/* PPE 图片卡片（使用 background-image，不使用 <img> 标签） */
+.card-image {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.3s;
+}
+
+.tool-card:hover .card-image {
+  transform: scale(1.08);
+}
+
 .card-check {
   position: absolute;
   top: 6px;
@@ -1019,21 +1040,37 @@ defineExpose({ selectedMap })
   color: #fff;
 }
 
-.card-body {
-  padding: 10px;
+/* ========== 悬浮提示（名称+介绍） ========== */
+.card-tooltip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  padding: 8px 10px;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.25s ease;
+  pointer-events: none;
+  z-index: 5;
 }
 
-.card-name {
+.tool-card:hover .card-tooltip {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.tooltip-name {
   font-size: 13px;
   font-weight: 600;
-  color: #303133;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   line-height: 1.3;
 }
 
-.card-desc {
+.tooltip-desc {
   font-size: 11px;
-  color: #909399;
+  color: rgba(255, 255, 255, 0.82);
   line-height: 1.3;
 }
 

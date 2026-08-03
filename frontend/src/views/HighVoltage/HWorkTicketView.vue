@@ -3,6 +3,7 @@
     <div class="scroll-wrapper">
       <WorkTicketForm ref="formRef" @submit-ticket="handleTicketSubmit" />
     </div>
+    <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
 
     <!-- 查看工作任务按钮（左下角） -->
@@ -16,13 +17,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { FolderOpened } from '@element-plus/icons-vue'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
 import Images from '@/constants/images'
 
@@ -35,6 +37,9 @@ const showWorkBg = ref(false)
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
+
+// 当前步骤实时秒数（来自子组件 WorkTicketForm 的 stats）
+const currentStepSeconds = computed(() => formRef.value?.stats?.duration_seconds ?? 0)
 // 页面加载时记录步骤开始时间
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)

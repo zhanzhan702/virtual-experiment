@@ -25,28 +25,106 @@ export const categories = [
     correctIds: [1, 5, 7, 9, 10],
 
     tools: [
-      { id: 1, name: '工作服', slot: 'body', icon: '👔', description: '全棉长袖工作服' },
-      { id: 2, name: 'T恤和短裤', slot: 'body', icon: '👕', description: '不符合作业着装规范' },
-      { id: 3, name: '工作服上装和牛仔裤', slot: 'body', icon: '👖', description: '非全套工作服' },
+      {
+        id: 1,
+        name: '工作服',
+        slot: 'body',
+        icon: '👔',
+        image: 'workClothes',
+        description: '全棉长袖工作服'
+      },
+      {
+        id: 2,
+        name: 'T恤和短裤',
+        slot: 'body',
+        icon: '👕',
+        image: 'tShirtAndShorts',
+        description: '不符合作业着装规范'
+      },
+      {
+        id: 3,
+        name: '工作服上装和牛仔裤',
+        slot: 'body',
+        icon: '👖',
+        image: 'workClothesTopAndJeans',
+        description: '非全套工作服'
+      },
 
-      { id: 4, name: '红色安全帽', slot: 'head', icon: '⛑️', description: '管理人员用安全帽' },
-      { id: 5, name: '蓝色安全帽', slot: 'head', icon: '🪖', description: '作业人员用安全帽' },
-      { id: 6, name: '摩托车帽', slot: 'head', icon: '🪖', description: '不具备安全防护功能' },
+      {
+        id: 4,
+        name: '红色安全帽',
+        slot: 'head',
+        icon: '⛑️',
+        image: 'redSafetyHelmet',
+        description: '管理人员用安全帽'
+      },
+      {
+        id: 5,
+        name: '蓝色安全帽',
+        slot: 'head',
+        icon: '🪖',
+        image: 'blueSafetyHelmet',
+        description: '作业人员用安全帽'
+      },
+      {
+        id: 6,
+        name: '摩托车帽',
+        slot: 'head',
+        icon: '🪖',
+        image: 'motorcycleHelmet',
+        description: '不具备安全防护功能'
+      },
 
-      { id: 7, name: '护目镜', slot: 'eye', icon: '🥽', description: '防飞溅物伤害眼睛' },
+      {
+        id: 7,
+        name: '护目镜',
+        slot: 'eye',
+        icon: '🥽',
+        image: 'safetyGoggles',
+        description: '防飞溅物伤害眼睛'
+      },
 
-      { id: 8, name: '橡胶手套', slot: 'hand', icon: '🧤', description: '具备绝缘性能、防触电' },
+      {
+        id: 8,
+        name: '橡胶手套',
+        slot: 'hand',
+        icon: '🧤',
+        image: 'rubberGloves',
+        description: '具备绝缘性能、防触电'
+      },
       {
         id: 9,
         name: '纱手套',
         slot: 'hand',
         icon: '🧤',
+        image: 'cottonGloves',
         description: '防滑、防刮、保持操作灵活性'
       },
 
-      { id: 10, name: '电力绝缘鞋', slot: 'foot', icon: '🥾', description: '绝缘防砸，作业必备' },
-      { id: 11, name: '凉鞋', slot: 'foot', icon: '🩴', description: '不符合安全规范' },
-      { id: 12, name: '皮鞋', slot: 'foot', icon: '👞', description: '不具备绝缘性能' }
+      {
+        id: 10,
+        name: '电力绝缘鞋',
+        slot: 'foot',
+        icon: '🥾',
+        image: 'electricalInsulatingShoes',
+        description: '绝缘防砸，作业必备'
+      },
+      {
+        id: 11,
+        name: '凉鞋',
+        slot: 'foot',
+        icon: '🩴',
+        image: 'sandal',
+        description: '不符合安全规范'
+      },
+      {
+        id: 12,
+        name: '皮鞋',
+        slot: 'foot',
+        icon: '👞',
+        image: 'leatherShoes',
+        description: '不具备绝缘性能'
+      }
     ]
   },
 
@@ -64,6 +142,7 @@ export const categories = [
         name: '三相三线专变终端',
         slot: 'device',
         icon: '📟',
+        image: 'threePhaseThreeWireTerminal',
         description: '适用于三相三线专变用户'
       },
       {
@@ -71,11 +150,33 @@ export const categories = [
         name: '三相四线专变终端',
         slot: 'device',
         icon: '📟',
+        image: 'threePhaseFourWireTerminal',
         description: '适用于三相四线专变用户'
       },
-      { id: 23, name: '230M终端', slot: 'device', icon: '📡', description: '230MHz无线通信终端' },
-      { id: 24, name: '集中器', slot: 'device', icon: '🖥️', description: '低压集抄用集中器' },
-      { id: 25, name: '采集器', slot: 'device', icon: '📷', description: '低压集抄用采集器' }
+      {
+        id: 23,
+        name: '230M终端',
+        slot: 'device',
+        icon: '📡',
+        image: 'terminal230M',
+        description: '230MHz无线通信终端'
+      },
+      {
+        id: 24,
+        name: '集中器',
+        slot: 'device',
+        icon: '🖥️',
+        image: 'concentrator',
+        description: '低压集抄用集中器'
+      },
+      {
+        id: 25,
+        name: '采集器',
+        slot: 'device',
+        icon: '📷',
+        image: 'collector',
+        description: '低压集抄用采集器'
+      }
     ]
   },
 
@@ -88,20 +189,70 @@ export const categories = [
     correctIds: [32, 36, 37, 38],
 
     tools: [
-      { id: 31, name: '一字螺丝刀', slot: 'tool', icon: '🪛', description: '平口螺丝刀' },
+      {
+        id: 31,
+        name: '一字螺丝刀',
+        slot: 'tool',
+        icon: '🪛',
+        image: 'flatheadScrewdriver',
+        description: '平口螺丝刀'
+      },
       {
         id: 32,
         name: '十字螺丝刀',
         slot: 'tool',
         icon: '🪛',
+        image: 'crossScrewdriver',
         description: '十字口螺丝刀，接线必备'
       },
-      { id: 33, name: '活动扳手', slot: 'tool', icon: '🔧', description: '可调开口扳手' },
-      { id: 34, name: '尖嘴钳', slot: 'tool', icon: '🔧', description: '尖嘴夹持工具' },
-      { id: 35, name: '老虎钳', slot: 'tool', icon: '🔧', description: '通用夹持剪切工具' },
-      { id: 36, name: '剥线钳', slot: 'tool', icon: '🔧', description: '剥除导线绝缘层' },
-      { id: 37, name: '验电笔', slot: 'tool', icon: '🖊️', description: '检验设备是否带电' },
-      { id: 38, name: '铅封', slot: 'tool', icon: '🔒', description: '防止私自开启设备' }
+      {
+        id: 33,
+        name: '活动扳手',
+        slot: 'tool',
+        icon: '🔧',
+        image: 'adjustableWrench',
+        description: '可调开口扳手'
+      },
+      {
+        id: 34,
+        name: '尖嘴钳',
+        slot: 'tool',
+        icon: '🔧',
+        image: 'needleNosePliers',
+        description: '尖嘴夹持工具'
+      },
+      {
+        id: 35,
+        name: '老虎钳',
+        slot: 'tool',
+        icon: '🔧',
+        image: 'slipJointPliers',
+        description: '通用夹持剪切工具'
+      },
+      {
+        id: 36,
+        name: '剥线钳',
+        slot: 'tool',
+        icon: '🔧',
+        image: 'wireStripper',
+        description: '剥除导线绝缘层'
+      },
+      {
+        id: 37,
+        name: '验电笔',
+        slot: 'tool',
+        icon: '🖊️',
+        image: 'voltageTester',
+        description: '检验设备是否带电'
+      },
+      {
+        id: 38,
+        name: '铅封',
+        slot: 'tool',
+        icon: '🔒',
+        image: 'seal',
+        description: '防止私自开启设备'
+      }
     ]
   },
 

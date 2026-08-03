@@ -47,6 +47,7 @@
     </div>
 
     <!-- 按钮 -->
+    <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="stats.duration_seconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
@@ -76,6 +77,7 @@ import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
 import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
 import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
+import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
 
 const route = useRoute()

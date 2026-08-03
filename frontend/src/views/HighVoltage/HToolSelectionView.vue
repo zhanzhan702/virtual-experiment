@@ -8,6 +8,7 @@
       @submit-error="handleSubmitError"
     />
 
+    <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="stats.duration_seconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
 
     <!-- 查看工作任务按钮（左下角） -->
@@ -26,6 +27,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
 import { categories } from '@/constants/tool-selection-config'
 import Images from '@/constants/images'
@@ -110,6 +112,8 @@ const handleSubmitError = errorPageCount => {
 }
 
 const handleToolSelectionSubmit = async selectedMap => {
+  // 提交时立即冻结计时器，避免等待跳转期间 stats 继续增长导致显示与提交值不一致
+  if (timer) { clearInterval(timer); timer = null }
   //传递到后端的 payload
   const payload = {
     experimentId: experimentId.value,
