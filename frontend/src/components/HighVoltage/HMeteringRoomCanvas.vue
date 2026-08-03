@@ -168,12 +168,12 @@ function buildSwitches(w, h) {
       zIndex: 2
     })
     hitLayer.add(img)
-    // 热区在开关图上层（zIndex 3），确保点击命中热区
+    // 热区与开关图位置尺寸一致（zIndex 3），确保点击命中热区
     const rect = new Rect({
-      x: x - sw * 0.25,
-      y: y - sh * 0.3,
-      width: sw * 1.5,
-      height: sh * 1.6,
+      x,
+      y,
+      width: sw,
+      height: sh,
       fill: 'rgba(0,0,0,0)',
       zIndex: 3
     })
