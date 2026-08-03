@@ -41,25 +41,28 @@ let hitLayer = null
 // ★ 挂表区域热区（图片左上方约 1/4 区域，相对画布宽高的比率，用户按背景图微调）
 const DROP_ZONE = { x: 0.08, y: 0.08, w: 0.28, h: 0.3 }
 
-// ★ 接线盒开关（10 个：4 竖 + 3 组双横）
+// ★ 接线盒（右下角，宽 1/2、高 1/5，相对画布宽高的比率，用户按背景图微调）
+const JUNCTION_BOX = { x: 0.5, y: 0.8, w: 0.5, h: 0.2 }
+
+// ★ 接线盒开关（10 个：4 竖 + 3 组双横，全部位于接线盒上层）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
 //   target: 目标状态（1/4/5 断开 off、2/3/6/7 闭合 on，8/9/10 待用户补充）
 //   x/y: 相对画布宽高的比率（占位坐标，用户按背景图微调）
 const SWITCHES = [
-  { orient: 'v', target: 'off', x: 0.22, y: 0.38 },
-  { orient: 'v', target: 'on', x: 0.22, y: 0.54 },
-  { orient: 'v', target: 'on', x: 0.22, y: 0.7 },
-  { orient: 'v', target: 'off', x: 0.22, y: 0.86 },
-  { orient: 'hU', target: 'off', x: 0.45, y: 0.42 },
-  { orient: 'hD', target: 'on', x: 0.45, y: 0.58 },
-  { orient: 'hU', target: 'on', x: 0.62, y: 0.42 },
-  { orient: 'hD', target: 'on', x: 0.62, y: 0.58 },
-  { orient: 'hU', target: 'on', x: 0.79, y: 0.42 },
-  { orient: 'hD', target: 'on', x: 0.79, y: 0.58 }
+  { orient: 'v', target: 'off', x: 0.55, y: 0.83 },
+  { orient: 'v', target: 'on', x: 0.55, y: 0.87 },
+  { orient: 'v', target: 'on', x: 0.55, y: 0.91 },
+  { orient: 'v', target: 'off', x: 0.55, y: 0.95 },
+  { orient: 'hU', target: 'off', x: 0.68, y: 0.84 },
+  { orient: 'hD', target: 'on', x: 0.68, y: 0.93 },
+  { orient: 'hU', target: 'on', x: 0.8, y: 0.84 },
+  { orient: 'hD', target: 'on', x: 0.8, y: 0.93 },
+  { orient: 'hU', target: 'on', x: 0.92, y: 0.84 },
+  { orient: 'hD', target: 'on', x: 0.92, y: 0.93 }
 ]
-// 开关图尺寸（相对画布宽高的比率）与 on 状态横向位移
-const SWITCH_SIZE = { w: 0.07, h: 0.045 }
-const SW_OFFSET = 0.012
+// 开关图尺寸（相对画布宽高的比率，小尺寸）与 on 状态横向位移
+const SWITCH_SIZE = { w: 0.035, h: 0.02 }
+const SW_OFFSET = 0.008
 
 const switchRefs = []
 let canvasW = 0
@@ -77,7 +80,7 @@ function switchBackground(url) {
 
 function bindEvents(w, h) {
   leafer.on(PointerEvent.CLICK, e => {
-    const p = e.getLocal()
+    const p = e.getLocalPoint()
     const dz = {
       x: w * DROP_ZONE.x,
       y: h * DROP_ZONE.y,
@@ -117,10 +120,21 @@ function handleMiss() {
 
 // ─── 接线盒开关（步骤6） ───
 
-/** 构建 10 个开关热区与小图（横开关宽 SW_SIZE.w、高 SW_SIZE.h，竖开关旋转90°） */
+/** 构建接线盒（右下角）与 10 个开关热区/小图（开关在接线盒上层） */
 function buildSwitches(w, h) {
   switchRefs.length = 0
   switchStates.value = []
+  // 接线盒底层
+  hitLayer.add(
+    new Image({
+      url: Images.junctionBox,
+      x: w * JUNCTION_BOX.x,
+      y: h * JUNCTION_BOX.y,
+      width: w * JUNCTION_BOX.w,
+      height: h * JUNCTION_BOX.h,
+      zIndex: 1
+    })
+  )
   SWITCHES.forEach((cfg, i) => {
     const x = w * cfg.x
     const y = h * cfg.y
@@ -268,7 +282,7 @@ function onResize() {
     const h = Math.round(r.height)
     canvasW = w
     canvasStyle.value = { width: w + 'px', height: h + 'px' }
-    leafer.resize(w, h)
+    leafer.resize({ width: w, height: h })
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
