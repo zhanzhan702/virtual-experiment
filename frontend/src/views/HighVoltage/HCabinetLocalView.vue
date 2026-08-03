@@ -255,13 +255,18 @@ async function submitVoltageCheck() {
   }
 }
 
-// 验电完成弹窗确认 → 进入下一步
+// 验电完成弹窗确认 → 进入计量小室挂电表（步骤5）
 function onElectrifyNoticeClose() {
   showElectrifyNotice.value = false
   setTimeout(() => {
+    const next = getStepsFromStore().find(s => s.stepOrder === 5)
     router.replace({
-      path: '/experiment',
-      query: { experimentId: experimentId.value }
+      path: '/HCL',
+      query: {
+        experimentId: experimentId.value,
+        stepId: next?.stepId || stepId.value,
+        stepOrder: 5
+      }
     })
   }, 500)
 }
