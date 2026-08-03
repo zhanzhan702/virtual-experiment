@@ -43,7 +43,7 @@ const DROP_ZONE = { x: 0.15, y: 0.04, w: 0.37, h: 0.53 }
 
 // ★ 接线盒（左下角贴底，宽固定为画布宽的 1/2，高度按图片比例 auto，用户按背景图微调）
 //   步骤5（未挂表）起显示，直到背景图切换为盖盖子的计量小室后隐藏
-const JUNCTION_BOX = { x: 0.2, y: 0.04, w: 0.4 }
+const JUNCTION_BOX = { x: 0.2, y: 0.7, w: 0.28 }
 
 // ★ 接线盒开关（10 个，一行排列：竖 双横 竖 双横 竖 双横 竖，竖作为双横的间隔）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
@@ -61,15 +61,14 @@ const SWITCHES = [
   { orient: 'hD', target: 'on', x: 0.84, y: 0.6 },
   { orient: 'v', target: 'on', x: 0.97, y: 0.5 }
 ]
-// 开关图尺寸（相对接线盒宽度的比率）
-const SWITCH_SIZE = { w: 0.07, h: 0.04 }
+// 开关图宽（相对接线盒宽度的比率），高度按图片比例 auto（不压缩）
+const SWITCH_SIZE = { w: 0.07 }
 // 切换位移：未旋转横开关向右、倒置横开关向左、竖开关向下（相对开关自身宽度）
 // 初始状态为闭合（on，基准位）；点击后向对应方向移动切换为断开（off）
 const SW_DIR = { hU: { dx: 1, dy: 0 }, hD: { dx: -1, dy: 0 }, v: { dx: 0, dy: 1 } }
 const SW_OFFSET_RATIO = 0.6
 
 const switchRefs = []
-let canvasW = 0
 let junctionBoxImg = null
 let junctionBoxRect = { x: 0, y: 0, w: 0, h: 0 }
 let dropZoneRect = null
@@ -182,7 +181,7 @@ function buildSwitches() {
     const x = bx + cfg.x * bw
     const y = by + cfg.y * bh
     const sw = bw * SWITCH_SIZE.w
-    const sh = bw * SWITCH_SIZE.h
+    const sh = sw / (switchAspect || 1.6)
     const rotation = cfg.orient === 'v' ? 90 : cfg.orient === 'hD' ? 180 : 0
     const img = new Image({
       url: Images.junctionBoxSwitch,
@@ -206,8 +205,29 @@ function buildSwitches() {
     })
     rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
     hitLayer.add(rect)
-    switchRefs.push({ cfg, img, baseX: x, baseY: y, sw })
+    switchRefs.push({ cfg, img, rect, baseX: x, baseY: y, sw })
     switchStates.value.push('on')
+  })
+  // 开关图片比例加载完成后校正高度（不压缩比例，热区同步）
+  loadSwitchAspect().then(() => {
+    switchRefs.forEach(s => {
+      if (s.img) s.img.height = s.img.width / switchAspect
+      if (s.rect) s.rect.height = s.rect.width / switchAspect
+    })
+  })
+}
+
+/** 加载开关图片宽高比（用于高度 auto 计算） */
+let switchAspect = null
+function loadSwitchAspect() {
+  return new Promise(resolve => {
+    if (switchAspect) return resolve(switchAspect)
+    const img = new Image()
+    img.onload = () => {
+      switchAspect = img.naturalWidth / img.naturalHeight
+      resolve(switchAspect)
+    }
+    img.src = Images.junctionBoxSwitch
   })
 }
 
@@ -288,7 +308,6 @@ async function createCanvas() {
   const r = img.getBoundingClientRect()
   const w = Math.round(r.width)
   const h = Math.round(r.height)
-  canvasW = w
   canvasStyle.value = { width: w + 'px', height: h + 'px' }
   leafer = new Leafer({ view: leaferViewRef.value, width: w, height: h })
   bgLayer = new Group()
@@ -364,7 +383,6 @@ function onResize() {
     const r = img.getBoundingClientRect()
     const w = Math.round(r.width)
     const h = Math.round(r.height)
-    canvasW = w
     canvasStyle.value = { width: w + 'px', height: h + 'px' }
     leafer.resize({ width: w, height: h })
     // 背景图随画布尺寸重铺
