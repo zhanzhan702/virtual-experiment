@@ -22,7 +22,7 @@ import lowVoltageButtonHover from '@/assets/images/scenario/LowVoltageButtonHove
 
 // ─── 实验背景 ───
 import experimentViewBg from '@/assets/images/scenario/ExperimentViewBackground.jpg'
-import highWorkBg from '@/assets/images/scene/HighWorkBackground.png'
+import highWorkBg from '@/assets/images/common/HighWorkBackground.png'
 import simulationDisclaimerNotice from '@/assets/images/scenario/SimulationDisclaimerNotice.png'
 
 // ─── 保存/工作任务按钮 ───
@@ -32,13 +32,13 @@ import workTaskButton from '@/assets/images/common/WorkTaskButton.png'
 import workTaskButtonHover from '@/assets/images/common/WorkTaskButtonHover.png'
 
 // ─── 高压全景 ───
-import distributionRoomPanorama from '@/assets/images/scene/DistributionRoomPanorama.jpg'
+import distributionRoomPanorama from '@/assets/images/cabinet/DistributionRoomPanorama.jpg'
 
 // ─── 高压工作票 ───
-import hwtBackground from '@/assets/images/scene/HWTBackgroundImage.jpg'
+import workTicketBackground from '@/assets/images/work-ticket/WorkTicketBackground.jpg'
 
 // ─── 高压工器具选择 ───
-import toolSelectionBg from '@/assets/images/scene/ToolSelectionBackground.jpg'
+import toolSelectionBg from '@/assets/images/tool-selection/ToolSelectionBackground.jpg'
 
 // ─── 工器具选择 — 个人防护 ───
 import blueSafetyHelmet from '@/assets/images/tool-selection/ppe/BlueSafetyHelmet.png'
@@ -144,7 +144,7 @@ export default {
   // 高压全景
   distributionRoomPanorama,
   // 高压工作票
-  hwtBackground,
+  workTicketBackground,
   // 高压工器具
   toolSelectionBg,
   // 工器具选择
@@ -241,5 +241,5 @@ export const cssVars = {
   '--img-work-task': workTaskButton,
   '--img-work-task-hover': workTaskButtonHover,
   '--img-tool-selection-bg': toolSelectionBg,
-  '--img-hwt-bg': hwtBackground
+  '--img-hwt-bg': workTicketBackground
 }
