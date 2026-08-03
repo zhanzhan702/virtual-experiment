@@ -39,11 +39,11 @@ let bgLayer = null
 let hitLayer = null
 
 // ★ 挂表区域热区（相对画布宽高的比率，用户按背景图微调；带颜色便于调整定位）
-const DROP_ZONE = { x: 0.08, y: 0.08, w: 0.28, h: 0.3 }
+const DROP_ZONE = { x: 0.15, y: 0.04, w: 0.37, h: 0.53 }
 
 // ★ 接线盒（左下角贴底，宽固定为画布宽的 1/2，高度按图片比例 auto，用户按背景图微调）
 //   步骤5（未挂表）起显示，直到背景图切换为盖盖子的计量小室后隐藏
-const JUNCTION_BOX = { x: 0, w: 0.5 }
+const JUNCTION_BOX = { x: 0.2, y: 0.04, w: 0.4 }
 
 // ★ 接线盒开关（10 个，一行排列：竖 双横 竖 双横 竖 双横 竖，竖作为双横的间隔）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
@@ -143,11 +143,12 @@ function buildDropZone(w, h) {
   hitLayer.add(dropZoneRect)
 }
 
-/** 构建接线盒（左下角贴底，宽固定画布宽 50%，高度按图片比例 auto） */
+/** 构建接线盒（位置由 JUNCTION_BOX.x/y 指定，宽固定画布比例，高度按图片比例 auto） */
 function buildJunctionBox(w, h) {
   const boxW = w * JUNCTION_BOX.w
   const boxH = boxW / (junctionBoxAspect || 2)
-  junctionBoxRect = { x: w * JUNCTION_BOX.x, y: h - boxH, w: boxW, h: boxH }
+  const boxY = JUNCTION_BOX.y != null ? h * JUNCTION_BOX.y : h - boxH
+  junctionBoxRect = { x: w * JUNCTION_BOX.x, y: boxY, w: boxW, h: boxH }
   junctionBoxImg = new Image({
     url: Images.junctionBox,
     x: junctionBoxRect.x,
@@ -157,11 +158,10 @@ function buildJunctionBox(w, h) {
     zIndex: 1
   })
   hitLayer.add(junctionBoxImg)
-  // 图片比例加载完成后校正高度与底部对齐（初始用默认比例 2:1 立即贴底）
+  // 图片比例加载完成后校正高度（初始用默认比例 2:1 立即显示）
   loadJunctionBoxAspect().then(() => {
     if (junctionBoxImg) {
       junctionBoxImg.height = junctionBoxImg.width / junctionBoxAspect
-      junctionBoxImg.y = leafer.height - junctionBoxImg.height
       junctionBoxRect = {
         x: junctionBoxImg.x,
         y: junctionBoxImg.y,
@@ -194,13 +194,13 @@ function buildSwitches() {
       zIndex: 2
     })
     hitLayer.add(img)
-    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），确保点击命中热区
+    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），蓝色半透明便于调整定位
     const rect = new Rect({
       x,
       y,
       width: sw,
       height: sh,
-      fill: 'rgba(0,0,0,0)',
+      fill: 'rgba(0, 150, 255, 0.25)',
       rotation,
       zIndex: 3
     })
