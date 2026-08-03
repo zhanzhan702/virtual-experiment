@@ -45,28 +45,28 @@ const DROP_ZONE = { x: 0.08, y: 0.08, w: 0.28, h: 0.3 }
 //   步骤5（未挂表）起显示，直到背景图切换为盖盖子的计量小室后隐藏
 const JUNCTION_BOX = { x: 0, w: 0.5 }
 
-// ★ 接线盒开关（10 个：4 竖 + 3 组双横，全部位于接线盒上层）
+// ★ 接线盒开关（10 个，一行排列：竖 双横 竖 双横 竖 双横 竖，竖作为双横的间隔）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
-//   target: 目标状态（1/4/5 断开 off、2/3/6/7 闭合 on，8/9/10 待用户补充）
+//   target: 目标状态（按数组顺序 1/4/5 断开 off、2/3/6/7 闭合 on，8/9/10 待用户补充）
 //   x/y: 相对画布宽高的比率（占位坐标，用户按背景图微调）
 const SWITCHES = [
-  { orient: 'v', target: 'off', x: 0.06, y: 0.8 },
-  { orient: 'v', target: 'on', x: 0.06, y: 0.84 },
-  { orient: 'v', target: 'on', x: 0.06, y: 0.88 },
-  { orient: 'v', target: 'off', x: 0.06, y: 0.92 },
-  { orient: 'hU', target: 'off', x: 0.2, y: 0.8 },
-  { orient: 'hD', target: 'on', x: 0.2, y: 0.9 },
-  { orient: 'hU', target: 'on', x: 0.32, y: 0.8 },
-  { orient: 'hD', target: 'on', x: 0.32, y: 0.9 },
-  { orient: 'hU', target: 'on', x: 0.44, y: 0.8 },
-  { orient: 'hD', target: 'on', x: 0.44, y: 0.9 }
+  { orient: 'v', target: 'off', x: 0.02, y: 0.87 },
+  { orient: 'hU', target: 'on', x: 0.1, y: 0.85 },
+  { orient: 'hD', target: 'on', x: 0.1, y: 0.93 },
+  { orient: 'v', target: 'off', x: 0.18, y: 0.87 },
+  { orient: 'hU', target: 'off', x: 0.26, y: 0.85 },
+  { orient: 'hD', target: 'on', x: 0.26, y: 0.93 },
+  { orient: 'v', target: 'on', x: 0.34, y: 0.87 },
+  { orient: 'hU', target: 'on', x: 0.42, y: 0.85 },
+  { orient: 'hD', target: 'on', x: 0.42, y: 0.93 },
+  { orient: 'v', target: 'on', x: 0.48, y: 0.87 }
 ]
 // 开关图尺寸（相对画布宽高的比率，小尺寸）
 const SWITCH_SIZE = { w: 0.035, h: 0.02 }
 // 切换位移：未旋转横开关向右、倒置横开关向左、竖开关向下（相对开关自身宽度）
 // 初始状态为闭合（on，基准位）；点击后向对应方向移动切换为断开（off）
 const SW_DIR = { hU: { dx: 1, dy: 0 }, hD: { dx: -1, dy: 0 }, v: { dx: 0, dy: 1 } }
-const SW_OFFSET_RATIO = 0.3
+const SW_OFFSET_RATIO = 0.6
 
 const switchRefs = []
 let canvasW = 0
