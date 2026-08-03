@@ -61,8 +61,11 @@ const SWITCHES = [
   { orient: 'hU', target: 'on', x: 0.44, y: 0.8 },
   { orient: 'hD', target: 'on', x: 0.44, y: 0.9 }
 ]
-// 开关图尺寸（相对画布宽高的比率，小尺寸）与 on 状态横向位移（相对开关自身宽度）
+// 开关图尺寸（相对画布宽高的比率，小尺寸）
 const SWITCH_SIZE = { w: 0.035, h: 0.02 }
+// 切换位移：未旋转横开关向右、倒置横开关向左、竖开关向下（相对开关自身宽度）
+// 初始状态为闭合（on，基准位）；点击后向对应方向移动切换为断开（off）
+const SW_DIR = { hU: { dx: 1, dy: 0 }, hD: { dx: -1, dy: 0 }, v: { dx: 0, dy: 1 } }
 const SW_OFFSET_RATIO = 0.3
 
 const switchRefs = []
@@ -145,7 +148,7 @@ function buildJunctionBox(w, h) {
   })
 }
 
-/** 构建 10 个开关热区/小图（开关在接线盒上层） */
+/** 构建 10 个开关热区/小图（开关在接线盒上层，初始状态闭合 on） */
 function buildSwitches(w, h) {
   switchRefs.length = 0
   switchStates.value = []
@@ -176,9 +179,19 @@ function buildSwitches(w, h) {
     })
     rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
     hitLayer.add(rect)
-    switchRefs.push({ cfg, img, baseX: x, sw })
-    switchStates.value.push('off')
+    switchRefs.push({ cfg, img, baseX: x, baseY: y, sw })
+    switchStates.value.push('on')
   })
+}
+
+/** 开关位置：闭合 on 在基准位，断开 off 按方向位移（hU 右 / hD 左 / v 下） */
+function switchPos(s, state) {
+  if (state === 'on') return { x: s.baseX, y: s.baseY }
+  const dir = SW_DIR[s.cfg.orient]
+  return {
+    x: s.baseX + dir.dx * s.sw * SW_OFFSET_RATIO,
+    y: s.baseY + dir.dy * s.sw * SW_OFFSET_RATIO
+  }
 }
 
 /** 加载接线盒图片宽高比（用于高度 auto 计算） */
@@ -202,12 +215,15 @@ function toggleSwitch(i) {
   const cur = switchStates.value[i]
   const next = cur === 'on' ? 'off' : 'on'
   switchStates.value[i] = next
-  s.img.x = s.baseX + (next === 'on' ? s.sw * SW_OFFSET_RATIO : 0)
+  const p = switchPos(s, next)
+  s.img.x = p.x
+  s.img.y = p.y
   checkSwitches()
 }
 
-/** 全部开关达到目标状态 → 提交步骤6 */
+/** 全部开关达到目标状态 → 提交（仅步骤6） */
 function checkSwitches() {
+  if (props.stepOrder !== 6) return
   if (switchesCompleted) return
   const allOk = SWITCHES.every((cfg, i) => switchStates.value[i] === cfg.target)
   if (allOk) {
@@ -222,8 +238,9 @@ function applyDraft(d) {
   d.switchStates.forEach((v, i) => {
     if (!switchRefs[i]) return
     switchStates.value[i] = v
-    switchRefs[i].img.x =
-      switchRefs[i].baseX + (v === 'on' ? switchRefs[i].sw * SW_OFFSET_RATIO : 0)
+    const p = switchPos(switchRefs[i], v)
+    switchRefs[i].img.x = p.x
+    switchRefs[i].img.y = p.y
   })
 }
 
@@ -243,7 +260,7 @@ async function createCanvas() {
   bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
   bindEvents(w, h)
   buildJunctionBox(w, h)
-  if (props.stepOrder === 6) buildSwitches(w, h)
+  if (props.stepOrder >= 5) buildSwitches(w, h)
   if (pendingDraft) {
     applyDraft(pendingDraft)
     pendingDraft = null
@@ -323,16 +340,15 @@ function onResize() {
       const saved = [...switchStates.value]
       hitLayer.removeAll()
       buildJunctionBox(w, h)
-      if (props.stepOrder === 6) {
-        buildSwitches(w, h)
-        saved.forEach((v, i) => {
-          if (switchRefs[i]) {
-            switchStates.value[i] = v
-            switchRefs[i].img.x =
-              switchRefs[i].baseX + (v === 'on' ? switchRefs[i].sw * SW_OFFSET_RATIO : 0)
-          }
-        })
-      }
+      buildSwitches(w, h)
+      saved.forEach((v, i) => {
+        if (switchRefs[i]) {
+          switchStates.value[i] = v
+          const p = switchPos(switchRefs[i], v)
+          switchRefs[i].img.x = p.x
+          switchRefs[i].img.y = p.y
+        }
+      })
     }
   }, 200)
 }
@@ -347,11 +363,11 @@ onMounted(() => {
   }
   window.addEventListener('resize', onResize)
 })
-// 同组件导航（步骤5→6）时组件不重新挂载，需监听步骤变化构建开关
+// 同组件导航时组件不重新挂载，需监听步骤变化构建开关
 watch(
   () => props.stepOrder,
   order => {
-    if (order === 6 && leafer && switchRefs.length === 0) {
+    if (order >= 5 && leafer && switchRefs.length === 0) {
       buildSwitches(leafer.width, leafer.height)
       if (pendingDraft) {
         applyDraft(pendingDraft)
