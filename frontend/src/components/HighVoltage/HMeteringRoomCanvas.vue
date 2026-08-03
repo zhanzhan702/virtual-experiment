@@ -168,13 +168,14 @@ function buildSwitches(w, h) {
       zIndex: 2
     })
     hitLayer.add(img)
-    // 热区与开关图位置尺寸一致（zIndex 3），确保点击命中热区
+    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），确保点击命中热区
     const rect = new Rect({
       x,
       y,
       width: sw,
       height: sh,
       fill: 'rgba(0,0,0,0)',
+      rotation,
       zIndex: 3
     })
     rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
