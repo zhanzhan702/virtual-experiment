@@ -38,7 +38,7 @@ let leafer = null
 let bgLayer = null
 let hitLayer = null
 
-// ★ 挂表区域热区（图片左上方约 1/4 区域，相对画布宽高的比率，用户按背景图微调）
+// ★ 挂表区域热区（相对画布宽高的比率，用户按背景图微调；带颜色便于调整定位）
 const DROP_ZONE = { x: 0.08, y: 0.08, w: 0.28, h: 0.3 }
 
 // ★ 接线盒（左下角贴底，宽固定为画布宽的 1/2，高度按图片比例 auto，用户按背景图微调）
@@ -48,21 +48,21 @@ const JUNCTION_BOX = { x: 0, w: 0.5 }
 // ★ 接线盒开关（10 个，一行排列：竖 双横 竖 双横 竖 双横 竖，竖作为双横的间隔）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
 //   target: 目标状态（按数组顺序 1/4/5 断开 off、2/3/6/7 闭合 on，8/9/10 待用户补充）
-//   x/y: 相对画布宽高的比率（占位坐标，用户按背景图微调）
+//   x/y: 相对接线盒左上角的比率（0~1，用户按背景图微调）
 const SWITCHES = [
-  { orient: 'v', target: 'off', x: 0.02, y: 0.87 },
-  { orient: 'hU', target: 'on', x: 0.1, y: 0.85 },
-  { orient: 'hD', target: 'on', x: 0.1, y: 0.93 },
-  { orient: 'v', target: 'off', x: 0.18, y: 0.87 },
-  { orient: 'hU', target: 'off', x: 0.26, y: 0.85 },
-  { orient: 'hD', target: 'on', x: 0.26, y: 0.93 },
-  { orient: 'v', target: 'on', x: 0.34, y: 0.87 },
-  { orient: 'hU', target: 'on', x: 0.42, y: 0.85 },
-  { orient: 'hD', target: 'on', x: 0.42, y: 0.93 },
-  { orient: 'v', target: 'on', x: 0.48, y: 0.87 }
+  { orient: 'v', target: 'off', x: 0.04, y: 0.5 },
+  { orient: 'hU', target: 'on', x: 0.2, y: 0.4 },
+  { orient: 'hD', target: 'on', x: 0.2, y: 0.6 },
+  { orient: 'v', target: 'off', x: 0.36, y: 0.5 },
+  { orient: 'hU', target: 'off', x: 0.52, y: 0.4 },
+  { orient: 'hD', target: 'on', x: 0.52, y: 0.6 },
+  { orient: 'v', target: 'on', x: 0.68, y: 0.5 },
+  { orient: 'hU', target: 'on', x: 0.84, y: 0.4 },
+  { orient: 'hD', target: 'on', x: 0.84, y: 0.6 },
+  { orient: 'v', target: 'on', x: 0.97, y: 0.5 }
 ]
-// 开关图尺寸（相对画布宽高的比率，小尺寸）
-const SWITCH_SIZE = { w: 0.035, h: 0.02 }
+// 开关图尺寸（相对接线盒宽度的比率）
+const SWITCH_SIZE = { w: 0.07, h: 0.04 }
 // 切换位移：未旋转横开关向右、倒置横开关向左、竖开关向下（相对开关自身宽度）
 // 初始状态为闭合（on，基准位）；点击后向对应方向移动切换为断开（off）
 const SW_DIR = { hU: { dx: 1, dy: 0 }, hD: { dx: -1, dy: 0 }, v: { dx: 0, dy: 1 } }
@@ -71,6 +71,8 @@ const SW_OFFSET_RATIO = 0.6
 const switchRefs = []
 let canvasW = 0
 let junctionBoxImg = null
+let junctionBoxRect = { x: 0, y: 0, w: 0, h: 0 }
+let dropZoneRect = null
 let switchesCompleted = false
 let pendingDraft = null
 
@@ -126,14 +128,30 @@ function handleMiss() {
 // ─── 接线盒（步骤5 起显示，中层级）与开关（步骤6，最顶层） ───
 // 层级：背景图(bgLayer 最底) < 接线盒(zIndex 1) < 开关(zIndex 2) < 热区(zIndex 3)
 
+/** 挂表区域热区可视化（带颜色，便于调整定位） */
+function buildDropZone(w, h) {
+  dropZoneRect = new Rect({
+    x: w * DROP_ZONE.x,
+    y: h * DROP_ZONE.y,
+    width: w * DROP_ZONE.w,
+    height: h * DROP_ZONE.h,
+    fill: 'rgba(0, 150, 255, 0.25)',
+    stroke: 'rgba(0, 150, 255, 0.9)',
+    strokeWidth: 2,
+    zIndex: 0
+  })
+  hitLayer.add(dropZoneRect)
+}
+
 /** 构建接线盒（左下角贴底，宽固定画布宽 50%，高度按图片比例 auto） */
 function buildJunctionBox(w, h) {
   const boxW = w * JUNCTION_BOX.w
   const boxH = boxW / (junctionBoxAspect || 2)
+  junctionBoxRect = { x: w * JUNCTION_BOX.x, y: h - boxH, w: boxW, h: boxH }
   junctionBoxImg = new Image({
     url: Images.junctionBox,
-    x: w * JUNCTION_BOX.x,
-    y: h - boxH,
+    x: junctionBoxRect.x,
+    y: junctionBoxRect.y,
     width: boxW,
     height: boxH,
     zIndex: 1
@@ -144,19 +162,27 @@ function buildJunctionBox(w, h) {
     if (junctionBoxImg) {
       junctionBoxImg.height = junctionBoxImg.width / junctionBoxAspect
       junctionBoxImg.y = leafer.height - junctionBoxImg.height
+      junctionBoxRect = {
+        x: junctionBoxImg.x,
+        y: junctionBoxImg.y,
+        w: junctionBoxImg.width,
+        h: junctionBoxImg.height
+      }
+      ensureSwitches()
     }
   })
 }
 
-/** 构建 10 个开关热区/小图（开关在接线盒上层，初始状态闭合 on） */
-function buildSwitches(w, h) {
+/** 构建 10 个开关热区/小图（开关在接线盒上层，初始状态闭合 on，位置相对接线盒） */
+function buildSwitches() {
   switchRefs.length = 0
   switchStates.value = []
+  const { x: bx, y: by, w: bw, h: bh } = junctionBoxRect
   SWITCHES.forEach((cfg, i) => {
-    const x = w * cfg.x
-    const y = h * cfg.y
-    const sw = w * SWITCH_SIZE.w
-    const sh = h * SWITCH_SIZE.h
+    const x = bx + cfg.x * bw
+    const y = by + cfg.y * bh
+    const sw = bw * SWITCH_SIZE.w
+    const sh = bw * SWITCH_SIZE.h
     const rotation = cfg.orient === 'v' ? 90 : cfg.orient === 'hD' ? 180 : 0
     const img = new Image({
       url: Images.junctionBoxSwitch,
@@ -183,6 +209,17 @@ function buildSwitches(w, h) {
     switchRefs.push({ cfg, img, baseX: x, baseY: y, sw })
     switchStates.value.push('on')
   })
+}
+
+/** 步骤5+ 且接线盒就绪时构建开关（首次构建，保留草稿恢复） */
+function ensureSwitches() {
+  if (props.stepOrder >= 5 && switchRefs.length === 0 && junctionBoxRect.w > 0) {
+    buildSwitches()
+    if (pendingDraft) {
+      applyDraft(pendingDraft)
+      pendingDraft = null
+    }
+  }
 }
 
 /** 开关位置：闭合 on 在基准位，断开 off 按方向位移（hU 右 / hD 左 / v 下） */
@@ -260,12 +297,9 @@ async function createCanvas() {
   leafer.add(hitLayer)
   bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
   bindEvents(w, h)
+  buildDropZone(w, h)
   buildJunctionBox(w, h)
-  if (props.stepOrder >= 5) buildSwitches(w, h)
-  if (pendingDraft) {
-    applyDraft(pendingDraft)
-    pendingDraft = null
-  }
+  ensureSwitches()
 }
 
 // ─── 供父组件调用的方法 ───
@@ -336,12 +370,13 @@ function onResize() {
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
-    // 步骤5+：重建接线盒与开关（按当前状态保持视觉位置）
+    // 步骤5+：重建热区/接线盒/开关（按当前状态保持视觉位置）
     if (props.stepOrder >= 5) {
       const saved = [...switchStates.value]
       hitLayer.removeAll()
+      buildDropZone(w, h)
       buildJunctionBox(w, h)
-      buildSwitches(w, h)
+      ensureSwitches()
       saved.forEach((v, i) => {
         if (switchRefs[i]) {
           switchStates.value[i] = v
@@ -368,13 +403,7 @@ onMounted(() => {
 watch(
   () => props.stepOrder,
   order => {
-    if (order >= 5 && leafer && switchRefs.length === 0) {
-      buildSwitches(leafer.width, leafer.height)
-      if (pendingDraft) {
-        applyDraft(pendingDraft)
-        pendingDraft = null
-      }
-    }
+    if (order >= 5 && leafer) ensureSwitches()
   }
 )
 onUnmounted(() => {
