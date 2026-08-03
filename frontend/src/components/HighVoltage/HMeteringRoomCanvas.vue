@@ -78,8 +78,6 @@ function switchBackground(url) {
   const h = leafer.height
   bgLayer.removeAll()
   bgLayer.add(new Image({ url, x: 0, y: 0, width: w, height: h }))
-  // 接线盒在背景图上层（同组后 add），背景切换后重建
-  buildJunctionBox(w, h)
 }
 
 function bindEvents(w, h) {
@@ -122,7 +120,8 @@ function handleMiss() {
   isMeterFollowing.value = false
 }
 
-// ─── 接线盒（步骤5 起显示，位于背景层背景图之上）与开关（步骤6） ───
+// ─── 接线盒（步骤5 起显示，中层级）与开关（步骤6，最顶层） ───
+// 层级：背景图(bgLayer 最底) < 接线盒(zIndex 1) < 开关(zIndex 2) < 热区(zIndex 3)
 
 /** 构建接线盒（左下角贴底，宽固定画布宽 50%，高度按图片比例 auto） */
 function buildJunctionBox(w, h) {
@@ -136,7 +135,7 @@ function buildJunctionBox(w, h) {
     height: boxH,
     zIndex: 1
   })
-  bgLayer.add(junctionBoxImg)
+  hitLayer.add(junctionBoxImg)
   // 图片比例加载完成后校正高度与底部对齐（初始用默认比例 2:1 立即贴底）
   loadJunctionBoxAspect().then(() => {
     if (junctionBoxImg) {
