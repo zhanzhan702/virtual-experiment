@@ -120,11 +120,21 @@ function handleMiss() {
 
 // ─── 接线盒开关（步骤6） ───
 
-/** 构建接线盒（左下角，宽度固定/高度按比例）与 10 个开关热区/小图（开关在接线盒上层） */
-async function buildSwitches(w, h) {
+/** 构建接线盒（左下角，宽度固定/高度按比例，盖盖前一直显示）与开关 */
+async function buildStepElements(w, h) {
   switchRefs.length = 0
   switchStates.value = []
-  // 接线盒底层：宽固定为画布宽 50%，高度按图片比例 auto
+  // 接线盒底层：步骤6 起一直显示，直到背景图切换为盖盖子的计量小室
+  if (props.stepOrder >= 6) await addJunctionBox(w, h)
+  if (props.stepOrder === 6) addSwitches(w, h)
+  if (pendingDraft) {
+    applyDraft(pendingDraft)
+    pendingDraft = null
+  }
+}
+
+/** 接线盒：宽固定为画布宽 50%，高度按图片比例 auto */
+async function addJunctionBox(w, h) {
   const boxW = w * JUNCTION_BOX.w
   const boxH = boxW / (await loadJunctionBoxAspect())
   hitLayer.add(
@@ -137,6 +147,10 @@ async function buildSwitches(w, h) {
       zIndex: 1
     })
   )
+}
+
+/** 10 个开关热区/小图（开关在接线盒上层） */
+function addSwitches(w, h) {
   SWITCHES.forEach((cfg, i) => {
     const x = w * cfg.x
     const y = h * cfg.y
@@ -174,11 +188,12 @@ let junctionBoxAspect = null
 function loadJunctionBoxAspect() {
   return new Promise(resolve => {
     if (junctionBoxAspect) return resolve(junctionBoxAspect)
-    const img = new Image()
+    const img = new window.Image()
     img.onload = () => {
       junctionBoxAspect = img.naturalWidth / img.naturalHeight
       resolve(junctionBoxAspect)
     }
+    img.onerror = () => resolve(1)
     img.src = Images.junctionBox
   })
 }
@@ -230,11 +245,7 @@ async function createCanvas() {
   leafer.add(hitLayer)
   bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
   bindEvents(w, h)
-  if (props.stepOrder === 6) await buildSwitches(w, h)
-  if (pendingDraft) {
-    applyDraft(pendingDraft)
-    pendingDraft = null
-  }
+  await buildStepElements(w, h)
 }
 
 // ─── 供父组件调用的方法 ───
@@ -305,11 +316,11 @@ function onResize() {
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
-    // 步骤6：按当前状态重建开关（保持视觉位置）
-    if (props.stepOrder === 6) {
+    // 步骤6：按当前状态重建接线盒与开关（保持视觉位置）
+    if (props.stepOrder >= 6) {
       const saved = [...switchStates.value]
       hitLayer.removeAll()
-      buildSwitches(w, h).then(() => {
+      buildStepElements(w, h).then(() => {
         saved.forEach((v, i) => {
           if (switchRefs[i]) {
             switchStates.value[i] = v
@@ -332,16 +343,12 @@ onMounted(() => {
   }
   window.addEventListener('resize', onResize)
 })
-// 同组件导航（步骤5→6）时组件不重新挂载，需监听步骤变化构建开关
+// 同组件导航（步骤5→6）时组件不重新挂载，需监听步骤变化构建接线盒与开关
 watch(
   () => props.stepOrder,
   async order => {
-    if (order === 6 && leafer && switchRefs.length === 0) {
-      await buildSwitches(leafer.width, leafer.height)
-      if (pendingDraft) {
-        applyDraft(pendingDraft)
-        pendingDraft = null
-      }
+    if (order >= 6 && leafer && switchRefs.length === 0) {
+      await buildStepElements(leafer.width, leafer.height)
     }
   }
 )
