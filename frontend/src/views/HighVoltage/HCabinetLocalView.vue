@@ -11,12 +11,23 @@
 
     <!-- 中间交互区域（步骤3/4：围栏/告示牌放置 + 三步验电） -->
     <HMiddleArea
+      v-if="!isMeteringStep"
       ref="middleRef"
       :step-order="currentStepOrder"
       @operation="onOperation"
       @error="onError"
       @fences-done="handleFencesDone"
       @voltage-check-done="submitVoltageCheck"
+    />
+
+    <!-- 计量小室操作画布（步骤5+：挂电表 / 接线盒） -->
+    <HMeteringRoomCanvas
+      v-if="isMeteringStep"
+      ref="meteringRef"
+      :step-order="currentStepOrder"
+      @operation="onOperation"
+      @error="onError"
+      @step-completed="handleMeteringStepCompleted"
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
@@ -60,6 +71,7 @@ import PromptModal from '@/components/PromptModal.vue'
 import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
 import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
+import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
 import Images from '@/constants/images'
 
 const route = useRoute()
@@ -79,12 +91,13 @@ function getStepsFromStore() {
 }
 const currentStepOrder = computed(() => {
   const fromQuery = Number(route.query.stepOrder)
-  if (fromQuery === 3 || fromQuery === 4) return fromQuery
+  if (fromQuery >= 3) return fromQuery
   if (!stepId.value) return 3
   const s = getStepsFromStore().find(s => s.stepId === stepId.value)
   return s ? s.stepOrder : 3
 })
 const isStep4 = computed(() => currentStepOrder.value === 4)
+const isMeteringStep = computed(() => currentStepOrder.value >= 5)
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const leftTools = [
@@ -137,6 +150,8 @@ onUnmounted(() => {
 
 // 中间栏子组件引用（步骤3/4 交互逻辑在 HMiddleArea 内）
 const middleRef = ref(null)
+// 计量小室画布组件引用（步骤5+ 交互逻辑在 HMeteringRoomCanvas 内）
+const meteringRef = ref(null)
 
 function onOperation() {
   stats.operation_count++
@@ -150,8 +165,12 @@ function onLeftToolSelect(idx, e) {
   middleRef.value?.selectTool?.(idx, e)
 }
 
-// 右侧工具栏点击：验电笔走专用逻辑，其余工具待后续 leafer 画布交互
+// 右侧工具栏点击：计量小室步骤转发画布组件，步骤3/4 验电笔走专用逻辑
 function onRightToolClick(idx, e) {
+  if (isMeteringStep.value) {
+    meteringRef.value?.onRightToolClick?.(idx, e)
+    return
+  }
   if (idx === 4) {
     middleRef.value?.toggleVoltageTester?.(e)
     return
@@ -162,6 +181,7 @@ function onRightToolClick(idx, e) {
 
 function onPageMouseMove(e) {
   middleRef.value?.onPageMouseMove?.(e)
+  meteringRef.value?.onPageMouseMove?.(e)
 }
 
 /** 4 物品全部放置 → 提交步骤3并显示视频 */
@@ -246,11 +266,63 @@ function onElectrifyNoticeClose() {
   }, 500)
 }
 
+/** 计量小室子步骤完成（挂电表/接线盒） → 提交当前步骤并跳下一步 */
+async function handleMeteringStepCompleted(stepOrder) {
+  if (hasSubmitted.value) return
+  hasSubmitted.value = true
+  try {
+    const resultData = meteringRef.value?.getDraftState?.() || {}
+    await submitStep({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 1,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      score: Math.max(0, 100 - stats.error_count * 10),
+      resultData: JSON.stringify(resultData),
+      startedAt: startedAt.value
+    })
+    if (stepOrder === 5) {
+      ElMessage.success('挂表成功')
+      const next = getStepsFromStore().find(s => s.stepOrder === 6)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 6
+        }
+      })
+    } else {
+      ElMessage.success('接线盒处理完成')
+      hasSubmitted.value = false
+      setTimeout(() => {
+        router.replace({
+          path: '/experiment',
+          query: { experimentId: experimentId.value }
+        })
+      }, 800)
+    }
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    hasSubmitted.value = false
+  }
+}
+
 // ─── 存档 ───
 const saveProgress = async () => {
   saving.value = true
   try {
     const m = middleRef.value
+    const metering = meteringRef.value
+    const base = isMeteringStep.value
+      ? { ...(metering?.getDraftState?.() || {}) }
+      : {
+          itemPlaced: [...(m?.itemPlaced || [])],
+          vtDone: m?.vtDone || false,
+          vtStep: m?.vtStep ?? 0
+        }
     await saveDraft({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -258,11 +330,7 @@ const saveProgress = async () => {
       durationSeconds: stats.duration_seconds,
       operationCount: stats.operation_count,
       errorCount: stats.error_count,
-      resultData: JSON.stringify({
-        itemPlaced: [...(m?.itemPlaced || [])],
-        vtDone: m?.vtDone || false,
-        vtStep: m?.vtStep ?? 0
-      }),
+      resultData: JSON.stringify(base),
       startedAt: startedAt.value
     })
     ElMessage.success('进度已保存')
@@ -273,12 +341,18 @@ const saveProgress = async () => {
   }
 }
 
-// ─── 恢复草稿（步骤3/4 状态由 HMiddleArea.restoreDraft 恢复） ───
+// ─── 恢复草稿（状态按步骤分发给对应子组件恢复） ───
 onMounted(async () => {
   if (experimentId.value && stepId.value) {
     try {
       const d = await getStepDraft(experimentId.value, stepId.value)
-      if (d) middleRef.value?.restoreDraft?.(d)
+      if (d) {
+        if (isMeteringStep.value) {
+          meteringRef.value?.restoreDraft?.(d)
+        } else {
+          middleRef.value?.restoreDraft?.(d)
+        }
+      }
     } catch (_) {}
   }
   // 步骤4无草稿时确保物品显示为已放置
