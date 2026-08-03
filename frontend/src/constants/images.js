@@ -108,13 +108,13 @@ import barSimCard from '@/assets/images/cabinet/toolbar/SimCard.png'
 import barAntenna from '@/assets/images/cabinet/toolbar/Antenna.png'
 
 // ─── 计量小室（leafer ui 画布） ───
-import meteringRoomNoMeter from '@/assets/images/metering-room/MeteringRoomNoMeter.png'
-import meteringRoomWithMeter from '@/assets/images/metering-room/MeteringRoomWithMeter.png'
-import meteringRoomWired from '@/assets/images/metering-room/MeteringRoomWired.png'
-import meteringRoomWithCableTies from '@/assets/images/metering-room/MeteringRoomWithCableTies.png'
-import junctionBox from '@/assets/images/metering-room/JunctionBox.png'
-import junctionBoxSwitch from '@/assets/images/metering-room/JunctionBoxSwitch.png'
-import strippedSignalCable6Core from '@/assets/images/metering-room/StrippedSignalCable6Core.png'
+import meteringRoomNoMeter from '@/assets/images/cabinet/metering-room/MeteringRoomNoMeter.png'
+import meteringRoomWithMeter from '@/assets/images/cabinet/metering-room/MeteringRoomWithMeter.png'
+import meteringRoomWired from '@/assets/images/cabinet/metering-room/MeteringRoomWired.png'
+import meteringRoomWithCableTies from '@/assets/images/cabinet/metering-room/MeteringRoomWithCableTies.png'
+import junctionBox from '@/assets/images/cabinet/metering-room/JunctionBox.png'
+import junctionBoxSwitch from '@/assets/images/cabinet/metering-room/JunctionBoxSwitch.png'
+import strippedSignalCable6Core from '@/assets/images/cabinet/metering-room/StrippedSignalCable6Core.png'
 
 // ─── 后续步骤（预留） ───
 import checkMeterReading from '@/assets/images/CheckMeterReading.png'
