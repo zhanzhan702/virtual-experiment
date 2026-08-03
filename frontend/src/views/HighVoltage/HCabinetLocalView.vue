@@ -101,6 +101,7 @@
     </div>
 
     <!-- 按钮 -->
+    <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="stats.duration_seconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
@@ -116,6 +117,7 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
 
 const route = useRoute()

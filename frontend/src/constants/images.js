@@ -54,6 +54,23 @@ import tShirtAndShorts from '@/assets/images/TShirtAndShorts.png'
 import workClothes from '@/assets/images/WorkClothes.png'
 import workClothesTopAndJeans from '@/assets/images/WorkClothesTopAndJeans.png'
 
+// ─── 工器具选择 — 终端 ───
+import terminalImg1 from '@/assets/images/2/1.png'
+import terminalImg2 from '@/assets/images/2/2.png'
+import terminalImg3 from '@/assets/images/2/3.png'
+import terminalImg4 from '@/assets/images/2/4.png'
+import terminalImg5 from '@/assets/images/2/5.png'
+
+// ─── 工器具选择 — 工器具 ───
+import toolImg1 from '@/assets/images/3/1.png'
+import toolImg2 from '@/assets/images/3/2.png'
+import toolImg3 from '@/assets/images/3/3.png'
+import toolImg4 from '@/assets/images/3/4.png'
+import toolImg5 from '@/assets/images/3/5.png'
+import toolImg6 from '@/assets/images/3/6.png'
+import toolImg7 from '@/assets/images/3/7.png'
+import toolImg8 from '@/assets/images/3/8.png'
+
 // ─── 柜体局部操作 ───
 import cabinetGroupOverview from '@/assets/images/CabinetGroupOverview.png'
 import cabinetLocalOperation from '@/assets/images/CabinetLocalOperation.png'
@@ -111,6 +128,21 @@ export default {
   tShirtAndShorts,
   workClothes,
   workClothesTopAndJeans,
+  // 2.终端
+  terminalImg1,
+  terminalImg2,
+  terminalImg3,
+  terminalImg4,
+  terminalImg5,
+  // 3.工器具
+  toolImg1,
+  toolImg2,
+  toolImg3,
+  toolImg4,
+  toolImg5,
+  toolImg6,
+  toolImg7,
+  toolImg8,
   // 柜体操作
   cabinetGroupOverview,
   cabinetLocalOperation,
