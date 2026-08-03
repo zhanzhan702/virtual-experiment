@@ -285,6 +285,7 @@ async function handleMeteringStepCompleted(stepOrder) {
     })
     if (stepOrder === 5) {
       ElMessage.success('挂表成功')
+      hasSubmitted.value = false
       const next = getStepsFromStore().find(s => s.stepOrder === 6)
       router.replace({
         path: '/HCL',
