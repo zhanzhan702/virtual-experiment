@@ -7,17 +7,12 @@
     @click="onPageClick"
   >
     <!-- 左侧物品栏 -->
-    <div class="tool-bar tool-bar-left">
-      <div
-        v-for="(item, idx) in leftTools"
-        :key="'L' + idx"
-        class="tool-item tool-item-img"
-        :class="{ 'tool-selected': followingToolIdx === idx, 'tool-placed': itemPlaced[idx] }"
-        @click="selectTool(idx, $event)"
-      >
-        <img :src="item.img" alt="" draggable="false" />
-      </div>
-    </div>
+    <HLeftToolBar
+      :items="leftTools"
+      :placed-mask="itemPlaced"
+      :active-idx="followingToolIdx"
+      @select="selectTool"
+    />
 
     <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
     <div class="middle-area" :style="middleAreaStyle" @click="onMiddleAreaClick">
@@ -75,17 +70,12 @@
     </div>
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
-    <div class="tool-bar tool-bar-right">
-      <div
-        v-for="(tool, idx) in rightTools"
-        :key="'R' + idx"
-        class="tool-item tool-item-img"
-        :class="{ 'tool-selected': idx === 4 && vtActive, 'tool-placed': idx === 4 && vtDone }"
-        @click="onRightToolClick(idx, $event)"
-      >
-        <img :src="tool.img" :alt="tool.name" draggable="false" />
-      </div>
-    </div>
+    <HRightToolBar
+      :items="rightTools"
+      :vt-active="vtActive"
+      :vt-done="vtDone"
+      @click="onRightToolClick"
+    />
 
     <!-- 鼠标跟随 -->
     <div v-if="showFollowing" class="cursor-following" :style="cursorFollowingStyle">
@@ -122,6 +112,8 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
+import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
+import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
 import Images from '@/constants/images'
 
 const route = useRoute()
@@ -535,78 +527,6 @@ onUnmounted(() => {
   background: #fff;
   position: relative;
   overflow: hidden;
-}
-
-/* 物品栏 */
-.tool-bar {
-  position: fixed;
-  top: 10vh;
-  height: 80vh;
-  width: 10vw;
-  min-width: 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2vh;
-  padding: 10vh 0;
-  z-index: 50;
-  background: #1b7c78;
-  border-radius: 1rem;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.tool-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.tool-bar-left {
-  left: 1vw;
-}
-
-.tool-bar-right {
-  right: 1vw;
-}
-
-.tool-item {
-  width: 80%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  background: rgba(0, 0, 0, 0.04);
-  flex-shrink: 0;
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.tool-item:hover {
-  border-color: rgba(100, 180, 255, 0.8);
-  background: rgba(100, 180, 255, 0.12);
-}
-
-.tool-item-img img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.tool-selected {
-  border-color: #4ade80;
-  background: rgba(74, 222, 128, 0.2);
-  box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
-}
-
-.tool-placed {
-  opacity: 0.4;
-  border-color: #999;
-  pointer-events: auto;
 }
 
 /* 中间区域 */
