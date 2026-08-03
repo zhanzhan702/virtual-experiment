@@ -6,7 +6,7 @@
       <div ref="leaferViewRef" class="leafer-view" :style="canvasStyle" />
       <!-- 鼠标跟随（Vue HTML 层，不进入画布） -->
       <div v-if="isMeterFollowing" class="meter-following" :style="followStyle">
-        <img :src="Images.threePhaseThreeWireMeter" alt="电表" draggable="false" />
+        <img :src="Images.barThreePhaseThreeWireMeter" alt="电表" draggable="false" />
       </div>
     </div>
   </div>
@@ -15,7 +15,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Leafer, Group, Image, Rect, Event } from 'leafer-ui'
+import { Leafer, Group, Image, Rect, PointerEvent } from 'leafer-ui'
 import Images from '@/constants/images'
 
 const props = defineProps({
@@ -38,8 +38,8 @@ let leafer = null
 let bgLayer = null
 let hitLayer = null
 
-// ★ 挂表区域热区（相对画布宽高的比率，用户按背景图微调）
-const DROP_ZONE = { x: 0.42, y: 0.3, w: 0.3, h: 0.45 }
+// ★ 挂表区域热区（图片左上方约 1/4 区域，相对画布宽高的比率，用户按背景图微调）
+const DROP_ZONE = { x: 0.08, y: 0.08, w: 0.28, h: 0.3 }
 
 // ★ 接线盒开关（10 个：4 竖 + 3 组双横）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
@@ -76,7 +76,7 @@ function switchBackground(url) {
 }
 
 function bindEvents(w, h) {
-  leafer.on(Event.CLICK, e => {
+  leafer.on(PointerEvent.CLICK, e => {
     const p = e.getLocal()
     const dz = {
       x: w * DROP_ZONE.x,
@@ -144,7 +144,7 @@ function buildSwitches(w, h) {
       height: sh * 1.6,
       fill: 'rgba(0,0,0,0)'
     })
-    rect.on(Event.CLICK, () => toggleSwitch(i))
+    rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
     hitLayer.add(rect)
     switchRefs.push({ cfg, img, baseX: x })
     switchStates.value.push('off')
