@@ -25,6 +25,8 @@
       v-if="isMeteringStep"
       ref="meteringRef"
       :step-order="currentStepOrder"
+      :experiment-id="experimentId"
+      :step-id="stepId"
       @operation="onOperation"
       @error="onError"
       @step-completed="handleMeteringStepCompleted"
@@ -35,6 +37,7 @@
       :items="rightTools"
       :vt-active="middleRef?.vtActive || false"
       :vt-done="middleRef?.vtDone || false"
+      :active-idxs="rightToolActiveIdxs"
       @click="onRightToolClick"
     />
 
@@ -104,6 +107,11 @@ const currentStepOrder = computed(() => {
 })
 const isStep4 = computed(() => currentStepOrder.value === 4)
 const isMeteringStep = computed(() => currentStepOrder.value >= 5)
+// 计量小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
+const rightToolActiveIdxs = computed(() => {
+  if (!isMeteringStep.value) return []
+  return meteringRef.value?.activeToolIdxs ?? []
+})
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const leftTools = [
@@ -306,8 +314,20 @@ async function handleMeteringStepCompleted(stepOrder) {
           stepOrder: 6
         }
       })
-    } else {
+    } else if (stepOrder === 6) {
       ElMessage.success('接线盒处理完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === 7)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 7
+        }
+      })
+    } else {
+      ElMessage.success('接线完成')
       hasSubmitted.value = false
       setTimeout(() => {
         router.replace({

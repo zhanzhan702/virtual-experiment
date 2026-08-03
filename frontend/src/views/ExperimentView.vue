@@ -61,7 +61,7 @@ async function doStartExperiment(type) {
         sessionStorage.setItem('experimentId', exp.experimentId)
         const stepRouteMap =
           type === 'high'
-            ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL', 5: '/HCL', 6: '/HCL' }
+            ? { 1: '/HWT', 2: '/HTS', 3: '/HCL', 4: '/HCL', 5: '/HCL', 6: '/HCL', 7: '/HCL' }
             : { 1: '/LWT', 2: '/LTS' }
         const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
         router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })

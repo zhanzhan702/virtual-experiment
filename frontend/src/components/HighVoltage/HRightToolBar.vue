@@ -5,7 +5,10 @@
       v-for="(tool, idx) in items"
       :key="'R' + idx"
       class="tool-item tool-item-img"
-      :class="{ 'tool-selected': idx === 4 && vtActive, 'tool-placed': idx === 4 && vtDone }"
+      :class="{
+        'tool-selected': activeIdxs.includes(idx) || (idx === 4 && vtActive),
+        'tool-placed': idx === 4 && vtDone
+      }"
       @click="emit('click', idx, $event)"
     >
       <img :src="tool.img" :alt="tool.name" draggable="false" />
@@ -19,7 +22,8 @@ import '@/assets/styles/toolbar.css'
 defineProps({
   items: { type: Array, required: true },
   vtActive: { type: Boolean, default: false },
-  vtDone: { type: Boolean, default: false }
+  vtDone: { type: Boolean, default: false },
+  activeIdxs: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['click'])
 </script>
