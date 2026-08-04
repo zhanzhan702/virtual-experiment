@@ -39,7 +39,7 @@ function select(type) {
   background-image: var(--img-high-voltage-btn);
 }
 
-/* TODO: 高压 — 悬停图片（制作好后替换路径） */
+/* 高压 — 悬停图片 */
 .scenario-btn.high:hover {
   background-image: var(--img-high-voltage-btn-hover);
   transform: scale(1.05);
@@ -54,7 +54,7 @@ function select(type) {
   background-image: var(--img-low-voltage-btn);
 }
 
-/* TODO: 低压 — 悬停图片（制作好后替换路径） */
+/* 低压 — 悬停图片 */
 .scenario-btn.low:hover {
   background-image: var(--img-low-voltage-btn-hover);
   transform: scale(1.05);
