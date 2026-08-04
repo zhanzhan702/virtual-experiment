@@ -73,6 +73,9 @@
                 selected: isSelected(currentCategory.key, tool.id)
               }"
               @click="toggleTool(tool)"
+              @mouseenter="showBubble(tool, $event)"
+              @mousemove="moveBubble($event)"
+              @mouseleave="hideBubble"
             >
               <div class="card-img">
                 <div
@@ -87,13 +90,22 @@
                   </el-icon>
                 </div>
               </div>
-              <!-- 悬浮提示：物品名称 + 介绍 -->
-              <div class="card-tooltip">
-                <div class="tooltip-name">{{ tool.name }}</div>
-                <div class="tooltip-desc">{{ tool.description }}</div>
-              </div>
             </div>
           </div>
+
+          <!-- 悬浮预览泡泡：放大器械图片 + 名称（线材无图片时显示放大 emoji）
+               传送到 body 下，避免 tool-panel 的 backdrop-filter 创建包含块导致定位偏移 -->
+          <Teleport to="body">
+            <div v-if="hoverTool" class="tool-bubble" :style="bubbleStyle">
+              <div
+                v-if="hoverTool.image"
+                class="bubble-image"
+                :style="{ backgroundImage: `url(${Images[hoverTool.image]})` }"
+              ></div>
+              <div v-else class="bubble-emoji">{{ hoverTool.icon }}</div>
+              <div class="bubble-name">{{ hoverTool.name }}</div>
+            </div>
+          </Teleport>
           <!-- 分页导航 -->
           <div v-if="totalPages > 1" class="pagi-bar">
             <button class="pagi-btn" :disabled="toolPage === 0" @click="prevToolPage">
@@ -383,6 +395,40 @@ const errorDialogVisible = ref(false)
 const toolPage = ref(0)
 const TOOLS_PER_PAGE = ref(9)
 const gridContainer = ref(null)
+
+// 悬浮预览泡泡
+const hoverTool = ref(null)
+const bubbleX = ref(0)
+const bubbleY = ref(0)
+const BUBBLE_W = 260
+const BUBBLE_H = 300
+const bubbleStyle = computed(() => ({
+  left: bubbleX.value + 'px',
+  top: bubbleY.value + 'px'
+}))
+
+function showBubble(tool, e) {
+  hoverTool.value = tool
+  updateBubblePos(e)
+}
+function moveBubble(e) {
+  if (!hoverTool.value) return
+  updateBubblePos(e)
+}
+function updateBubblePos(e) {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  // 泡泡出现在图标右下角，宽 260 高 300，超出视口时翻转到另一侧
+  let x = e.clientX + 16
+  let y = e.clientY + 16
+  if (x + BUBBLE_W > vw) x = e.clientX - BUBBLE_W - 16
+  if (y + BUBBLE_H > vh) y = e.clientY - BUBBLE_H - 16
+  bubbleX.value = x
+  bubbleY.value = y
+}
+function hideBubble() {
+  hoverTool.value = null
+}
 
 // 初始化
 props.categories.forEach(cat => {
@@ -1040,38 +1086,59 @@ defineExpose({ selectedMap })
   color: #fff;
 }
 
-/* ========== 悬浮提示（名称+介绍） ========== */
-.card-tooltip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.78);
-  color: #fff;
-  padding: 8px 10px;
-  transform: translateY(100%);
-  opacity: 0;
-  transition: all 0.25s ease;
+/* ========== 悬浮预览泡泡（放大器械图片 + 名称） ========== */
+.tool-bubble {
+  position: fixed;
+  z-index: 1000;
+  width: 260px;
+  padding: 16px 16px 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e4e7ed;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   pointer-events: none;
-  z-index: 5;
+  animation: bubble-in 0.18s ease-out;
 }
 
-.tool-card:hover .card-tooltip {
-  transform: translateY(0);
-  opacity: 1;
+.bubble-image {
+  width: 220px;
+  height: 220px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-.tooltip-name {
-  font-size: 13px;
+.bubble-emoji {
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;
+}
+
+.bubble-name {
+  margin-top: 10px;
+  max-width: 240px;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 2px;
+  color: #303133;
+  text-align: center;
   line-height: 1.3;
 }
 
-.tooltip-desc {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.3;
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ========== 右侧人物面板 ========== */
