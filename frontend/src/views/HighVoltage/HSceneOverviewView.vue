@@ -33,7 +33,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
@@ -45,7 +44,9 @@ const imgRef = ref(null)
 const wrapperRef = ref(null)
 
 function enterCabinet() {
-  const steps = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+  const steps = JSON.parse(
+    localStorage.getItem('experimentSteps_' + (route.query.experimentId || '')) || '[]'
+  )
   const step3 = steps.find(s => s.stepOrder === 3)
   router.push({
     path: '/HCL',
@@ -142,8 +143,6 @@ onUnmounted(() => {
     box-shadow 0.25s;
 }
 
-/* 以下样式不变 */
-
 .cabinet-hotspot:hover {
   background: rgba(0, 210, 255, 0.12);
   box-shadow:
@@ -171,54 +170,7 @@ onUnmounted(() => {
   user-select: none;
 }
 
-/* 查看工作任务按钮（左下角） */
-.work-task-btn {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-work-task);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.work-task-btn:hover {
-  background-image: var(--img-work-task-hover);
-  transform: scale(1.05);
-}
-
-.save-bar-fixed {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  background-image: var(--img-save-icon);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.save-bar-fixed:hover {
-  background-image: var(--img-save-icon-hover);
-  transform: scale(1.05);
-}
-
-.save-bar-fixed.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.save-bar-fixed.disabled {
-  opacity: 0.4;
-}
+/* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
 
 .work-bg-img {
   max-width: 80vw;

@@ -34,3 +34,8 @@ export function getStepDraft(experimentId, stepId) {
 export function getTotalDuration(experimentId) {
   return request.get(`/experiment/${experimentId}/duration`)
 }
+
+/** 获取实验步骤列表（恢复时重建步骤映射，防止 stepId 错位） */
+export function getExperimentSteps(experimentId) {
+  return request.get(`/experiment/${experimentId}/steps`)
+}

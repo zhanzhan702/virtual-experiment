@@ -29,4 +29,7 @@ public interface ExperimentService {
 
   /** 获取实验总耗时（所有步骤 duration_seconds 之和，含草稿，用于存档恢复后累加计时） */
   Integer getTotalDuration(String experimentId);
+
+  /** 获取实验的步骤列表（含 stepId/stepOrder/stepName，恢复时重建前端步骤映射） */
+  List<Map<String, Object>> getExperimentSteps(String experimentId);
 }

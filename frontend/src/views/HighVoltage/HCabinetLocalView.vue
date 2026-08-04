@@ -80,10 +80,10 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
+import { submitStep, saveDraft, getStepDraft, getExperimentSteps } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
 import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
@@ -107,7 +107,7 @@ const saving = ref(false)
 
 // ─── 步骤模式判定（步骤3=放置物品+验电，步骤4=仅验电） ───
 function getStepsFromStore() {
-  return JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+  return JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
 }
 const currentStepOrder = computed(() => {
   const fromQuery = Number(route.query.stepOrder)
@@ -470,6 +470,15 @@ const saveProgress = async () => {
 // ─── 恢复草稿（状态按步骤分发给对应子组件恢复） ───
 onMounted(async () => {
   if (experimentId.value && stepId.value) {
+    // 步骤映射丢失时（新标签页/清缓存）从后端恢复，避免跳转时 stepId 错位
+    if (!getStepsFromStore().length) {
+      try {
+        const steps = await getExperimentSteps(experimentId.value)
+        if (steps?.length) {
+          localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(steps))
+        }
+      } catch (_) {}
+    }
     try {
       const d = await getStepDraft(experimentId.value, stepId.value)
       if (d) {
@@ -483,6 +492,14 @@ onMounted(async () => {
   }
   // 步骤4无草稿时确保物品显示为已放置
   if (isStep4.value && !middleRef.value?.itemPlaced?.some(v => v)) {
+    middleRef.value?.markPlacedForStep4?.()
+  }
+})
+
+// 同组件导航（画布步骤5-11 ↔ 中间栏步骤12 切换）时组件不重新挂载，onMounted 不会再次执行，
+// 需监听步骤变化确保进入步骤4/12 时物品显示为已放置状态
+watch(currentStepOrder, order => {
+  if ((order === 4 || order === 12) && !middleRef.value?.itemPlaced?.some(v => v)) {
     middleRef.value?.markPlacedForStep4?.()
   }
 })
@@ -517,56 +534,7 @@ onMounted(async () => {
   gap: 2rem;
 }
 
-/* 固定按钮 */
-.save-bar-fixed {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-save-icon);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.save-bar-fixed:hover {
-  background-image: var(--img-save-icon-hover);
-  transform: scale(1.05);
-}
-
-.save-bar-fixed.saving {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.save-bar-fixed.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.work-task-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-work-task);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.work-task-btn:hover {
-  background-image: var(--img-work-task-hover);
-  transform: scale(1.05);
-}
+/* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
 
 .work-bg-img {
   max-width: 80vw;

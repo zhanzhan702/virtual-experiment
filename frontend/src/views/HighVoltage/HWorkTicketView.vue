@@ -20,7 +20,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { FolderOpened } from '@element-plus/icons-vue'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
@@ -106,8 +105,8 @@ const handleTicketSubmit = async result => {
   try {
     const submitRes = await submitStep(payload)
     ElMessage.success('提交成功！即将进入工器具选择...')
-    // 从 sessionStorage 获取下一步 stepId
-    const steps = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+    // 从 localStorage 获取下一步 stepId（按实验 ID 区分，避免步骤映射错位）
+    const steps = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
     const nextStep = steps.find(s => s.stepOrder === 2)
     // 跳转到下一步（工器具选择），传递 experimentId + stepId
     setTimeout(() => {
@@ -169,56 +168,7 @@ const handleTicketSubmit = async result => {
   background: #7a8085;
 }
 
-.save-bar-fixed {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-save-icon);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.save-bar-fixed:hover {
-  background-image: var(--img-save-icon-hover);
-  transform: scale(1.05);
-}
-
-.save-bar-fixed.saving {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.save-bar-fixed.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* 查看工作任务按钮（左下角） */
-.work-task-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-work-task);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.work-task-btn:hover {
-  background-image: var(--img-work-task-hover);
-  transform: scale(1.05);
-}
+/* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
 
 .work-bg-img {
   max-width: 80vw;

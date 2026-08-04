@@ -1287,7 +1287,11 @@ function checkSwitches() {
   const allOk = targets.every((t, i) => switchStates.value[i] === t)
   if (allOk) {
     switchesCompleted = true
-    switchRefs.forEach(s => s.rect?.remove())
+    // 移除热区并置 null：步骤9→10 需重建热区，watch 以 rect 为空判断
+    switchRefs.forEach(s => {
+      s.rect?.remove()
+      s.rect = null
+    })
     if (props.stepOrder === 10) {
       // 盖盖：销毁接线盒/开关图，切换 Covered 背景
       switchRefs.forEach(s => s.img.remove())
@@ -1549,11 +1553,13 @@ function getDraftState() {
 function restoreDraft(d) {
   if (d?.meterPlaced) {
     meterPlaced.value = true
-    // 恢复挂表状态时移除挂表热区（画布先于草稿构建，需同步清理）
-    dropZoneRect?.remove()
-    dropZoneRect = null
-    // 背景按步骤推断（步骤8+ 为 Wired/WithCableTies，不覆盖为 WithMeter）
-    if (props.stepOrder >= 6) switchBackground(bgForStep(props.stepOrder))
+    // 步骤5 回档：保留挂表热区供再次点击提交（单步完成态，用户未提交时靠热区补提交）；步骤6+ 移除
+    if (props.stepOrder >= 6) {
+      dropZoneRect?.remove()
+      dropZoneRect = null
+    }
+    // 背景按步骤推断（步骤5 回档也需 WithMeter 背景，避免看起来像未挂表）
+    if (props.stepOrder >= 5) switchBackground(bgForStep(props.stepOrder))
   }
   // 画布就绪即可恢复（步骤11 无接线盒，junctionBoxRect.w 恒为 0，不能作为就绪条件）
   if (leafer) {
@@ -1646,7 +1652,9 @@ onMounted(() => {
         if (d) {
           // 当前步骤草稿缺步骤7 结果（HMR 后未保存过）→ 从前序步骤记录补充
           if (props.stepOrder >= 7 && (!d.connectedWires || d.connectedWires.length === 0)) {
-            const steps = JSON.parse(sessionStorage.getItem('experimentSteps') || '[]')
+            const steps = JSON.parse(
+              localStorage.getItem('experimentSteps_' + props.experimentId) || '[]'
+            )
             const prevId = steps.find(s => s.stepOrder === props.stepOrder - 1)?.stepId || ''
             if (prevId && prevId !== props.stepId) {
               try {
@@ -1665,24 +1673,19 @@ onMounted(() => {
 watch(
   () => props.stepOrder,
   order => {
-    console.log(
-      '[watch stepOrder]',
-      order,
-      'switchRefs:',
-      switchRefs.length,
-      'rect:',
-      switchRefs[0]?.rect
-    )
     // 进入步骤6+ 且未挂表（异常跳转）→ 补上已挂表状态（背景按步骤推断）
     if (order >= 6 && !meterPlaced.value) {
       meterPlaced.value = true
       switchBackground(bgForStep(order))
     }
     if (order >= 5 && order < 11 && leafer) {
-      // 步骤5→6 / 9→10：开关此前无热区，进入可交互步骤需重建以生成热区
-      if ((order === 6 || order === 10) && switchRefs.length > 0 && !switchRefs[0].rect) {
-        console.log('[watch] rebuildSwitches')
-        rebuildSwitches()
+      // 步骤6/10：确保开关热区存在（步骤6 完成移除热区后置 null，9→10 跳转时需重建）
+      if (order === 6 || order === 10) {
+        if (switchRefs.length === 0) {
+          ensureSwitches()
+        } else if (!switchRefs[0].rect) {
+          rebuildSwitches()
+        }
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区
       if (order === 8) {

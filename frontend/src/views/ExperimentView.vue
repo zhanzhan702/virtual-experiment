@@ -19,7 +19,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
 import PromptModal from '@/components/PromptModal.vue'
 import Images from '@/constants/images'
@@ -27,7 +26,6 @@ import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/a
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 const showNotice = ref(false)
 const showWorkBg = ref(false)
@@ -121,7 +119,7 @@ async function startNewExperiment(type) {
   const templateCode = type == 'high' ? 'HV_TRAIN_V1' : 'LV_TRAIN_V1'
   try {
     const res = await startExperiment(templateCode)
-    sessionStorage.setItem('experimentSteps', JSON.stringify(res.steps))
+    localStorage.setItem('experimentSteps_' + res.experimentId, JSON.stringify(res.steps))
     ElMessage.success('实验已启动！')
     router.push({
       path: type == 'high' ? '/HWT' : '/LWT',

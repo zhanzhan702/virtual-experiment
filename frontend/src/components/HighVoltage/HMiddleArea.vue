@@ -303,12 +303,15 @@ function updateMiddleArea() {
   middleAreaStyle.value = { left: '12vw', right: '12vw', top: '5vh', bottom: '5vh' }
 }
 onMounted(() => {
-  // 步骤4：没有草稿时自动标记物品已放置（步骤3已提交过）
+  // 步骤4/12：物品已放置（步骤3已提交过）。步骤12 为 v-if 重挂载，watch 不触发，需在此兜底；
+  // 父组件 restoreDraft 后执行，有草稿时以草稿为准
   if (isStep4.value) {
     const skipFlag = sessionStorage.getItem('_hcl_step4_skip_placement')
     if (skipFlag) {
       markPlacedForStep4()
       sessionStorage.removeItem('_hcl_step4_skip_placement')
+    } else if (!itemPlaced.some(v => v)) {
+      markPlacedForStep4()
     }
   }
   // 加载围栏图片宽高比（用于命中检测自动计算）

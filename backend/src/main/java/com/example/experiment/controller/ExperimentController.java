@@ -113,6 +113,16 @@ public class ExperimentController {
     return ResponseEntity.ok(data);
   }
 
+  /** 获取实验步骤列表（恢复时重建步骤映射，防止 stepId 错位） */
+  @GetMapping("/{experimentId}/steps")
+  public ResponseEntity<?> getSteps(
+      @PathVariable String experimentId,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null) return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    return ResponseEntity.ok(experimentService.getExperimentSteps(experimentId));
+  }
+
   /** 获取实验总耗时（已用秒数，含草稿） */
   @GetMapping("/{experimentId}/duration")
   public ResponseEntity<?> getTotalDuration(

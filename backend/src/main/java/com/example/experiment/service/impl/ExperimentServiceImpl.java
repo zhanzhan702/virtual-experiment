@@ -259,4 +259,23 @@ public class ExperimentServiceImpl implements ExperimentService {
         .map(s -> s.getDurationSeconds() != null ? s.getDurationSeconds() : 0)
         .reduce(0, Integer::sum);
   }
+
+  @Override
+  public List<Map<String, Object>> getExperimentSteps(String experimentId) {
+    var exp = userExperimentsMapper.selectById(experimentId);
+    if (exp == null) return Collections.emptyList();
+    var steps =
+        stepsMapper.selectList(
+            new LambdaQueryWrapper<ExperimentSteps>()
+                .eq(ExperimentSteps::getTemplateId, exp.getTemplateId())
+                .orderByAsc(ExperimentSteps::getStepOrder));
+    return steps.stream()
+        .map(
+            s ->
+                Map.<String, Object>of(
+                    "stepId", s.getId(),
+                    "stepOrder", s.getStepOrder(),
+                    "stepName", s.getStepName()))
+        .collect(Collectors.toList());
+  }
 }
