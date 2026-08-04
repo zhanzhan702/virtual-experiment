@@ -5,16 +5,53 @@
   font-weight: normal;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+/* 页面固定操作按钮（保存进度 / 查看工作任务，高压场景页面共用） */
+.save-bar-fixed {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: var(--img-save-icon);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+.save-bar-fixed:hover {
+  background-image: var(--img-save-icon-hover);
+  transform: scale(1.05);
+}
+
+.save-bar-fixed.saving {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.save-bar-fixed.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.work-task-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+  width: clamp(120px, 14vw, 160px);
+  height: clamp(32px, 5vh, 40px);
+  cursor: pointer;
+  background-image: var(--img-work-task);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
+}
+
+.work-task-btn:hover {
+  background-image: var(--img-work-task-hover);
+  transform: scale(1.05);
 }

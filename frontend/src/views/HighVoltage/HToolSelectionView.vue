@@ -25,7 +25,6 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Suitcase, FolderOpened } from '@element-plus/icons-vue'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
@@ -172,56 +171,7 @@ const handleToolSelectionSubmit = async selectedMap => {
   z-index: 1;
 }
 
-.save-bar-fixed {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-save-icon);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.save-bar-fixed:hover {
-  background-image: var(--img-save-icon-hover);
-  transform: scale(1.05);
-}
-
-.save-bar-fixed.saving {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.save-bar-fixed.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* 查看工作任务按钮（左下角） */
-.work-task-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 100;
-  width: clamp(120px, 14vw, 160px);
-  height: clamp(32px, 5vh, 40px);
-  cursor: pointer;
-  background-image: var(--img-work-task);
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transition: transform 0.2s;
-}
-
-.work-task-btn:hover {
-  background-image: var(--img-work-task-hover);
-  transform: scale(1.05);
-}
+/* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
 
 .work-bg-img {
   max-width: 80vw;

@@ -9,8 +9,3 @@ export function login(data) {
 export function register(data) {
   return request.post('/auth/register', data)
 }
-
-/** 获取当前用户信息 */
-export function getUserInfo() {
-  return request.get('/auth/user-info')
-}

@@ -30,12 +30,6 @@ public class JwtUtils {
     return parseClaims(token).getSubject();
   }
 
-  /** 从 token 中获取角色列表 */
-  @SuppressWarnings("unchecked")
-  public static List<String> getRoles(String token) {
-    return parseClaims(token).get("roles", List.class);
-  }
-
   /** 验证 token 是否有效 */
   public static boolean validateToken(String token) {
     try {

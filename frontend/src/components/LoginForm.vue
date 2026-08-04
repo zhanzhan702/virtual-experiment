@@ -98,7 +98,6 @@ async function handleLogin() {
       username: form.username,
       password: form.password
     })
-    console.log('登录成功', res)
     if (authStore.isStudent) {
       router.push('/experiment')
     } else {

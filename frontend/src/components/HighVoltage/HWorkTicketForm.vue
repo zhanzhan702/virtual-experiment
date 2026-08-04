@@ -283,8 +283,6 @@ const manualValidate = () => {
   else if (formData.team !== '装表班') errors.team = '班组选择错误'
   if (!formData.leader) errors.leader = '请选择工作负责人'
   else if (formData.leader !== '张亮') errors.leader = '负责人选择错误'
-  // if (!formData.member1) errors.member1 = '请输入工作班人员1'
-  // else if (formData.member1 !== '李四') errors.member1 = '人员输入错误'
   if (!formData.member2) errors.member2 = '请选择工作班人员2'
   else if (formData.member2 !== '张三') errors.member2 = '人员选择错误'
   if (!formData.safetyMeasures || !formData.safetyMeasures.length)
@@ -300,9 +298,7 @@ const manualValidate = () => {
   return errors
 }
 
-// 以下 formRef 和 formRules 仅保留结构兼容
 const formRef = ref(null)
-const formRules = {}
 
 const validateAndSubmit = async () => {
   const errors = manualValidate()

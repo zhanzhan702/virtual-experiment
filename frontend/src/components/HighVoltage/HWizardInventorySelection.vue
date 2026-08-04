@@ -154,7 +154,6 @@
               type="success"
               :disabled="!allPagesFilled"
               @click="submitSelection"
-              :loading="submitting"
             >
               <el-icon>
                 <Finished />
@@ -361,7 +360,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Finished,
-  InfoFilled,
   WarningFilled,
   Right,
   UserFilled,
@@ -387,7 +385,6 @@ const emit = defineEmits(['finish', 'operation', 'submit-error'])
 
 // ============ 状态 ============
 const activeStep = ref(0)
-const submitting = ref(false)
 const hasSubmitted = ref(false)
 const selectedMap = ref({})
 const errorMap = ref({})
@@ -605,7 +602,6 @@ const errorMessages = computed(() => {
 
     let text = ''
     if (missingNames.length > 0 && wrongNames.length > 0) {
-      //text = `选错了 ${wrongNames.join('、')}，应为 ${missingNames.join('、')}`
       text = `选错了 ${wrongNames.join('、')}`
     } else if (missingNames.length > 0) {
       text = `缺少 ${missingNames.join('、')}`
@@ -629,10 +625,6 @@ function isSelected(catKey, toolId) {
 
 function isWrong(catKey, toolId) {
   return (errorMap.value[catKey] || []).includes(toolId)
-}
-
-function hasStepError(catKey) {
-  return (errorMap.value[catKey] || []).length > 0
 }
 
 function hasSlotItem(slotKey) {
@@ -741,7 +733,6 @@ function submitSelection() {
 
   errorMap.value = newErrorMap
   hasSubmitted.value = true
-  submitting.value = false
 
   if (hasAnyError) {
     // 统计本次有错误的页面数
@@ -750,7 +741,6 @@ function submitSelection() {
     errorDialogVisible.value = true
   } else {
     // 全部正确
-    // ElMessage.success('🎉 工器具选择全部正确！')
     emit('finish', { ...selectedMap.value })
   }
 }

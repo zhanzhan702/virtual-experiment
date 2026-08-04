@@ -285,17 +285,3 @@ export const categories = [
     ]
   }
 ]
-
-/**
- * 装备槽位显示配置
- */
-export const slotLabels = {
-  body: '身体',
-  head: '头部',
-  eye: '眼部',
-  hand: '手部',
-  foot: '足部',
-  device: '终端',
-  tool: '工器具',
-  wire: '线材'
-}
