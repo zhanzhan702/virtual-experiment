@@ -22,8 +22,13 @@
       </div>
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
-      <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活） -->
-      <div class="seal-confirm-btn" :class="{ active: sealsDone }" @click="onConfirmClick" />
+      <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活；绝对定位按画布像素） -->
+      <div
+        class="seal-confirm-btn"
+        :class="{ active: sealsDone }"
+        :style="confirmBtnStyle"
+        @click="onConfirmClick"
+      />
     </div>
   </div>
 </template>
@@ -48,6 +53,8 @@ const meterPlaced = ref(false)
 const isMeterFollowing = ref(false)
 const followStyle = ref({})
 const canvasStyle = ref({})
+// 确认键绝对定位样式（按画布实际像素计算，右下角，保持原有相对比例视觉）
+const confirmBtnStyle = ref({})
 const switchStates = ref([])
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
@@ -1367,6 +1374,17 @@ function applyDraft(d) {
   redrawCableCores()
 }
 
+/** 确认键按画布实际像素绝对定位（宽 18% 画布宽，右下角距右缘 4%、下缘下 4%） */
+function updateConfirmBtn(w, h) {
+  const size = Math.round(w * 0.18)
+  confirmBtnStyle.value = {
+    width: size + 'px',
+    height: size + 'px',
+    left: Math.round(w * 0.96 - size) + 'px',
+    top: Math.round(h * 1.04 - size) + 'px'
+  }
+}
+
 async function createCanvas() {
   const img = bgImgRef.value
   if (!img) return
@@ -1374,6 +1392,7 @@ async function createCanvas() {
   const w = Math.round(r.width)
   const h = Math.round(r.height)
   canvasStyle.value = { width: w + 'px', height: h + 'px' }
+  updateConfirmBtn(w, h)
   leafer = new Leafer({ view: leaferViewRef.value, width: w, height: h })
   bgLayer = new Group()
   hitLayer = new Group()
@@ -1581,6 +1600,7 @@ function onResize() {
     const h = Math.round(r.height)
     canvasStyle.value = { width: w + 'px', height: h + 'px' }
     leafer.resize({ width: w, height: h })
+    updateConfirmBtn(w, h)
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
@@ -1785,14 +1805,10 @@ defineExpose({
   white-space: nowrap;
 }
 
-/* 确认键（画布内部右下角，大小/位置相对画布） */
+/* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算） */
 .seal-confirm-btn {
   position: absolute;
-  right: 4%;
-  bottom: -4%;
   z-index: 200;
-  width: 18%;
-  aspect-ratio: 1;
   cursor: pointer;
   background-image: var(--img-confirm-btn);
   background-size: contain;
