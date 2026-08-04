@@ -1743,7 +1743,8 @@ defineExpose({
   position: fixed;
   left: 12vw;
   right: 12vw;
-  top: 5vh;
+  /* 上移下移缩小画布，顶部预留空间放提示栏等元素 */
+  top: 14vh;
   bottom: 5vh;
   display: flex;
   align-items: center;
@@ -1759,8 +1760,8 @@ defineExpose({
 }
 
 .bg-img {
-  max-width: 76vw;
-  max-height: 90vh;
+  max-width: 66vw;
+  max-height: 76vh;
   display: block;
   user-select: none;
 }
