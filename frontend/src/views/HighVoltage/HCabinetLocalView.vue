@@ -288,16 +288,7 @@ async function submitVoltageCheck() {
   try {
     await submitStep(payload)
     ElMessage.success('验电操作完成！')
-    if (currentStepOrder.value === 12) {
-      // 步骤12 终端小室三步验电完成 → 暂回实验列表（步骤13 后续开发）
-      setTimeout(() => {
-        router.replace({
-          path: '/experiment',
-          query: { experimentId: experimentId.value }
-        })
-      }, 800)
-      return
-    }
+    // 步骤4/12 均弹窗确认后进入下一步（步骤12 的弹窗后期更换）
     showElectrifyNotice.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
@@ -325,17 +316,18 @@ function onMeterRoomSuccessClose() {
   }, 500)
 }
 
-// 验电完成弹窗确认 → 进入计量小室挂电表（步骤5）
+// 验电完成弹窗确认 → 步骤4 进入挂表（5），步骤12 进入终端小室挂表（13）
 function onElectrifyNoticeClose() {
   showElectrifyNotice.value = false
   setTimeout(() => {
-    const next = getStepsFromStore().find(s => s.stepOrder === 5)
+    const nextOrder = currentStepOrder.value === 12 ? 13 : 5
+    const next = getStepsFromStore().find(s => s.stepOrder === nextOrder)
     router.replace({
       path: '/HCL',
       query: {
         experimentId: experimentId.value,
         stepId: next?.stepId || stepId.value,
-        stepOrder: 5
+        stepOrder: nextOrder
       }
     })
   }, 500)

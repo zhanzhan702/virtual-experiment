@@ -1,70 +1,27 @@
 <!-- 中间交互区域：围栏/告示牌放置（步骤3）+ 三步验电（步骤4）+ 鼠标跟随 -->
 <template>
   <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
-  <div
-    class="middle-area"
-    :class="{ 'is-following': showFollowing }"
-    :style="middleAreaStyle"
-    @click="onMiddleAreaClick"
-  >
+  <div class="middle-area" :class="{ 'is-following': showFollowing }" :style="middleAreaStyle"
+    @click="onMiddleAreaClick">
     <div class="cabinet-group" ref="cabinetGroupRef">
-      <img
-        :src="Images.cabinetGroupOverview"
-        alt="柜体局部"
-        class="cabinet-img"
-        draggable="false"
-      />
+      <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
+      <!-- 三步验电第2步：柜体验电区域点击热区可视化（区域由 CABINET_CHECK_ZONE 控制） -->
+      <div v-if="vtActive && vtStep === 1" class="cabinet-hit-zone" :style="hitZoneStyle" />
       <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-      <img
-        v-if="itemPlaced[0]"
-        :src="Images.barLeftFence"
-        class="placed-img"
-        :style="LEFT_FENCE_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="itemPlaced[0]"
-        :src="Images.barRightFence"
-        class="placed-img"
-        :style="RIGHT_FENCE_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="itemPlaced[1]"
-        :src="Images.barSignStopHighVoltage"
-        class="placed-img"
-        :style="LEFT_SIGN_HV_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="itemPlaced[1]"
-        :src="Images.barSignStopHighVoltage"
-        class="placed-img"
-        :style="RIGHT_SIGN_HV_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="itemPlaced[2]"
-        :src="Images.barSignPersonWorking"
-        class="placed-img"
-        :style="SIGN_WORKING_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="itemPlaced[3]"
-        :src="Images.barSafetyNotice"
-        class="placed-img"
-        :style="SAFETY_NOTICE_STYLE"
-        draggable="false"
-      />
+      <img v-if="itemPlaced[0]" :src="Images.barLeftFence" class="placed-img" :style="LEFT_FENCE_STYLE"
+        draggable="false" />
+      <img v-if="itemPlaced[0]" :src="Images.barRightFence" class="placed-img" :style="RIGHT_FENCE_STYLE"
+        draggable="false" />
+      <img v-if="itemPlaced[1]" :src="Images.barSignStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
+        draggable="false" />
+      <img v-if="itemPlaced[1]" :src="Images.barSignStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
+        draggable="false" />
+      <img v-if="itemPlaced[2]" :src="Images.barSignPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
+        draggable="false" />
+      <img v-if="itemPlaced[3]" :src="Images.barSafetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
+        draggable="false" />
       <!-- 步骤12 终端小室：地板 3 张垃圾占位（后续替换为垃圾 png） -->
-      <div
-        v-if="props.stepOrder === 12"
-        class="trash-placeholder"
-        v-for="t in 3"
-        :key="t"
-        :style="trashStyle(t - 1)"
-      />
+      <div v-if="props.stepOrder === 12" class="trash-placeholder" v-for="t in 3" :key="t" :style="trashStyle(t - 1)" />
     </div>
   </div>
 
@@ -140,6 +97,22 @@ const LEFT_SIGN_HV_STYLE = { left: '1.5%', top: '98.5%', width: '10.6%', height:
 const RIGHT_SIGN_HV_STYLE = { left: '78.3%', top: '97.2%', width: '10.6%', height: 'auto' }
 const SIGN_WORKING_STYLE = { left: '43.5%', top: '43%', width: '10%', height: 'auto' }
 const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: 'auto' }
+// ★ 三步验电第2步点击区域（相对 cabinet-group 的百分比 left/top/宽/高，用户按需调整）
+// ★ 三步验电第2步点击区域（相对 cabinet-group 百分比；第4步计量小室与第12步终端小室位置不同）
+const CABINET_CHECK_ZONES = {
+  4: { left: 59, top: 65, width: 5, height: 7 },
+  12: { left: 59, top: 23.5, width: 5, height: 7 }
+}
+const checkZone = computed(() => CABINET_CHECK_ZONES[props.stepOrder] || CABINET_CHECK_ZONES[4])
+const hitZoneStyle = computed(() => {
+  const z = checkZone.value
+  return {
+    left: z.left + '%',
+    top: z.top + '%',
+    width: z.width + '%',
+    height: z.height + '%'
+  }
+})
 // ★ 围栏图片宽高比（运行时从实际图片获取，用于命中检测）
 const fenceAspect = reactive({ left: 1, right: 1 })
 function loadImageAspect(src, key) {
@@ -234,6 +207,19 @@ function hitCabinetImg(e) {
   return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
 }
 
+/** 三步验电第2步：CABINET_CHECK_ZONE 矩形区域内命中检测（与热区可视化范围一致） */
+function hitCheckZone(e) {
+  const g = cabinetGroupRef.value
+  if (!g) return false
+  const z = checkZone.value
+  const r = g.getBoundingClientRect()
+  const x = r.left + (r.width * z.left) / 100
+  const y = r.top + (r.height * z.top) / 100
+  const w = (r.width * z.width) / 100
+  const h = (r.height * z.height) / 100
+  return e.clientX >= x && e.clientX <= x + w && e.clientY >= y && e.clientY <= y + h
+}
+
 function onMiddleAreaClick(e) {
   if (!isFollowing.value) return
   const idx = followingToolIdx.value
@@ -270,9 +256,9 @@ function onPageClick(e) {
   const g = cabinetGroupRef.value
   if (!g) return
   const s = g.querySelector('.power-socket-img')
-  const c = g.querySelector('.cabinet-img')
   if (vtStep.value === 0) hitTest(e, s) ? vtStep.value++ : ((vtStep.value = 0), emit('error'))
-  else if (vtStep.value === 1) hitTest(e, c) ? vtStep.value++ : ((vtStep.value = 0), emit('error'))
+  else if (vtStep.value === 1)
+    hitCheckZone(e) ? vtStep.value++ : ((vtStep.value = 0), emit('error'))
   else if (vtStep.value === 2) hitTest(e, s) ? vtStep.value++ : ((vtStep.value = 0), emit('error'))
   if (vtStep.value === 3) {
     vtDone.value = true
@@ -378,6 +364,15 @@ defineExpose({
   display: block;
   user-select: none;
   pointer-events: auto;
+}
+
+/* 三步验电第2步点击热区（范围由 CABINET_CHECK_ZONE 百分比控制） */
+.cabinet-hit-zone {
+  position: absolute;
+  border: 2px dashed rgba(0, 150, 255, 0.9);
+  background: rgba(0, 150, 255, 0.12);
+  pointer-events: none;
+  z-index: 4;
 }
 
 .power-socket-img {
