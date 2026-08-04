@@ -326,8 +326,32 @@ async function handleMeteringStepCompleted(stepOrder) {
           stepOrder: 7
         }
       })
-    } else {
+    } else if (stepOrder === 7) {
       ElMessage.success('接线完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === 8)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 8
+        }
+      })
+    } else if (stepOrder === 8) {
+      ElMessage.success('6芯信号线连接完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === 9)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 9
+        }
+      })
+    } else {
+      ElMessage.success('步骤完成')
       hasSubmitted.value = false
       setTimeout(() => {
         router.replace({
