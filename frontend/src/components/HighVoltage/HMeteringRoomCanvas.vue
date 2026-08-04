@@ -72,8 +72,9 @@ const tieFollowStyle = ref({})
 const tiePlaced = ref(false)
 
 // 步骤6+ 必然已挂表：初始化背景（不依赖草稿，刷新/重挂载均正确）
-// 步骤5=NoMeter、6-8=WithMeter、9=Wired（步骤8 完成时切）、10+=WithCableTies（步骤9 完成时切）
+// 步骤5=NoMeter、6-8=WithMeter、9=Wired（步骤8 完成时切）、10=WithCableTies（步骤9 完成时切）、11+=Covered（步骤10 完成时切）
 function bgForStep(order) {
+  if (order >= 11) return Images.meteringRoomCovered
   if (order >= 10) return Images.meteringRoomWithCableTies
   if (order >= 9) return Images.meteringRoomWired
   return Images.meteringRoomWithMeter
@@ -109,10 +110,12 @@ const SWITCHES = [
   { orient: 'v', target: 'off', on: { x: 0.654, y: 0.41 }, off: { x: 0.654, y: 0.5 } },
   { orient: 'hU', target: 'on', on: { x: 0.688, y: 0.4 }, off: { x: 0.74, y: 0.4 } },
   { orient: 'hD', target: 'on', on: { x: 0.829, y: 0.66 }, off: { x: 0.775, y: 0.66 } },
-  { orient: 'v', target: 'on', on: { x: 0.907, y: 0.41 }, off: { x: 0.907, y: 0.5 } }
+  { orient: 'v', target: 'off', on: { x: 0.907, y: 0.41 }, off: { x: 0.907, y: 0.5 } }
 ]
 // 开关图宽（相对接线盒宽度的比率），高度按图片比例 auto（不压缩）
 const SWITCH_SIZE = { w: 0.1 }
+// 步骤10 第二次调整目标（按开关顺序 1-10：1on 2off 3on 4on 5on 6on 7on 8off 9on 10on）
+const SWITCH_TARGETS_2 = ['on', 'off', 'on', 'on', 'on', 'on', 'on', 'off', 'on', 'on']
 // 图片宽高比兜底值（当前资源实际比例：JunctionBox 1272×505、JunctionBoxSwitch 251×119）
 // 图片更换时需同步更新；运行时优先加载图片真实比例
 const JUNCTION_BOX_ASPECT = 2.519
@@ -384,9 +387,9 @@ function buildSwitches() {
       zIndex: 2
     })
     hitLayer.add(img)
-    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），蓝色半透明便于调整定位；仅步骤6 可交互
+    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），蓝色半透明便于调整定位；仅步骤6/10 可交互
     let rect = null
-    if (props.stepOrder === 6) {
+    if (props.stepOrder === 6 || props.stepOrder === 10) {
       rect = new Rect({
         x,
         y,
@@ -426,9 +429,14 @@ function loadSwitchAspect() {
   })
 }
 
-/** 步骤5+ 且接线盒就绪时构建开关（首次构建，保留草稿恢复） */
+/** 步骤5-10 且接线盒就绪时构建开关（首次构建，保留草稿恢复）；步骤11+ 接线盒已销毁 */
 function ensureSwitches() {
-  if (props.stepOrder >= 5 && switchRefs.length === 0 && junctionBoxRect.w > 0) {
+  if (
+    props.stepOrder >= 5 &&
+    props.stepOrder < 11 &&
+    switchRefs.length === 0 &&
+    junctionBoxRect.w > 0
+  ) {
     buildSwitches()
     if (pendingDraft) {
       applyDraft(pendingDraft)
@@ -1135,6 +1143,7 @@ function loadJunctionBoxAspect() {
 }
 
 function toggleSwitch(i) {
+  if (props.stepOrder !== 6 && props.stepOrder !== 10) return
   emit('operation')
   const s = switchRefs[i]
   if (!s) return
@@ -1145,14 +1154,23 @@ function toggleSwitch(i) {
   checkSwitches()
 }
 
-/** 全部开关达到目标状态 → 提交（仅步骤6），并移除开关热区（保留开关图，重建时再生成） */
+/** 全部开关达到目标状态 → 提交（步骤6/10），移除开关热区；步骤10 额外销毁接线盒/开关并切 Covered 背景 */
 function checkSwitches() {
-  if (props.stepOrder !== 6) return
+  if (props.stepOrder !== 6 && props.stepOrder !== 10) return
   if (switchesCompleted) return
-  const allOk = SWITCHES.every((cfg, i) => switchStates.value[i] === cfg.target)
+  const targets = props.stepOrder === 10 ? SWITCH_TARGETS_2 : SWITCHES.map(s => s.target)
+  const allOk = targets.every((t, i) => switchStates.value[i] === t)
   if (allOk) {
     switchesCompleted = true
     switchRefs.forEach(s => s.rect?.remove())
+    if (props.stepOrder === 10) {
+      // 盖盖：销毁接线盒/开关图，切换 Covered 背景
+      switchRefs.forEach(s => s.img.remove())
+      switchRefs.length = 0
+      junctionBoxImg?.remove()
+      junctionBoxImg = null
+      switchBackground(Images.meteringRoomCovered)
+    }
     emit('stepCompleted', props.stepOrder)
   }
 }
@@ -1223,7 +1241,7 @@ async function createCanvas() {
   bindEvents(w, h)
   leafer.on(PointerEvent.MOVE, onCanvasMove)
   buildDropZone(w, h)
-  buildJunctionBox(w, h)
+  if (props.stepOrder < 11) buildJunctionBox(w, h)
   ensureCable()
   buildTieDropZone()
 }
@@ -1395,8 +1413,8 @@ function onResize() {
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
-    // 步骤5+：重建热区/接线盒/开关/孔热区（按当前状态保持视觉位置）
-    if (props.stepOrder >= 5) {
+    // 步骤5-10：重建热区/接线盒/开关/孔热区（按当前状态保持视觉位置）
+    if (props.stepOrder >= 5 && props.stepOrder < 11) {
       const saved = [...switchStates.value]
       hitLayer.removeAll()
       switchRefs.length = 0
@@ -1483,9 +1501,9 @@ watch(
       meterPlaced.value = true
       switchBackground(bgForStep(order))
     }
-    if (order >= 5 && leafer) {
-      // 步骤5→6：开关在步骤5 构建时无热区，进入步骤6 需重建以生成热区
-      if (order === 6 && switchRefs.length > 0 && !switchRefs[0].rect) {
+    if (order >= 5 && order < 11 && leafer) {
+      // 步骤5→6 / 9→10：开关此前无热区，进入可交互步骤需重建以生成热区
+      if ((order === 6 || order === 10) && switchRefs.length > 0 && !switchRefs[0].rect) {
         rebuildSwitches()
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区

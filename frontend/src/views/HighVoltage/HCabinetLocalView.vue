@@ -362,6 +362,18 @@ async function handleMeteringStepCompleted(stepOrder) {
           stepOrder: 10
         }
       })
+    } else if (stepOrder === 10) {
+      ElMessage.success('接线盒处理完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === 11)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 11
+        }
+      })
     } else {
       ElMessage.success('步骤完成')
       hasSubmitted.value = false
