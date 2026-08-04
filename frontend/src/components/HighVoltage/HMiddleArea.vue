@@ -104,10 +104,10 @@ const allItemsPlaced = computed(() => itemPlaced.every(v => v))
 const vtActive = ref(false)
 const vtStep = ref(0)
 const vtDone = ref(false)
+// 鼠标是否位于插座区域：在插座上显示验电状态图，离开插座切回正常图
+const vtProbing = ref(false)
 const vtImg = computed(() =>
-  vtStep.value === 1 || vtStep.value === 3
-    ? Images.barVoltageTesterWarning
-    : Images.barVoltageTesterNormal
+  vtProbing.value ? Images.barVoltageTesterWarning : Images.barVoltageTesterNormal
 )
 
 // ─── 跟随 ───
@@ -208,12 +208,22 @@ function toggleVoltageTester(e) {
     return
   }
   vtActive.value
-    ? ((vtActive.value = false), (vtStep.value = 0))
+    ? ((vtActive.value = false), (vtStep.value = 0), (vtProbing.value = false))
     : ((vtActive.value = true), (vtStep.value = 0), moveCursorTo(e))
 }
 
 function onPageMouseMove(e) {
   if (isFollowing.value || vtActive.value) moveCursorTo(e)
+}
+
+/** 验电笔按住插座（mousedown）时切换验电状态图，松开（mouseup）恢复正常图 */
+function onPageMouseDown(e) {
+  if (!vtActive.value) return
+  const s = cabinetGroupRef.value?.querySelector('.power-socket-img')
+  vtProbing.value = !!s && hitTest(e, s)
+}
+function onPageMouseUp() {
+  vtProbing.value = false
 }
 
 /** 柜体图像区域内点击命中检测 */
@@ -267,6 +277,7 @@ function onPageClick(e) {
   if (vtStep.value === 3) {
     vtDone.value = true
     vtActive.value = false
+    vtProbing.value = false
     emit('voltageCheckDone')
   }
 }
@@ -334,6 +345,8 @@ defineExpose({
   selectTool,
   toggleVoltageTester,
   onPageMouseMove,
+  onPageMouseDown,
+  onPageMouseUp,
   onPageClick,
   markPlacedForStep4,
   restoreDraft

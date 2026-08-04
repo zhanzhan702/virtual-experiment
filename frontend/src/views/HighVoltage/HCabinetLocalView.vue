@@ -1,6 +1,12 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div class="cabinet-local-page" @mousemove="onPageMouseMove" @click="onPageClick">
+  <div
+    class="cabinet-local-page"
+    @mousemove="onPageMouseMove"
+    @mousedown="onPageMouseDown"
+    @mouseup="onPageMouseUp"
+    @click="onPageClick"
+  >
     <!-- 左侧物品栏 -->
     <HLeftToolBar
       :items="leftTools"
@@ -207,6 +213,14 @@ function onRightToolClick(idx, e) {
 function onPageMouseMove(e) {
   middleRef.value?.onPageMouseMove?.(e)
   meteringRef.value?.onPageMouseMove?.(e)
+}
+
+function onPageMouseDown(e) {
+  middleRef.value?.onPageMouseDown?.(e)
+}
+
+function onPageMouseUp(e) {
+  middleRef.value?.onPageMouseUp?.(e)
 }
 
 /** 4 物品全部放置 → 提交步骤3并显示视频 */
