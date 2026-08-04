@@ -13,6 +13,7 @@
 | 路由        | Vue Router                      | 4.6       |
 | 状态管理    | Pinia                           | 3.0       |
 | HTTP 客户端 | Axios                           | 1.16      |
+| 画布交互    | Leafer UI（计量小室画布）       | 2.x       |
 | 后端框架    | Spring Boot                     | 4.0       |
 | ORM         | MyBatis-Plus                    | 3.5       |
 | 数据库      | MySQL                           | 8.0       |
@@ -95,7 +96,11 @@ virtual-experiment/
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
 │   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
-│   │   │   │   └── HSceneHotspotOverlay.vue # 场景热区叠加层
+│   │   │   │   ├── HSceneHotspotOverlay.vue # 场景热区叠加层
+│   │   │   │   ├── HLeftToolBar.vue         # 左侧工具栏（围栏/告示牌）
+│   │   │   │   ├── HRightToolBar.vue        # 右侧工具栏（终端/工器具/线材）
+│   │   │   │   ├── HMiddleArea.vue          # 中间栏（步骤3/4 围栏+验电）
+│   │   │   │   └── HMeteringRoomCanvas.vue  # 计量小室 Leafer 画布（步骤5-11）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
 │   │   ├── views/
@@ -108,7 +113,7 @@ virtual-experiment/
 │   │   │   │   ├── HWorkTicketView.vue      # 工作票填写步骤页
 │   │   │   │   ├── HToolSelectionView.vue   # 工器具选择步骤页
 │   │   │   │   ├── HSceneOverviewView.vue   # 配电房全景图页
-│   │   │   │   └── HCabinetLocalView.vue    # 柜体局部操作页（步骤3+4）
+│   │   │   │   └── HCabinetLocalView.vue    # 柜体局部操作页（步骤3-12 编排层）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketView.vue      # 低压工作票步骤页
 │   │   ├── stores/
@@ -139,11 +144,11 @@ flowchart LR
     B --> C[启动实验]
     C --> D[步骤 1<br/>填写工作票]
     D --> E[步骤 2<br/>工器具选择]
-    E --> F[全景图<br/>配电房漫游]
-    F --> G[步骤 3<br/>柜体操作<br/>设围栏 + 挂牌]
-    G --> H[教学视频]
-    H --> I[步骤 4<br/>三步验电]
-    I --> J[实验完成]
+    E --> F[步骤 3<br/>设围栏 + 挂牌]
+    F --> G[步骤 4<br/>三步验电]
+    G --> H[步骤 5-11<br/>计量小室<br/>Leafer 画布]
+    H --> I[步骤 12<br/>终端小室<br/>三步验电]
+    I --> J[后续步骤<br/>终端小室操作]
 ```
 
 ### 已实现
@@ -154,23 +159,34 @@ flowchart LR
 | 全景漫游 | `/HSO` | `HSceneOverviewView` | 配电房全景图、梯形热区定位、柜体入口 |
 | 步骤 1 | `/HWT` | `HWorkTicketView` | 填写工作票（手动校验、存档/恢复） |
 | 步骤 2 | `/HTS` | `HToolSelectionView` | 工器具选择向导（分页、选项卡、存档/恢复） |
-| 步骤 3 | `/HCL` | `HCabinetLocalView` | 柜体局部操作：设围栏 + 挂告示牌（4 物品拖放） |
-| 步骤 4 | `/HCL` | `HCabinetLocalView` | 三步验电（电源→柜体→电源）、提交完成 |
+| 步骤 3 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 设围栏 + 挂告示牌（4 物品拖放） |
+| 步骤 4 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 三步验电（电源→柜体→电源） |
+| 步骤 5 | `/HCL` | `HMeteringRoomCanvas` | 挂电表（点击跟随 + 热区放置 + 背景切换） |
+| 步骤 6 | `/HCL` | `HMeteringRoomCanvas` | 接线盒开关调整（10 开关双坐标定位） |
+| 步骤 7 | `/HCL` | `HMeteringRoomCanvas` | 接电压电流进出线（7 根导线，状态机 + Path 绘制） |
+| 步骤 8 | `/HCL` | `HMeteringRoomCanvas` | 6芯信号线连接（两阶段接线 + 悬浮孔位信息） |
+| 步骤 9 | `/HCL` | `HMeteringRoomCanvas` | 扎带标识牌放置（单步 + 背景切换） |
+| 步骤 10 | `/HCL` | `HMeteringRoomCanvas` | 接线盒第二次调整 + 盖盖（Covered 背景） |
+| 步骤 11 | `/HCL` | `HMeteringRoomCanvas` | 加铅封（5 处独立坐标/旋转）+ 确认键 |
+| 步骤 12 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 终端小室三步验电（复用步骤4 逻辑 + 垃圾占位） |
 
 ### 已实现功能
 
 - ✅ 用户注册/登录（JWT + BCrypt）
-- ✅ 实验启动、步骤提交、进度存档、草稿恢复
+- ✅ 实验启动、步骤提交、进度存档、草稿恢复（含前序步骤数据补充）
 - ✅ 未完成实验检测与恢复/删除
-- ✅ 鼠标跟随物品拖放、命中检测
-- ✅ 三步验电流程（电压检测笔交互）
+- ✅ 鼠标跟随物品拖放、命中检测（Vue HTML 层）
+- ✅ 三步验电流程（电压检测笔交互，步骤 4 / 12 复用）
 - ✅ 配电房全景图 + 梯形热区（CSS `clip-path`）
-- ✅ 响应式布局（`vw`/`vh`/`%` 相对定位）
-- ✅ 教学视频占位过渡
+- ✅ 计量小室 Leafer 画布全流程（步骤 5-11：挂表 / 开关 / 接线 / 信号线 / 扎带 / 盖盖 / 铅封）
+- ✅ 画布热区可视化（蓝色半透明，坐标常量集中微调）
+- ✅ 响应式布局（`vw`/`vh`/`%` 相对定位，画布 shrink-wrap 防缩放错位）
+- ✅ 教学视频占位过渡、确认键（浮动高亮动画）
 - ✅ 操作统计（时长、操作次数、错误次数）与评分
 
 ### 待完善
 
+- 步骤 13-23（终端小室挂表、接线盒、信号线、通信模块等）
 - 低压场景全部步骤
 - 考试模式（当前仅支持训练模式）
 - 教师管理后台功能
@@ -332,3 +348,54 @@ npm run dev
 - **级联删除**：重新开始时仅删除未完成实验（status=0），已完成实验受保护
 - **操作统计**：自动记录操作次数、错误次数、耗时，作为评分依据
 - **评分机制**：满分 100 分，每错误一次扣 10 分，最低 0 分
+
+---
+
+## Leafer 开发要点（计量小室画布）
+
+计量小室步骤（5-11）基于 **Leafer UI** 实现（`frontend/src/components/HighVoltage/HMeteringRoomCanvas.vue`），以下是沉淀的开发经验，供后续画布功能参考。
+
+### API 用法（易踩坑）
+
+| 要点 | 说明 |
+| ---- | ---- |
+| `PointerEvent.CLICK` | 事件常量在 `PointerEvent` 上，基础 `Event` 类没有 `CLICK` |
+| `e.getLocalPoint()` | 取画布局部坐标（`getLocal()` 是 protected，构建产物不可用） |
+| `leafer.resize({ width, height })` | resize 需传对象参数，不是 `(w, h)` |
+| `hittable: false` | 元素不参与命中检测、不拦截点击（用于导线/跟随线等纯视觉元素；属性名是 `hittable` 不是 `hit`） |
+| `zIndex` | 仅在同一父级内比较，跨 Group 不生效 |
+
+### 画布对齐（防缩放错位）
+
+- 容器 shrink-wrap 紧贴背景图实际渲染尺寸，Leafer 画布尺寸 = 背景图渲染尺寸
+- 热区坐标统一用**背景图坐标（画布比率）**，窗口缩放时画布整体等比变化，热区相对位置不变
+- 图片不压缩比例：宽固定、高按图片真实宽高比 auto（运行时加载 `naturalWidth/naturalHeight`，兜底常量 + `onerror`）
+
+### 分层与热区
+
+- 两层结构：`bgLayer`（背景图，按步骤切换）+ `hitLayer`（接线盒/开关/热区/导线）
+- 层级顺序用 zIndex：背景 0 < 接线盒 1 < 开关/信号线 2 < 热区 3 < 导线 4
+- 热区用**蓝色半透明填充**可视化，坐标集中为常量（如 `DROP_ZONE`/`SEALS`），由用户按背景图微调后移除
+
+### 生命周期与重建
+
+- 同组件导航（`/HCL?stepOrder=N`）不重新挂载 → `watch(stepOrder)` 处理步骤切换（构建/销毁对应热区）
+- 图片比例异步加载：**先按兜底比例构建，比例就绪后校正并重建**（保留状态），避免元素不可见
+- `onResize` 重建：`hitLayer.removeAll()` 后需清空所有引用数组并重建（含已放置的图片/导线重绘）
+- 步骤完成销毁的资源（信号线、接线盒等）用状态守卫（如 `cableDone`）防止重建
+
+### 草稿恢复（回档）要点
+
+- `getDraftState()` 返回全部状态（数组需**归一化为定长**，稀疏数组 JSON 序列化后长度不一致会导致恢复条件失败）
+- `restoreDraft` 判断画布就绪用 `leafer` 是否存在即可，**不要依赖 `junctionBoxRect.w > 0`**（步骤 11 无接线盒时恒为 0）
+- pendingDraft 在 `createCanvas` 末尾统一应用（不要只挂在 ensureSwitches 上，步骤 11 不构建接线盒时会丢失）
+- 恢复已放置元素（铅封/导线）后需**重建未放置位置的热区**（buildXxx 内部跳过已放置）
+- 前序步骤结果（如步骤 7 导线）可能因 HMR 丢失 → 恢复时从**前序步骤记录补充**（getStepDraft 前一步 stepId）
+- 背景按步骤推断（`bgForStep`：6-8 WithMeter、9 Wired、10 WithCableTies、11+ Covered），不依赖草稿
+
+### 交互模式
+
+- 鼠标跟随用 **Vue HTML 层**（`meter-following` 固定定位跟随），不进画布
+- 导线/芯线跟随用画布内**动态 Path**（起点固定孔位、终点随鼠标，`PointerEvent.MOVE` 更新 path）
+- 双色导线（红黑/黄黑）用**两条半宽线并排**模拟（法向偏移）
+- 悬浮信息（孔位编号）用画布级 MOVE 遍历热区包含判断 → Vue 层 tooltip 显示在热区上方
