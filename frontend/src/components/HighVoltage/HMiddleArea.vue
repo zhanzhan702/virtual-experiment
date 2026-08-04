@@ -57,6 +57,14 @@
         :style="SAFETY_NOTICE_STYLE"
         draggable="false"
       />
+      <!-- 步骤12 终端小室：地板 3 张垃圾占位（后续替换为垃圾 png） -->
+      <div
+        v-if="props.stepOrder === 12"
+        class="trash-placeholder"
+        v-for="t in 3"
+        :key="t"
+        :style="trashStyle(t - 1)"
+      />
     </div>
   </div>
 
@@ -76,7 +84,17 @@ const props = defineProps({
 })
 const emit = defineEmits(['operation', 'error', 'fencesDone', 'voltageCheckDone'])
 
-const isStep4 = computed(() => props.stepOrder === 4)
+const isStep4 = computed(() => props.stepOrder === 4 || props.stepOrder === 12)
+
+// 步骤12 终端小室：3 张垃圾占位位置（相对柜体背景比率，占位微调）
+const TRASH_STYLES = [
+  { left: '-22%', top: '100%', width: '6%', height: '6%' },
+  { left: '43%', top: '121%', width: '7%', height: '7%' },
+  { left: '92%', top: '120%', width: '5%', height: '5%' }
+]
+function trashStyle(i) {
+  return TRASH_STYLES[i]
+}
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const itemPlaced = reactive([false, false, false, false])
@@ -395,5 +413,13 @@ defineExpose({
   width: 90%;
   height: 90%;
   object-fit: contain;
+}
+
+/* 步骤12 垃圾占位（后续替换为垃圾 png） */
+.trash-placeholder {
+  position: absolute;
+  background: rgba(120, 120, 120, 0.5);
+  border: 1px dashed rgba(80, 80, 80, 0.8);
+  border-radius: 4px;
 }
 </style>

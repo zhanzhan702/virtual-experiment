@@ -30,6 +30,7 @@
       @operation="onOperation"
       @error="onError"
       @step-completed="handleMeteringStepCompleted"
+      @confirm="onConfirmClick"
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
@@ -63,6 +64,15 @@
       <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
 
+    <!-- 计量小室操作完成弹窗（步骤11 确认键触发，确认后进入终端小室验电） -->
+    <PromptModal
+      :visible="showMeterRoomSuccess"
+      @close="onMeterRoomSuccessClose"
+      :button-bottom="'22%'"
+    >
+      <img :src="Images.meterRoomOperationSuccess" alt="计量小室操作完成" class="work-bg-img" />
+    </PromptModal>
+
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
@@ -91,6 +101,7 @@ const startedAt = ref(formatLocalTime(new Date()))
 const showWorkBg = ref(false)
 const showVideo = ref(false)
 const showElectrifyNotice = ref(false)
+const showMeterRoomSuccess = ref(false)
 const hasSubmitted = ref(false)
 const saving = ref(false)
 
@@ -105,8 +116,8 @@ const currentStepOrder = computed(() => {
   const s = getStepsFromStore().find(s => s.stepId === stepId.value)
   return s ? s.stepOrder : 3
 })
-const isStep4 = computed(() => currentStepOrder.value === 4)
-const isMeteringStep = computed(() => currentStepOrder.value >= 5)
+const isStep4 = computed(() => currentStepOrder.value === 4 || currentStepOrder.value === 12)
+const isMeteringStep = computed(() => currentStepOrder.value >= 5 && currentStepOrder.value <= 11)
 // 计量小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
 const rightToolActiveIdxs = computed(() => {
   if (!isMeteringStep.value) return []
@@ -263,10 +274,41 @@ async function submitVoltageCheck() {
   try {
     await submitStep(payload)
     ElMessage.success('验电操作完成！')
+    if (currentStepOrder.value === 12) {
+      // 步骤12 终端小室三步验电完成 → 暂回实验列表（步骤13 后续开发）
+      setTimeout(() => {
+        router.replace({
+          path: '/experiment',
+          query: { experimentId: experimentId.value }
+        })
+      }, 800)
+      return
+    }
     showElectrifyNotice.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
+}
+
+/** 画布确认键点击（步骤11 铅封完成后）→ 显示计量小室完成弹窗 */
+function onConfirmClick() {
+  showMeterRoomSuccess.value = true
+}
+
+/** 计量小室完成弹窗确认 → 进入终端小室三步验电（步骤12） */
+function onMeterRoomSuccessClose() {
+  showMeterRoomSuccess.value = false
+  setTimeout(() => {
+    const next = getStepsFromStore().find(s => s.stepOrder === 12)
+    router.replace({
+      path: '/HCL',
+      query: {
+        experimentId: experimentId.value,
+        stepId: next?.stepId || stepId.value,
+        stepOrder: 12
+      }
+    })
+  }, 500)
 }
 
 // 验电完成弹窗确认 → 进入计量小室挂电表（步骤5）
@@ -374,6 +416,10 @@ async function handleMeteringStepCompleted(stepOrder) {
           stepOrder: 11
         }
       })
+    } else if (stepOrder === 11) {
+      // 铅封完成：提交但不跳转，等待用户点击确认键（画布内）后弹窗进入步骤12
+      ElMessage.success('铅封完成')
+      hasSubmitted.value = false
     } else {
       ElMessage.success('步骤完成')
       hasSubmitted.value = false

@@ -71,7 +71,9 @@ async function doStartExperiment(type) {
                 7: '/HCL',
                 8: '/HCL',
                 9: '/HCL',
-                10: '/HCL'
+                10: '/HCL',
+                11: '/HCL',
+                12: '/HCL'
               }
             : { 1: '/LWT', 2: '/LTS' }
         const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
