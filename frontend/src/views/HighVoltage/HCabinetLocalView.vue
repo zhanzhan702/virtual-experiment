@@ -350,6 +350,18 @@ async function handleMeteringStepCompleted(stepOrder) {
           stepOrder: 9
         }
       })
+    } else if (stepOrder === 9) {
+      ElMessage.success('扎带标识牌放置完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === 10)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: 10
+        }
+      })
     } else {
       ElMessage.success('步骤完成')
       hasSubmitted.value = false

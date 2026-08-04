@@ -14,6 +14,9 @@
       <div v-if="cableFollowing" class="meter-following" :style="cableFollowStyle">
         <img :src="Images.barSignalCable6Core" alt="6芯信号线" draggable="false" />
       </div>
+      <div v-if="tieFollowing" class="meter-following" :style="tieFollowStyle">
+        <img :src="Images.barCableTieLabel" alt="扎带标识牌" draggable="false" />
+      </div>
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
     </div>
@@ -63,11 +66,21 @@ const cableFollowStyle = ref({})
 const tooltipVisible = ref(false)
 const tooltipText = ref('')
 const tooltipStyle = ref({})
+// 步骤9 扎带标识牌
+const tieFollowing = ref(false)
+const tieFollowStyle = ref({})
+const tiePlaced = ref(false)
 
-// 步骤6+ 必然已挂表：初始化已挂表背景（不依赖草稿，刷新/重挂载均正确）
+// 步骤6+ 必然已挂表：初始化背景（不依赖草稿，刷新/重挂载均正确）
+// 步骤5=NoMeter、6-8=WithMeter、9=Wired（步骤8 完成时切）、10+=WithCableTies（步骤9 完成时切）
+function bgForStep(order) {
+  if (order >= 10) return Images.meteringRoomWithCableTies
+  if (order >= 9) return Images.meteringRoomWired
+  return Images.meteringRoomWithMeter
+}
 if (props.stepOrder >= 6) {
   meterPlaced.value = true
-  currentBg.value = Images.meteringRoomWithMeter
+  currentBg.value = bgForStep(props.stepOrder)
 }
 
 // ─── Leafer 实例与层 ───
@@ -197,6 +210,10 @@ const CORE_TIPS = {
 // 芯点热区统一大小（相对信号线图片宽度）
 const CORE_TIP_SIZE = 0.05
 
+// ─── 步骤9：扎带标识牌 ───
+// 扎带热区 = 信号线放置热区位置/大小（用户确认保持一致）；扎带小图（相对热区宽，占位微调）
+const CABLE_TIE_SIZE = 0.3
+
 const switchRefs = []
 let junctionBoxImg = null
 let junctionBoxRect = { x: 0, y: 0, w: 0, h: 0 }
@@ -214,6 +231,8 @@ let signalCableImg = null
 let signalCableRect = { x: 0, y: 0, w: 0, h: 0 }
 let cableDone = false
 let coreFollowPaths = []
+let tieDropZoneRect = null
+let tieImg = null
 
 function switchBackground(url) {
   currentBg.value = url
@@ -688,6 +707,60 @@ function ensureCable() {
   if (cablePlaced.value) buildCoreTips()
 }
 
+// ─── 步骤9：扎带标识牌 ───
+
+/** 步骤9 扎带热区（位置/大小与信号线放置热区一致） */
+function buildTieDropZone() {
+  if (props.stepOrder !== 9 || tiePlaced.value || tieDropZoneRect) return
+  const w = leafer.width
+  const h = leafer.height
+  const rect = new Rect({
+    x: w * CABLE_DROP_ZONE.x,
+    y: h * CABLE_DROP_ZONE.y,
+    width: w * CABLE_DROP_ZONE.w,
+    height: h * CABLE_DROP_ZONE.h,
+    fill: 'rgba(0, 150, 255, 0.25)',
+    stroke: 'rgba(0, 150, 255, 0.9)',
+    strokeWidth: 2,
+    zIndex: 3
+  })
+  rect.on(PointerEvent.CLICK, () => onTieDropZoneClick())
+  hitLayer.add(rect)
+  tieDropZoneRect = rect
+}
+
+/** 点击扎带热区（需扎带跟随中）→ 放置 + 切背景 + 提交 */
+function onTieDropZoneClick() {
+  if (props.stepOrder !== 9 || tiePlaced.value) return
+  if (!tieFollowing.value) {
+    ElMessage.warning('请先在右侧工具栏选择扎带标识牌')
+    emit('error')
+    return
+  }
+  tieFollowing.value = false
+  tiePlaced.value = true
+  tieDropZoneRect?.remove()
+  tieDropZoneRect = null
+  // 扎带小图（热区中心，占位尺寸）短暂显示
+  const w = leafer.width
+  const h = leafer.height
+  const sz = w * CABLE_DROP_ZONE.w * CABLE_TIE_SIZE
+  tieImg = new Image({
+    url: Images.barCableTieLabel,
+    x: w * CABLE_DROP_ZONE.x + (w * CABLE_DROP_ZONE.w - sz) / 2,
+    y: h * CABLE_DROP_ZONE.y + (h * CABLE_DROP_ZONE.h - sz) / 2,
+    width: sz,
+    height: sz,
+    zIndex: 4
+  })
+  hitLayer.add(tieImg)
+  // 立即切背景（背景图已含扎带）并清理；完成提示由 HCL 统一弹出
+  switchBackground(Images.meteringRoomWithCableTies)
+  tieImg.remove()
+  tieImg = null
+  emit('stepCompleted', props.stepOrder)
+}
+
 /** 信号线放置热区（蓝色半透明可视化），放置后销毁 */
 function buildCableDropZone() {
   if (cablePlaced.value || cableDropZoneRect.length > 0) return
@@ -953,11 +1026,10 @@ function onCoreMove(e) {
   })
 }
 
-/** 6 芯两端全接完：提示 + 停顿 → 切 Wired 背景 → 销毁热区 → 提交 */
+/** 6 芯两端全接完：停顿（让用户看到接线效果）→ 切 Wired 背景 → 销毁热区 → 提交 */
 function finishSignalCable() {
   if (cableDone) return
   cableDone = true
-  ElMessage.success('6芯信号线连接完成')
   setTimeout(() => {
     switchBackground(Images.meteringRoomWired)
     destroyCableHoles()
@@ -1102,8 +1174,8 @@ function applyDraft(d) {
     }))
     redrawConnectedWires()
   }
-  // 步骤8：恢复信号线/阶段/已连芯线
-  if (d?.cablePlaced) {
+  // 步骤8：恢复信号线/阶段/已连芯线（仅步骤8 有效；步骤9+ 信号线已销毁不应重建）
+  if (d?.cablePlaced && props.stepOrder === 8) {
     cablePlaced.value = true
     // 恢复已放置状态时移除放置热区（画布先于草稿构建，需同步清理）
     cableDropZoneRect.forEach(r => r.remove())
@@ -1153,6 +1225,7 @@ async function createCanvas() {
   buildDropZone(w, h)
   buildJunctionBox(w, h)
   ensureCable()
+  buildTieDropZone()
 }
 
 // ─── 供父组件调用的方法 ───
@@ -1214,9 +1287,24 @@ function onCableToolClick(idx, e) {
   cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
 }
 
+/** 步骤9：扎带标识牌选择 → 跟随放置 */
+function onTieToolClick(idx, e) {
+  if (idx !== 13) {
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
+  if (tiePlaced.value) return
+  tieFollowing.value = true
+  tieFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+}
+
 /** 右侧工具栏点击：智能电表 → 启动跟随，其余工具占位提示 */
 function onRightToolClick(idx, e) {
   emit('operation')
+  if (props.stepOrder === 9) {
+    onTieToolClick(idx, e)
+    return
+  }
   if (props.stepOrder === 8) {
     onCableToolClick(idx, e)
     return
@@ -1258,6 +1346,9 @@ function onPageMouseMove(e) {
   if (cableFollowing.value) {
     cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (tieFollowing.value) {
+    tieFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 function getDraftState() {
@@ -1278,7 +1369,8 @@ function restoreDraft(d) {
     // 恢复挂表状态时移除挂表热区（画布先于草稿构建，需同步清理）
     dropZoneRect?.remove()
     dropZoneRect = null
-    switchBackground(Images.meteringRoomWithMeter)
+    // 背景按步骤推断（步骤8+ 为 Wired/WithCableTies，不覆盖为 WithMeter）
+    if (props.stepOrder >= 6) switchBackground(bgForStep(props.stepOrder))
   }
   const needRedraw = leafer && junctionBoxRect.w > 0
   if (needRedraw) {
@@ -1317,9 +1409,12 @@ function onResize() {
       coreTipRects.length = 0
       coreTipLinks.length = 0
       signalCableImg = null
+      tieDropZoneRect = null
+      tieImg = null
       buildDropZone(w, h)
       buildJunctionBox(w, h)
       ensureCable()
+      buildTieDropZone()
       // 信号线图片重建（hitLayer.removeAll 后需重新放置）
       if (props.stepOrder === 8 && cablePlaced.value && !signalCableImg && !cableDone) {
         signalCableRect = cableImgPos()
@@ -1383,10 +1478,10 @@ onMounted(() => {
 watch(
   () => props.stepOrder,
   order => {
-    // 进入步骤6+ 且未挂表（异常跳转）→ 补上已挂表状态
+    // 进入步骤6+ 且未挂表（异常跳转）→ 补上已挂表状态（背景按步骤推断）
     if (order >= 6 && !meterPlaced.value) {
       meterPlaced.value = true
-      switchBackground(Images.meteringRoomWithMeter)
+      switchBackground(bgForStep(order))
     }
     if (order >= 5 && leafer) {
       // 步骤5→6：开关在步骤5 构建时无热区，进入步骤6 需重建以生成热区
@@ -1400,6 +1495,7 @@ watch(
       ensureSwitches()
       ensureHoles()
       ensureCable()
+      buildTieDropZone()
     }
   }
 )
