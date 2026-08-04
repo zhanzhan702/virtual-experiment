@@ -146,13 +146,13 @@ const METER_HOLES = {
 
 // ★ 7 根导线固定配对（接线顺序不限）；双色线（红黑/黄黑）用两条半宽线并排模拟
 const WIRE_CONNECTIONS = [
-  { spec: '4.0红黑', boxHole: 3, meterHole: 3, pathColor: '#d40000', secondColor: '#000000' },
+  { spec: '4.0红黑', boxHole: 3, meterHole: 3, pathColor: '#000000', secondColor: '#d40000' },
   { spec: '4.0红', boxHole: 4, meterHole: 1, pathColor: '#e60000' },
   { spec: '2.5红', boxHole: 5, meterHole: 2, pathColor: '#e60000' },
   { spec: '2.5绿', boxHole: 9, meterHole: 5, pathColor: '#00a650' },
-  { spec: '4.0黄黑', boxHole: 11, meterHole: 9, pathColor: '#f0a500', secondColor: '#000000' },
-  { spec: '4.0黄', boxHole: 12, meterHole: 7, pathColor: '#f0a500' },
-  { spec: '2.5黄', boxHole: 13, meterHole: 8, pathColor: '#f0a500' }
+  { spec: '4.0黄黑', boxHole: 11, meterHole: 9, pathColor: '#000000', secondColor: '#FFFF00' },
+  { spec: '4.0黄', boxHole: 12, meterHole: 7, pathColor: '#FFFF00' },
+  { spec: '2.5黄', boxHole: 13, meterHole: 8, pathColor: '#FFFF00' }
 ]
 // 右栏工具索引 → 导线配对（rightTools 顺序：6=2.5黄 7=2.5绿 8=2.5红 9=4.0黄 10=4.0黄黑 11=4.0红 12=4.0红黑）
 const TOOL_IDX_TO_WIRE = {
@@ -1665,6 +1665,14 @@ onMounted(() => {
 watch(
   () => props.stepOrder,
   order => {
+    console.log(
+      '[watch stepOrder]',
+      order,
+      'switchRefs:',
+      switchRefs.length,
+      'rect:',
+      switchRefs[0]?.rect
+    )
     // 进入步骤6+ 且未挂表（异常跳转）→ 补上已挂表状态（背景按步骤推断）
     if (order >= 6 && !meterPlaced.value) {
       meterPlaced.value = true
@@ -1673,6 +1681,7 @@ watch(
     if (order >= 5 && order < 11 && leafer) {
       // 步骤5→6 / 9→10：开关此前无热区，进入可交互步骤需重建以生成热区
       if ((order === 6 || order === 10) && switchRefs.length > 0 && !switchRefs[0].rect) {
+        console.log('[watch] rebuildSwitches')
         rebuildSwitches()
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区
