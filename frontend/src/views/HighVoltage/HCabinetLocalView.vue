@@ -15,9 +15,9 @@
       @select="onLeftToolSelect"
     />
 
-    <!-- 中间交互区域（步骤3/4：围栏/告示牌放置 + 三步验电） -->
+    <!-- 中间交互区域（步骤3/4/12：围栏/告示牌放置 + 三步验电） -->
     <HMiddleArea
-      v-if="!isMeteringStep"
+      v-if="!isMeteringStep && !isTerminalStep"
       ref="middleRef"
       :step-order="currentStepOrder"
       @operation="onOperation"
@@ -37,6 +37,18 @@
       @error="onError"
       @step-completed="handleMeteringStepCompleted"
       @confirm="onConfirmClick"
+    />
+
+    <!-- 终端小室操作画布（步骤13+，流程与计量小室一致） -->
+    <HTerminalRoomCanvas
+      v-if="isTerminalStep"
+      ref="terminalRef"
+      :step-order="currentStepOrder"
+      :experiment-id="experimentId"
+      :step-id="stepId"
+      @operation="onOperation"
+      @error="onError"
+      @step-completed="handleMeteringStepCompleted"
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
@@ -96,6 +108,7 @@ import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
 import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
 import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
+import HTerminalRoomCanvas from '@/components/HighVoltage/HTerminalRoomCanvas.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
 
@@ -124,6 +137,7 @@ const currentStepOrder = computed(() => {
 })
 const isStep4 = computed(() => currentStepOrder.value === 4 || currentStepOrder.value === 12)
 const isMeteringStep = computed(() => currentStepOrder.value >= 5 && currentStepOrder.value <= 11)
+const isTerminalStep = computed(() => currentStepOrder.value >= 13)
 // 计量小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
 const rightToolActiveIdxs = computed(() => {
   if (!isMeteringStep.value) return []
@@ -179,10 +193,12 @@ onUnmounted(() => {
 
 // ============== 方法 ==============
 
-// 中间栏子组件引用（步骤3/4 交互逻辑在 HMiddleArea 内）
+// 中间栏子组件引用（步骤3/4/12 交互逻辑在 HMiddleArea 内）
 const middleRef = ref(null)
 // 计量小室画布组件引用（步骤5+ 交互逻辑在 HMeteringRoomCanvas 内）
 const meteringRef = ref(null)
+// 终端小室画布组件引用（步骤13+ 交互逻辑在 HTerminalRoomCanvas 内）
+const terminalRef = ref(null)
 
 function onOperation() {
   stats.operation_count++
@@ -196,10 +212,14 @@ function onLeftToolSelect(idx, e) {
   middleRef.value?.selectTool?.(idx, e)
 }
 
-// 右侧工具栏点击：计量小室步骤转发画布组件，步骤3/4 验电笔走专用逻辑
+// 右侧工具栏点击：计量/终端小室步骤转发画布组件，步骤3/4/12 验电笔走专用逻辑
 function onRightToolClick(idx, e) {
   if (isMeteringStep.value) {
     meteringRef.value?.onRightToolClick?.(idx, e)
+    return
+  }
+  if (isTerminalStep.value) {
+    terminalRef.value?.onRightToolClick?.(idx, e)
     return
   }
   if (idx === 4) {
@@ -213,14 +233,17 @@ function onRightToolClick(idx, e) {
 function onPageMouseMove(e) {
   middleRef.value?.onPageMouseMove?.(e)
   meteringRef.value?.onPageMouseMove?.(e)
+  terminalRef.value?.onPageMouseMove?.(e)
 }
 
 function onPageMouseDown(e) {
   middleRef.value?.onPageMouseDown?.(e)
+  terminalRef.value?.onPageMouseDown?.(e)
 }
 
 function onPageMouseUp(e) {
   middleRef.value?.onPageMouseUp?.(e)
+  terminalRef.value?.onPageMouseUp?.(e)
 }
 
 /** 4 物品全部放置 → 提交步骤3并显示视频 */
@@ -268,6 +291,7 @@ function closeVideo() {
 // ─── 验电笔交互（转发给中间栏） ───
 function onPageClick(e) {
   middleRef.value?.onPageClick?.(e)
+  terminalRef.value?.onPageClick?.(e)
 }
 
 /** 验电完成 → 提交当前步骤并跳转下一步 */
@@ -450,11 +474,13 @@ const saveProgress = async () => {
     const metering = meteringRef.value
     const base = isMeteringStep.value
       ? { ...(metering?.getDraftState?.() || {}) }
-      : {
-          itemPlaced: [...(m?.itemPlaced || [])],
-          vtDone: m?.vtDone || false,
-          vtStep: m?.vtStep ?? 0
-        }
+      : isTerminalStep.value
+        ? { ...(terminalRef.value?.getDraftState?.() || {}) }
+        : {
+            itemPlaced: [...(m?.itemPlaced || [])],
+            vtDone: m?.vtDone || false,
+            vtStep: m?.vtStep ?? 0
+          }
     await saveDraft({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -490,6 +516,8 @@ onMounted(async () => {
       if (d) {
         if (isMeteringStep.value) {
           meteringRef.value?.restoreDraft?.(d)
+        } else if (isTerminalStep.value) {
+          terminalRef.value?.restoreDraft?.(d)
         } else {
           middleRef.value?.restoreDraft?.(d)
         }
