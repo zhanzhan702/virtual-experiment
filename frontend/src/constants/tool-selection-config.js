@@ -12,7 +12,6 @@
  *   - name: 工器具名称
  *   - slot: 装备槽位 (用于右侧人物装备面板展示)
  *   - icon: 工器具图标 (emoji)
- *   - description: 简要描述 (可选，用于卡片展示)
  */
 
 export const categories = [
@@ -30,24 +29,21 @@ export const categories = [
         name: '工作服',
         slot: 'body',
         icon: '👔',
-        image: 'workClothes',
-        description: '全棉长袖工作服'
+        image: 'workClothes'
       },
       {
         id: 2,
         name: 'T恤和短裤',
         slot: 'body',
         icon: '👕',
-        image: 'tShirtAndShorts',
-        description: '不符合作业着装规范'
+        image: 'tShirtAndShorts'
       },
       {
         id: 3,
         name: '工作服上装和牛仔裤',
         slot: 'body',
         icon: '👖',
-        image: 'workClothesTopAndJeans',
-        description: '非全套工作服'
+        image: 'workClothesTopAndJeans'
       },
 
       {
@@ -55,24 +51,21 @@ export const categories = [
         name: '红色安全帽',
         slot: 'head',
         icon: '⛑️',
-        image: 'redSafetyHelmet',
-        description: '管理人员用安全帽'
+        image: 'redSafetyHelmet'
       },
       {
         id: 5,
         name: '蓝色安全帽',
         slot: 'head',
         icon: '🪖',
-        image: 'blueSafetyHelmet',
-        description: '作业人员用安全帽'
+        image: 'blueSafetyHelmet'
       },
       {
         id: 6,
         name: '摩托车帽',
         slot: 'head',
         icon: '🪖',
-        image: 'motorcycleHelmet',
-        description: '不具备安全防护功能'
+        image: 'motorcycleHelmet'
       },
 
       {
@@ -80,8 +73,7 @@ export const categories = [
         name: '护目镜',
         slot: 'eye',
         icon: '🥽',
-        image: 'safetyGoggles',
-        description: '防飞溅物伤害眼睛'
+        image: 'safetyGoggles'
       },
 
       {
@@ -89,16 +81,14 @@ export const categories = [
         name: '橡胶手套',
         slot: 'hand',
         icon: '🧤',
-        image: 'rubberGloves',
-        description: '具备绝缘性能、防触电'
+        image: 'rubberGloves'
       },
       {
         id: 9,
         name: '纱手套',
         slot: 'hand',
         icon: '🧤',
-        image: 'cottonGloves',
-        description: '防滑、防刮、保持操作灵活性'
+        image: 'cottonGloves'
       },
 
       {
@@ -106,24 +96,21 @@ export const categories = [
         name: '电力绝缘鞋',
         slot: 'foot',
         icon: '🥾',
-        image: 'electricalInsulatingShoes',
-        description: '绝缘防砸，作业必备'
+        image: 'electricalInsulatingShoes'
       },
       {
         id: 11,
         name: '凉鞋',
         slot: 'foot',
         icon: '🩴',
-        image: 'sandal',
-        description: '不符合安全规范'
+        image: 'sandal'
       },
       {
         id: 12,
         name: '皮鞋',
         slot: 'foot',
         icon: '👞',
-        image: 'leatherShoes',
-        description: '不具备绝缘性能'
+        image: 'leatherShoes'
       }
     ]
   },
@@ -142,40 +129,35 @@ export const categories = [
         name: '三相三线专变终端',
         slot: 'device',
         icon: '📟',
-        image: 'threePhaseThreeWireTerminal',
-        description: '适用于三相三线专变用户'
+        image: 'threePhaseThreeWireTerminal'
       },
       {
         id: 22,
         name: '三相四线专变终端',
         slot: 'device',
         icon: '📟',
-        image: 'threePhaseFourWireTerminal',
-        description: '适用于三相四线专变用户'
+        image: 'threePhaseFourWireTerminal'
       },
       {
         id: 23,
         name: '230M终端',
         slot: 'device',
         icon: '📡',
-        image: 'terminal230M',
-        description: '230MHz无线通信终端'
+        image: 'terminal230M'
       },
       {
         id: 24,
         name: '集中器',
         slot: 'device',
         icon: '🖥️',
-        image: 'concentrator',
-        description: '低压集抄用集中器'
+        image: 'concentrator'
       },
       {
         id: 25,
         name: '采集器',
         slot: 'device',
         icon: '📷',
-        image: 'collector',
-        description: '低压集抄用采集器'
+        image: 'collector'
       }
     ]
   },
@@ -194,64 +176,56 @@ export const categories = [
         name: '一字螺丝刀',
         slot: 'tool',
         icon: '🪛',
-        image: 'flatheadScrewdriver',
-        description: '平口螺丝刀'
+        image: 'flatheadScrewdriver'
       },
       {
         id: 32,
         name: '十字螺丝刀',
         slot: 'tool',
         icon: '🪛',
-        image: 'crossScrewdriver',
-        description: '十字口螺丝刀，接线必备'
+        image: 'crossScrewdriver'
       },
       {
         id: 33,
         name: '活动扳手',
         slot: 'tool',
         icon: '🔧',
-        image: 'adjustableWrench',
-        description: '可调开口扳手'
+        image: 'adjustableWrench'
       },
       {
         id: 34,
         name: '尖嘴钳',
         slot: 'tool',
         icon: '🔧',
-        image: 'needleNosePliers',
-        description: '尖嘴夹持工具'
+        image: 'needleNosePliers'
       },
       {
         id: 35,
         name: '老虎钳',
         slot: 'tool',
         icon: '🔧',
-        image: 'slipJointPliers',
-        description: '通用夹持剪切工具'
+        image: 'slipJointPliers'
       },
       {
         id: 36,
         name: '剥线钳',
         slot: 'tool',
         icon: '🔧',
-        image: 'wireStripper',
-        description: '剥除导线绝缘层'
+        image: 'wireStripper'
       },
       {
         id: 37,
         name: '验电笔',
         slot: 'tool',
         icon: '🖊️',
-        image: 'voltageTester',
-        description: '检验设备是否带电'
+        image: 'voltageTester'
       },
       {
         id: 38,
         name: '铅封',
         slot: 'tool',
         icon: '🔒',
-        image: 'seal',
-        description: '防止私自开启设备'
+        image: 'seal'
       }
     ]
   },
@@ -266,52 +240,48 @@ export const categories = [
     correctIds: [51, 53, 54, 57, 58, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69],
 
     tools: [
-      { id: 51, name: '2.5MM²黄色导线', slot: 'wire', icon: '🟡', description: '2.5平方毫米黄色' },
+      { id: 51, name: '2.5MM²黄色导线', slot: 'wire', icon: '🟡' },
       {
         id: 52,
         name: '2.5MM²黄黑色导线',
         slot: 'wire',
-        icon: '🟡⚫',
-        description: '2.5平方毫米黄黑双色'
+        icon: '🟡⚫'
       },
-      { id: 53, name: '2.5MM²绿色导线', slot: 'wire', icon: '🟢', description: '2.5平方毫米绿色' },
-      { id: 54, name: '2.5MM²红色导线', slot: 'wire', icon: '🔴', description: '2.5平方毫米红色' },
+      { id: 53, name: '2.5MM²绿色导线', slot: 'wire', icon: '🟢' },
+      { id: 54, name: '2.5MM²红色导线', slot: 'wire', icon: '🔴' },
       {
         id: 55,
         name: '2.5MM²红黑色导线',
         slot: 'wire',
-        icon: '🔴⚫',
-        description: '2.5平方毫米红黑双色'
+        icon: '🔴⚫'
       },
-      { id: 56, name: '2.5MM²黑色导线', slot: 'wire', icon: '⚫', description: '2.5平方毫米黑色' },
+      { id: 56, name: '2.5MM²黑色导线', slot: 'wire', icon: '⚫' },
 
-      { id: 57, name: '4.0MM²黄色导线', slot: 'wire', icon: '🟡', description: '4.0平方毫米黄色' },
+      { id: 57, name: '4.0MM²黄色导线', slot: 'wire', icon: '🟡' },
       {
         id: 58,
         name: '4.0MM²黄黑色导线',
         slot: 'wire',
-        icon: '🟡⚫',
-        description: '4.0平方毫米黄黑双色'
+        icon: '🟡⚫'
       },
-      { id: 59, name: '4.0MM²绿色导线', slot: 'wire', icon: '🟢', description: '4.0平方毫米绿色' },
-      { id: 60, name: '4.0MM²红色导线', slot: 'wire', icon: '🔴', description: '4.0平方毫米红色' },
+      { id: 59, name: '4.0MM²绿色导线', slot: 'wire', icon: '🟢' },
+      { id: 60, name: '4.0MM²红色导线', slot: 'wire', icon: '🔴' },
       {
         id: 61,
         name: '4.0MM²红黑色导线',
         slot: 'wire',
-        icon: '🔴⚫',
-        description: '4.0平方毫米红黑双色'
+        icon: '🔴⚫'
       },
 
-      { id: 62, name: '扎带标示牌', slot: 'wire', icon: '🏷️', description: '线缆扎带和标示牌' },
-      { id: 63, name: '2芯遥控线', slot: 'wire', icon: '🔌', description: '2芯遥控信号线' },
-      { id: 64, name: '2芯遥信线', slot: 'wire', icon: '🔌', description: '2芯遥信信号线' },
-      { id: 65, name: '6芯信号线', slot: 'wire', icon: '🔌', description: '6芯信号连接线' },
-      { id: 66, name: '8芯信号线', slot: 'wire', icon: '🔌', description: '8芯信号连接线' },
+      { id: 62, name: '扎带标示牌', slot: 'wire', icon: '🏷️' },
+      { id: 63, name: '2芯遥控线', slot: 'wire', icon: '🔌' },
+      { id: 64, name: '2芯遥信线', slot: 'wire', icon: '🔌' },
+      { id: 65, name: '6芯信号线', slot: 'wire', icon: '🔌' },
+      { id: 66, name: '8芯信号线', slot: 'wire', icon: '🔌' },
 
-      { id: 67, name: '通信模块', slot: 'wire', icon: '📶', description: '无线通信模块' },
-      { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳', description: '终端通信SIM卡' },
-      { id: 69, name: '天线', slot: 'wire', icon: '📡', description: '终端通信天线' }
+      { id: 67, name: '通信模块', slot: 'wire', icon: '📶' },
+      { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳' },
+      { id: 69, name: '天线', slot: 'wire', icon: '📡' }
     ]
   }
 ]

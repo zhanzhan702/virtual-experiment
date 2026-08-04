@@ -113,7 +113,10 @@ const handleSubmitError = errorPageCount => {
 
 const handleToolSelectionSubmit = async selectedMap => {
   // 提交时立即冻结计时器，避免等待跳转期间 stats 继续增长导致显示与提交值不一致
-  if (timer) { clearInterval(timer); timer = null }
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
   //传递到后端的 payload
   const payload = {
     experimentId: experimentId.value,
