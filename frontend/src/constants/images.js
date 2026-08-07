@@ -14,7 +14,7 @@ import mjuLogo from '@/assets/images/common/MJUlogo.png'
 import confirmButtonYellow from '@/assets/images/common/ConfirmButtonYellow.png'
 import confirmButtonYellowHover from '@/assets/images/common/ConfirmButtonYellowHover.png'
 import confirmButtonGreen from '@/assets/images/common/ConfirmButtonGreen.png'
-// confirmButtonGreenHover（绿色确认键 hover 图）待制作
+import confirmButtonGreenHover from '@/assets/images/common/ConfirmButtonGreenHover.png'
 
 // ─── 场景选择 ───
 import highVoltageButton from '@/assets/images/scenario/HighVoltageButton.png'
@@ -112,6 +112,7 @@ import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
 import barWireYellow from '@/assets/images/cabinet/toolbar/WireYellow.png'
 import barWireGreen from '@/assets/images/cabinet/toolbar/WireGreen.png'
 import barWireRed from '@/assets/images/cabinet/toolbar/WireRed.png'
+import barWire25mmBlack from '@/assets/images/tool-selection/wire/Wire25mmBlack.png'
 import barWire2Core from '@/assets/images/cabinet/toolbar/Wire2Core.png'
 import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
 import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
@@ -144,6 +145,7 @@ export default {
   confirmButtonYellow,
   confirmButtonYellowHover,
   confirmButtonGreen,
+  confirmButtonGreenHover,
   // 场景选择
   highVoltageButton,
   highVoltageButtonHover,
@@ -229,6 +231,7 @@ export default {
   barWireYellow,
   barWireGreen,
   barWireRed,
+  barWire25mmBlack,
   barWire2Core,
   barWire4mm2YellowBlack,
   barWire4mm2RedBlack,
@@ -260,6 +263,9 @@ export default {
 export const cssVars = {
   '--img-confirm-btn': confirmButtonYellow,
   '--img-confirm-btn-hover': confirmButtonYellowHover,
+  // 绿色确认键（计量小室画布专用，其他按钮保持黄色）
+  '--img-confirm-btn-green': confirmButtonGreen,
+  '--img-confirm-btn-green-hover': confirmButtonGreenHover,
   '--img-high-voltage-btn': highVoltageButton,
   '--img-high-voltage-btn-hover': highVoltageButtonHover,
   '--img-low-voltage-btn': lowVoltageButton,

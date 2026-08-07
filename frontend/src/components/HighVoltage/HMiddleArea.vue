@@ -93,8 +93,8 @@ const middleAreaStyle = ref({})
 // ★ 放置坐标（相对 cabinet-group 即柜体图像尺寸的 %，用户按需调整）
 const LEFT_FENCE_STYLE = { left: '-15.5%', top: '60.3%', width: '58.5%', height: 'auto' }
 const RIGHT_FENCE_STYLE = { left: '61.2%', top: '64.9%', width: '46.5%', height: 'auto' }
-const LEFT_SIGN_HV_STYLE = { left: '1.5%', top: '98.5%', width: '10.6%', height: 'auto' }
-const RIGHT_SIGN_HV_STYLE = { left: '78.3%', top: '97.2%', width: '10.6%', height: 'auto' }
+const LEFT_SIGN_HV_STYLE = { left: '1.3%', top: '98.15%', width: '10.6%', height: 'auto' }
+const RIGHT_SIGN_HV_STYLE = { left: '78.1%', top: '96.85%', width: '10.6%', height: 'auto' }
 const SIGN_WORKING_STYLE = { left: '43.5%', top: '43%', width: '10%', height: 'auto' }
 const SAFETY_NOTICE_STYLE = { left: '22.5%', top: '42%', width: '15%', height: 'auto' }
 // ★ 三步验电第2步点击区域（相对 cabinet-group 的百分比 left/top/宽/高，用户按需调整）

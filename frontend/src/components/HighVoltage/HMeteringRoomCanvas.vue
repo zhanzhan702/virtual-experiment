@@ -1806,12 +1806,12 @@ defineExpose({
   white-space: nowrap;
 }
 
-/* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算） */
+/* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算），绿色版 */
 .seal-confirm-btn {
   position: absolute;
   z-index: 200;
   cursor: pointer;
-  background-image: var(--img-confirm-btn);
+  background-image: var(--img-confirm-btn-green);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -1819,7 +1819,7 @@ defineExpose({
 }
 
 .seal-confirm-btn:hover {
-  background-image: var(--img-confirm-btn-hover);
+  background-image: var(--img-confirm-btn-green-hover);
   transform: scale(1.05);
 }
 </style>
