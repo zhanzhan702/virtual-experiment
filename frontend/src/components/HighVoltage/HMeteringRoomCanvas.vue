@@ -23,12 +23,7 @@
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活；绝对定位按画布像素） -->
-      <div
-        class="seal-confirm-btn"
-        :class="{ active: sealsDone }"
-        :style="confirmBtnStyle"
-        @click="onConfirmClick"
-      />
+      <div class="seal-confirm-btn" :class="{ active: sealsDone }" :style="confirmBtnStyle" @click="onConfirmClick" />
     </div>
   </div>
 </template>
@@ -1680,13 +1675,13 @@ onMounted(() => {
               try {
                 const prev = await getStepDraft(props.experimentId, prevId)
                 if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
-              } catch (_) {}
+              } catch (_) { }
             }
           }
           restoreDraft(d)
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 })
 // 同组件导航时组件不重新挂载，需监听步骤变化构建开关/孔热区
@@ -1705,6 +1700,11 @@ watch(
           ensureSwitches()
         } else if (!switchRefs[0].rect) {
           rebuildSwitches()
+        }
+        // 步骤10：重置为步骤6 结束状态（1/4/7/10 断开、其余闭合），状态与视觉同步
+        if (order === 10) {
+          switchStates.value = SWITCHES.map(s => s.target)
+          switchRefs.forEach((s, i) => moveSwitch(s, switchStates.value[i]))
         }
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区
