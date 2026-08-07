@@ -11,8 +11,10 @@
 // ─── 通用 UI ───
 import banner from '@/assets/images/common/banner.png'
 import mjuLogo from '@/assets/images/common/MJUlogo.png'
-import confirmButton from '@/assets/images/common/ConfirmButton.png'
-import confirmButtonHover from '@/assets/images/common/ConfirmButtonHover.png'
+import confirmButtonYellow from '@/assets/images/common/ConfirmButtonYellow.png'
+import confirmButtonYellowHover from '@/assets/images/common/ConfirmButtonYellowHover.png'
+import confirmButtonGreen from '@/assets/images/common/ConfirmButtonGreen.png'
+// confirmButtonGreenHover（绿色确认键 hover 图）待制作
 
 // ─── 场景选择 ───
 import highVoltageButton from '@/assets/images/scenario/HighVoltageButton.png'
@@ -71,6 +73,20 @@ import wireStripper from '@/assets/images/tool-selection/tools-and-equipment/Wir
 import voltageTester from '@/assets/images/tool-selection/tools-and-equipment/VoltageTester.png'
 import seal from '@/assets/images/tool-selection/tools-and-equipment/Seal.png'
 
+// ─── 工器具选择 — 线材（选择页 3:5 版；黑色线仅 25mm 规格，Wire25mmBlack 待补充） ───
+import wireGreen from '@/assets/images/tool-selection/wire/WireGreen.png'
+import wireRed from '@/assets/images/tool-selection/wire/WireRed.png'
+import wireRedBlack from '@/assets/images/tool-selection/wire/WireRedBlack.png'
+import wireYellow from '@/assets/images/tool-selection/wire/WireYellow.png'
+import wireYellowBlack from '@/assets/images/tool-selection/wire/WireYellowBlack.png'
+import wire2Core from '@/assets/images/tool-selection/wire/Wire2Core.png'
+import signalCable6Core from '@/assets/images/tool-selection/wire/SignalCable6Core.png'
+import signalCable8Core from '@/assets/images/tool-selection/wire/SignalCable8Core.png'
+import communicationModule from '@/assets/images/tool-selection/wire/CommunicationModule.png'
+import simCard from '@/assets/images/tool-selection/wire/SimCard.png'
+import antenna from '@/assets/images/tool-selection/wire/Antenna.png'
+import cableTieLabel from '@/assets/images/tool-selection/wire/CableTieLabel.png'
+
 // ─── 柜体局部操作 — 背景图 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
@@ -92,16 +108,14 @@ import barThreePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/Thre
 import barCrossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
 import barWireStripper from '@/assets/images/cabinet/toolbar/WireStripper.png'
 import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
-import barWire25mm2Yellow from '@/assets/images/cabinet/toolbar/Wire25mm2Yellow.png'
-import barWire4mm2Yellow from '@/assets/images/cabinet/toolbar/Wire4mm2Yellow.png'
+// 线材通用图（1:1 工具栏版，4.0mm² 由 2.5mm² 图放大模拟）
+import barWireYellow from '@/assets/images/cabinet/toolbar/WireYellow.png'
+import barWireGreen from '@/assets/images/cabinet/toolbar/WireGreen.png'
+import barWireRed from '@/assets/images/cabinet/toolbar/WireRed.png'
+import barWire2Core from '@/assets/images/cabinet/toolbar/Wire2Core.png'
 import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
-import barWire25mm2Green from '@/assets/images/cabinet/toolbar/Wire25mm2Green.png'
-import barWire25mm2Red from '@/assets/images/cabinet/toolbar/Wire25mm2Red.png'
-import barWire4mm2Red from '@/assets/images/cabinet/toolbar/Wire4mm2Red.png'
 import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
 import barCableTieLabel from '@/assets/images/cabinet/toolbar/CableTieLabel.png'
-import barRemoteControlCable2Core from '@/assets/images/cabinet/toolbar/RemoteControlCable2Core.png'
-import barRemoteSignalCable2Core from '@/assets/images/cabinet/toolbar/RemoteSignalCable2Core.png'
 import barSignalCable6Core from '@/assets/images/cabinet/toolbar/SignalCable6Core.png'
 import barSignalCable8Core from '@/assets/images/cabinet/toolbar/SignalCable8Core.png'
 import barCommunicationModule from '@/assets/images/cabinet/toolbar/CommunicationModule.png'
@@ -127,8 +141,9 @@ export default {
   // 通用
   banner,
   mjuLogo,
-  confirmButton,
-  confirmButtonHover,
+  confirmButtonYellow,
+  confirmButtonYellowHover,
+  confirmButtonGreen,
   // 场景选择
   highVoltageButton,
   highVoltageButtonHover,
@@ -179,6 +194,19 @@ export default {
   wireStripper,
   voltageTester,
   seal,
+  // 4.线材（3:5 选择页版，黑色线 Wire25mmBlack 待补充）
+  wireGreen,
+  wireRed,
+  wireRedBlack,
+  wireYellow,
+  wireYellowBlack,
+  wire2Core,
+  signalCable6Core,
+  signalCable8Core,
+  communicationModule,
+  simCard,
+  antenna,
+  cableTieLabel,
   // 柜体操作 — 背景图
   cabinetGroupOverview,
   powerSocket,
@@ -198,16 +226,13 @@ export default {
   barVoltageTesterNormal,
   barVoltageTesterWarning,
   barSeal,
-  barWire25mm2Yellow,
-  barWire4mm2Yellow,
+  barWireYellow,
+  barWireGreen,
+  barWireRed,
+  barWire2Core,
   barWire4mm2YellowBlack,
-  barWire25mm2Green,
-  barWire25mm2Red,
-  barWire4mm2Red,
   barWire4mm2RedBlack,
   barCableTieLabel,
-  barRemoteControlCable2Core,
-  barRemoteSignalCable2Core,
   barSignalCable6Core,
   barSignalCable8Core,
   barCommunicationModule,
@@ -233,8 +258,8 @@ export default {
  * CSS 中用 var(--img-xxx) 引用，更换格式只改上方 import
  */
 export const cssVars = {
-  '--img-confirm-btn': confirmButton,
-  '--img-confirm-btn-hover': confirmButtonHover,
+  '--img-confirm-btn': confirmButtonYellow,
+  '--img-confirm-btn-hover': confirmButtonYellowHover,
   '--img-high-voltage-btn': highVoltageButton,
   '--img-high-voltage-btn-hover': highVoltageButtonHover,
   '--img-low-voltage-btn': lowVoltageButton,

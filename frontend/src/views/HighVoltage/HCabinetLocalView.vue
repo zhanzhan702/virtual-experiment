@@ -160,18 +160,18 @@ const rightTools = [
   { name: '剥线钳', img: Images.barWireStripper },
   { name: '验电笔', img: Images.barVoltageTesterNormal },
   { name: '铅封', img: Images.barSeal },
-  // ── 2.5MM² 导线（按工器具选择页顺序） ──
-  { name: '2.5MM²黄色导线', img: Images.barWire25mm2Yellow },
-  { name: '2.5MM²绿色导线', img: Images.barWire25mm2Green },
-  { name: '2.5MM²红色导线', img: Images.barWire25mm2Red },
-  // ── 4.0MM² 导线 ──
-  { name: '4.0MM²黄色导线', img: Images.barWire4mm2Yellow },
+  // ── 2.5MM² 导线（通用线图，按工器具选择页顺序） ──
+  { name: '2.5MM²黄色导线', img: Images.barWireYellow },
+  { name: '2.5MM²绿色导线', img: Images.barWireGreen },
+  { name: '2.5MM²红色导线', img: Images.barWireRed },
+  // ── 4.0MM² 导线（黄/红共用 2.5MM² 通用图，显示放大模拟） ──
+  { name: '4.0MM²黄色导线', img: Images.barWireYellow, imgWidth: '100%' },
   { name: '4.0MM²黄黑色导线', img: Images.barWire4mm2YellowBlack },
-  { name: '4.0MM²红色导线', img: Images.barWire4mm2Red },
+  { name: '4.0MM²红色导线', img: Images.barWireRed, imgWidth: '100%' },
   { name: '4.0MM²红黑色导线', img: Images.barWire4mm2RedBlack },
   { name: '扎带标识牌', img: Images.barCableTieLabel },
-  { name: '2芯遥控线', img: Images.barRemoteControlCable2Core },
-  { name: '2芯遥信线', img: Images.barRemoteSignalCable2Core },
+  { name: '2芯遥控线', img: Images.barWire2Core },
+  { name: '2芯遥信线', img: Images.barWire2Core },
   { name: '6芯信号线', img: Images.barSignalCable6Core },
   { name: '8芯信号线', img: Images.barSignalCable8Core },
   { name: '通信模块', img: Images.barCommunicationModule },
