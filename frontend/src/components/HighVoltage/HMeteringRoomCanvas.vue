@@ -1708,13 +1708,13 @@ onMounted(() => {
               try {
                 const prev = await getStepDraft(props.experimentId, prevId)
                 if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
-              } catch (_) {}
+              } catch (_) { }
             }
           }
           restoreDraft(d)
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 })
 // 同组件导航时组件不重新挂载，需监听步骤变化构建开关/孔热区
@@ -1733,6 +1733,11 @@ watch(
           ensureSwitches()
         } else if (!switchRefs[0].rect) {
           rebuildSwitches()
+        }
+        // 步骤10：重置为步骤6 结束状态（1/4/7/10 断开、其余闭合），状态与视觉同步
+        if (order === 10) {
+          switchStates.value = SWITCHES.map(s => s.target)
+          switchRefs.forEach((s, i) => moveSwitch(s, switchStates.value[i]))
         }
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区
@@ -1846,12 +1851,12 @@ defineExpose({
   white-space: nowrap;
 }
 
-/* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算） */
+/* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算），绿色版 */
 .seal-confirm-btn {
   position: absolute;
   z-index: 200;
   cursor: pointer;
-  background-image: var(--img-confirm-btn);
+  background-image: var(--img-confirm-btn-green);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -1859,7 +1864,7 @@ defineExpose({
 }
 
 .seal-confirm-btn:hover {
-  background-image: var(--img-confirm-btn-hover);
+  background-image: var(--img-confirm-btn-green-hover);
   transform: scale(1.05);
 }
 </style>

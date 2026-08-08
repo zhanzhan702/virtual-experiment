@@ -53,27 +53,7 @@
 - **换行符**：LF（Unix 风格）；**字符集**：UTF-8
 - **文件末尾**：必须有空行
 
-### 前端格式（Prettier，配置 `frontend/.prettierrc`）
-
-| 规则             | 值                                    |
-| ---------------- | ------------------------------------- |
-| 分号             | ❌ 不加 (`semi: false`)               |
-| 引号             | 单引号 (`singleQuote: true`)          |
-| 尾逗号           | ❌ 不加 (`trailingComma: "none"`)     |
-| 每行最大宽度     | 100 字符                              |
-| 箭头函数参数括号 | 单参数时省略 (`arrowParens: "avoid"`) |
-
-```js
-// ✅ 正确：单引号、无分号、箭头单参省括号
-import { ref, computed } from "vue";
-const msg = "hello";
-const fn = (x) => x * 2;
-
-// ❌ 错误：双引号、有分号、箭头单参有括号
-import { ref, computed } from "vue";
-const msg = "hello";
-const fn = (x) => x * 2;
-```
+### 前端格式（Prettier，规则以 `frontend/.prettierrc` 为准）
 
 ### 后端格式（Spotless + Google Java Format）
 
@@ -198,22 +178,3 @@ git commit -m "chore(frontend): 添加 Prettier 格式化配置"
 - ❌ 不要攒多天代码一起提交；不要提交未完成的半成品代码
 
 ---
-
-## 六、技术栈速览
-
-| 层          | 技术                          | 版本      |
-| ----------- | ----------------------------- | --------- |
-| 前端框架    | Vue 3 + Vite                  | 3.5/8     |
-| UI 组件库   | Element Plus                  | 2.14      |
-| 状态管理    | Pinia                         | 3.0       |
-| 路由        | Vue Router                    | 4.6       |
-| HTTP 客户端 | Axios                         | 1.16      |
-| 画布交互    | Leafer UI（HCL 中间区域）     | —         |
-| 后端框架    | Spring Boot                   | 4.0       |
-| ORM         | MyBatis-Plus                  | 3.5       |
-| 数据库      | MySQL（手动建库，无 Flyway）  | —         |
-| 连接池      | Druid                         | 1.2       |
-| JWT         | jjwt                          | 0.12      |
-| 代码简化    | Lombok                        | 1.18      |
-| 前端格式化  | Prettier                      | —         |
-| 后端格式化  | Spotless + Google Java Format | 2.44/1.25 |

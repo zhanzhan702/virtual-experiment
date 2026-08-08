@@ -89,8 +89,13 @@ build/
 # ====================
 # 云端配置 / 辅助工具
 # ====================
-.github/
-.claude/
 .reasonix/
 reasonix/
 reasonix.toml
+
+# ====================
+# Claude Code 配置（忽略本地个人设置，保留项目技能入库）
+# ====================
+.claude/*
+!.claude/skills/
+!.claude/skills/**

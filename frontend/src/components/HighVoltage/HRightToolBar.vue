@@ -11,7 +11,12 @@
       }"
       @click="emit('click', idx, $event)"
     >
-      <img :src="tool.img" :alt="tool.name" draggable="false" />
+      <img
+        :src="tool.img"
+        :alt="tool.name"
+        :style="tool.imgWidth ? { width: tool.imgWidth, height: tool.imgWidth } : undefined"
+        draggable="false"
+      />
     </div>
   </div>
 </template>
