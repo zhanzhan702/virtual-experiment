@@ -52,9 +52,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['operation', 'error', 'stepCompleted', 'confirm'])
 
-// 步骤5 挂表完成后至步骤9 结束显示终端编号提示面板（步骤10 盖盖、步骤11 铅封不显示）
+// 步骤5 挂表完成后至步骤11 结束显示终端编号提示面板（步骤11 铅封完成后消失）
 const showTerminalGuide = computed(
-  () => props.stepOrder >= 5 && props.stepOrder <= 9 && meterPlaced.value
+  () => props.stepOrder >= 5 && props.stepOrder <= 11 && meterPlaced.value
 )
 
 // ─── 状态 ───
