@@ -32,9 +32,8 @@ virtual-experiment/
 │   │   ├── config/
 │   │   │   ├── WebConfig.java               # CORS 跨域配置
 │   │   ├── controller/
-│   │   │   ├── HelloController.java         # 健康检查 /api/hello
 │   │   │   ├── AuthController.java          # 注册 / 登录接口
-│   │   │   └── ExperimentController.java    # 实验启动 / 步骤提交 / 存档 / 恢复
+│   │   │   └── ExperimentController.java    # 实验启动 / 步骤提交 / 存档 / 恢复 / 步骤列表
 │   │   ├── service/
 │   │   │   ├── UserService.java             # 用户服务接口
 │   │   │   ├── ExperimentService.java       # 实验服务接口（含存档）
@@ -94,13 +93,14 @@ virtual-experiment/
 │   │   │   ├── ScenarioSelector.vue         # 高/低压场景选择
 │   │   │   ├── PromptModal.vue              # 通用弹窗（确认按钮叠加）
 │   │   │   ├── HighVoltage/
-│   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
+│   │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
 │   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
-│   │   │   │   ├── HSceneHotspotOverlay.vue # 场景热区叠加层
 │   │   │   │   ├── HLeftToolBar.vue         # 左侧工具栏（围栏/告示牌）
 │   │   │   │   ├── HRightToolBar.vue        # 右侧工具栏（终端/工器具/线材）
-│   │   │   │   ├── HMiddleArea.vue          # 中间栏（步骤3/4 围栏+验电）
-│   │   │   │   └── HMeteringRoomCanvas.vue  # 计量小室 Leafer 画布（步骤5-11）
+│   │   │   │   ├── HMiddleArea.vue          # 中间栏（步骤3/4/12 围栏+验电）
+│   │   │   │   ├── HMeteringRoomCanvas.vue  # 计量小室 Leafer 画布（步骤5-11）
+│   │   │   │   ├── HTerminalRoomCanvas.vue  # 终端小室 Leafer 画布（步骤13+）
+│   │   │   │   └── HMeteringRoomGuide.vue     # 计量小室终端编号提示面板（画布上方悬浮）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketForm.vue      # 低压工作票表单
 │   │   ├── views/
@@ -108,12 +108,11 @@ virtual-experiment/
 │   │   │   ├── RegisterView.vue             # 学生注册页
 │   │   │   ├── ExperimentView.vue           # 场景选择 + 启动实验 + 恢复
 │   │   │   ├── AdminView.vue                # 管理后台页
-│   │   │   ├── TestView.vue                 # 后端连通性测试页
 │   │   │   ├── HighVoltage/
 │   │   │   │   ├── HWorkTicketView.vue      # 工作票填写步骤页
 │   │   │   │   ├── HToolSelectionView.vue   # 工器具选择步骤页
 │   │   │   │   ├── HSceneOverviewView.vue   # 配电房全景图页
-│   │   │   │   └── HCabinetLocalView.vue    # 柜体局部操作页（步骤3-12 编排层）
+│   │   │   │   ├── HCabinetLocalView.vue    # 柜体局部操作页（步骤3-23 编排层）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketView.vue      # 低压工作票步骤页
 │   │   ├── stores/
@@ -168,7 +167,8 @@ flowchart LR
 | 步骤 9 | `/HCL` | `HMeteringRoomCanvas` | 扎带标识牌放置（单步 + 背景切换） |
 | 步骤 10 | `/HCL` | `HMeteringRoomCanvas` | 接线盒第二次调整 + 盖盖（Covered 背景） |
 | 步骤 11 | `/HCL` | `HMeteringRoomCanvas` | 加铅封（5 处独立坐标/旋转）+ 确认键 |
-| 步骤 12 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 终端小室三步验电（复用步骤4 逻辑 + 垃圾占位） |
+| 步骤 12 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 终端小室三步验电（第2步验电位置与步骤4 区分） |
+| 步骤 13 | `/HCL` | `HTerminalRoomCanvas` | 终端小室画布框架（挂表等交互后续开发） |
 
 ### 已实现功能
 
@@ -179,14 +179,18 @@ flowchart LR
 - ✅ 三步验电流程（电压检测笔交互，步骤 4 / 12 复用）
 - ✅ 配电房全景图 + 梯形热区（CSS `clip-path`）
 - ✅ 计量小室 Leafer 画布全流程（步骤 5-11：挂表 / 开关 / 接线 / 信号线 / 扎带 / 盖盖 / 铅封）
+- ✅ 终端小室画布框架（`HTerminalRoomCanvas`，步骤 13+，尺寸与计量小室一致）
+- ✅ 终端编号提示面板（16 列端子编号 + 485 接口连线，CSS 变量集中管理行尺寸、`cqw` 相对画布缩放）
 - ✅ 画布热区可视化（蓝色半透明，坐标常量集中微调）
 - ✅ 响应式布局（`vw`/`vh`/`%` 相对定位，画布 shrink-wrap 防缩放错位）
-- ✅ 教学视频占位过渡、确认键（浮动高亮动画）
+- ✅ 教学视频占位过渡、确认键（绿色浮动高亮动画）
 - ✅ 操作统计（时长、操作次数、错误次数）与评分
+- ✅ 线材图片统一命名（工具栏 1:1 与选择页 3:5 各保留一份，4mm² 由通用图放大模拟）
 
 ### 待完善
 
-- 步骤 13-23（终端小室挂表、接线盒、信号线、通信模块等）
+- 步骤 14-23（终端小室挂表、接线盒、信号线、通信模块等）
+- 终端小室图片资源替换（当前共用计量小室图）
 - 低压场景全部步骤
 - 考试模式（当前仅支持训练模式）
 - 教师管理后台功能
@@ -266,6 +270,7 @@ npm run dev
 | POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分） | Bearer JWT |
 | GET    | `/api/experiment/unfinished`  | 查询未完成实验         | Bearer JWT |
 | GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据       | Bearer JWT |
+| GET    | `/api/experiment/{id}/steps`  | 获取实验步骤列表（恢复时重建步骤映射） | Bearer JWT |
 | DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联） | Bearer JWT |
 
 ### 登录响应示例
@@ -399,3 +404,12 @@ npm run dev
 - 导线/芯线跟随用画布内**动态 Path**（起点固定孔位、终点随鼠标，`PointerEvent.MOVE` 更新 path）
 - 双色导线（红黑/黄黑）用**两条半宽线并排**模拟（法向偏移）
 - 悬浮信息（孔位编号）用画布级 MOVE 遍历热区包含判断 → Vue 层 tooltip 显示在热区上方
+
+### 覆盖层组件（画布上方悬浮面板）
+
+计量小室终端编号提示面板（`HMeteringRoomGuide.vue`）沉淀的经验（终端小室提示面板后续开发可复用）：
+
+- **定位**：覆盖层放在画布组件内（`canvas-stage` 内 `absolute` + 百分比 `left/width/bottom: 100%`），相对画布自动跟随缩放，无需 JS 计算视口位置
+- **容器查询单位（cqw）**：覆盖层设 `container-type: inline-size`，内部全部用 `cqw`（容器宽 1%）——画布缩放时内部元素等比变化，与画布统一
+- **行尺寸集中管理**：每行高度/字号定义为 CSS 变量（`--tg-top-h` 等），面板高度由各行求和自动撑开 → 长宽比例自然固定，改变量即调比例
+- **SVG 连线**：485 接口连线用独立 SVG（viewBox 1000×60）绝对定位覆盖在 grid 之上（不占网格行），竖线起点对齐端子框底部；`overflow: visible` 允许超出显示
