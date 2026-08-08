@@ -23,14 +23,9 @@
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活；绝对定位按画布像素） -->
-      <div
-        class="seal-confirm-btn"
-        :class="{ active: sealsDone }"
-        :style="confirmBtnStyle"
-        @click="onConfirmClick"
-      />
-      <!-- 终端编号提示面板（步骤5-10 常驻；绝对定位按画布像素，锁定画布上方、不随视口缩放） -->
-      <div v-if="showTerminalGuide" class="terminal-guide-overlay" :style="terminalGuideStyle">
+      <div class="seal-confirm-btn" :class="{ active: sealsDone }" :style="confirmBtnStyle" @click="onConfirmClick" />
+      <!-- 终端编号提示面板（步骤5-11 常驻；CSS 百分比相对画布定位，画布上方、随画布缩放） -->
+      <div v-if="showTerminalGuide" class="terminal-guide-overlay">
         <HMeteringTerminalGuide />
       </div>
     </div>
@@ -65,8 +60,6 @@ const followStyle = ref({})
 const canvasStyle = ref({})
 // 确认键绝对定位样式（按画布实际像素计算，右下角，保持原有相对比例视觉）
 const confirmBtnStyle = ref({})
-// 终端编号提示面板绝对定位样式（按画布实际像素计算，锁定画布上方；宽度固定 px，不随视口缩放）
-const terminalGuideStyle = ref({})
 const switchStates = ref([])
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
@@ -1109,7 +1102,7 @@ function onMeterTerminalClick(num) {
 function connectCore(sel, terminal) {
   const from = coreTipPos(sel.side, sel.idx)
   const to =
-    sel.side === 'right' ? terminalAbsPos(sel.side, terminal) : meterTerminalAbsPos(terminal)
+    sel.side === 'right' ? terminalAbsPos(terminal) : meterTerminalAbsPos(terminal)
   const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: sel.core.color })
   paths.forEach(p => hitLayer.add(p))
   coreTipLinks.push(...paths)
@@ -1131,7 +1124,7 @@ function connectCore(sel, terminal) {
 }
 
 /** 长方体格连接点（热区左边缘中点） */
-function terminalAbsPos(side, num) {
+function terminalAbsPos(num) {
   const w = leafer.width
   const h = leafer.height
   const rowH = (h * TERMINAL_BLOCK.h) / 8
@@ -1200,7 +1193,7 @@ function redrawCableCores() {
     const core = (c.side === 'right' ? CORE_TIPS.right : CORE_TIPS.left)[c.idx]
     const from = coreTipPos(c.side, c.idx)
     const to =
-      c.side === 'right' ? terminalAbsPos(c.side, c.terminal) : meterTerminalAbsPos(c.terminal)
+      c.side === 'right' ? terminalAbsPos(c.terminal) : meterTerminalAbsPos(c.terminal)
     const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: core.color })
     paths.forEach(p => hitLayer.add(p))
     coreTipLinks.push(...paths)
@@ -1399,18 +1392,6 @@ function updateConfirmBtn(w, h) {
   }
 }
 
-/** 终端编号提示面板：绝对定位锁定在画布正上方（底部贴画布顶边），宽度固定 px（强制不随视口缩放）；
-    位置按画布实际像素计算，createCanvas/onResize 时重算，故窗口缩放时仅跟随画布、不漂移 */
-const TG_WIDTH = 806 // 固定宽度(px)，约等于原方案 70vw*scale(0.6) 在 1920 宽下的视觉宽度；如需调尺寸只改这里
-function updateTerminalGuide(w, h) {
-  const left = Math.round((w - TG_WIDTH) / 2) - 48 // 水平居中于画布后左移 48px
-  terminalGuideStyle.value = {
-    left: left + 'px',
-    bottom: '100%', // 底部贴画布顶边（在画布上方）
-    width: TG_WIDTH + 'px'
-  }
-}
-
 async function createCanvas() {
   const img = bgImgRef.value
   if (!img) return
@@ -1419,7 +1400,6 @@ async function createCanvas() {
   const h = Math.round(r.height)
   canvasStyle.value = { width: w + 'px', height: h + 'px' }
   updateConfirmBtn(w, h)
-  updateTerminalGuide(w, h)
   leafer = new Leafer({ view: leaferViewRef.value, width: w, height: h })
   bgLayer = new Group()
   hitLayer = new Group()
@@ -1628,7 +1608,6 @@ function onResize() {
     canvasStyle.value = { width: w + 'px', height: h + 'px' }
     leafer.resize({ width: w, height: h })
     updateConfirmBtn(w, h)
-    updateTerminalGuide(w, h)
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
@@ -1777,7 +1756,7 @@ defineExpose({
   left: 12vw;
   right: 12vw;
   /* 上移下移缩小画布，顶部预留空间放提示栏等元素 */
-  top: 14vh;
+  top: 20vh;
   bottom: 5vh;
   display: flex;
   align-items: center;
@@ -1785,14 +1764,15 @@ defineExpose({
   z-index: 5;
 }
 
-/* 终端编号提示面板浮层：绝对定位（position/left/bottom/width 由 terminalGuideStyle
-   按画布实际像素设定），锁定在画布上方；宽度固定 px，故窗口缩放时尺寸不变、且仅跟随
-   画布不漂移；z-index 6 在画布(5)之上、鼠标跟随(999)之下 */
+/* 终端编号提示面板：CSS 百分比相对画布定位（宽 90% 画布、水平居中、贴画布顶边画布上方），
+   内部元素以 cqw 相对本容器缩放 */
 .terminal-guide-overlay {
   position: absolute;
-  /* 底部贴画布顶边，缩放以底边为原点 → 底边固定不动、面板向上收缩，不会上飘 */
-  transform: scale(0.6);
-  transform-origin: bottom center;
+  left: 10%;
+  /* (100% - 90%) / 2，与 width 联动 */
+  bottom: 100%;
+  width: 90%;
+  container-type: inline-size;
   z-index: 6;
   pointer-events: none;
 }
@@ -1806,7 +1786,7 @@ defineExpose({
 
 .bg-img {
   max-width: 66vw;
-  max-height: 76vh;
+  max-height: 65vh;
   display: block;
   user-select: none;
 }
