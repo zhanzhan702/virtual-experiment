@@ -26,7 +26,7 @@
       <div class="seal-confirm-btn" :class="{ active: sealsDone }" :style="confirmBtnStyle" @click="onConfirmClick" />
       <!-- 终端编号提示面板（步骤5-11 常驻；CSS 百分比相对画布定位，画布上方、随画布缩放） -->
       <div v-if="showTerminalGuide" class="terminal-guide-overlay">
-        <HMeteringTerminalGuide />
+        <HMeteringRoomGuide />
       </div>
     </div>
   </div>
@@ -37,7 +37,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Leafer, Group, Image, Rect, Path, PointerEvent } from 'leafer-ui'
 import Images from '@/constants/images'
-import HMeteringTerminalGuide from '@/components/HighVoltage/HMeteringTerminalGuide.vue'
+import HMeteringRoomGuide from '@/components/HighVoltage/HMeteringRoomGuide.vue'
 import { getStepDraft } from '@/api/experiment'
 
 const props = defineProps({
