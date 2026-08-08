@@ -29,15 +29,20 @@
         :style="confirmBtnStyle"
         @click="onConfirmClick"
       />
+      <!-- 终端编号提示面板（步骤5-10 常驻；绝对定位按画布像素，锁定画布上方、不随视口缩放） -->
+      <div v-if="showTerminalGuide" class="terminal-guide-overlay" :style="terminalGuideStyle">
+        <HMeteringTerminalGuide />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Leafer, Group, Image, Rect, Path, PointerEvent } from 'leafer-ui'
 import Images from '@/constants/images'
+import HMeteringTerminalGuide from '@/components/HighVoltage/HMeteringTerminalGuide.vue'
 import { getStepDraft } from '@/api/experiment'
 
 const props = defineProps({
@@ -47,6 +52,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['operation', 'error', 'stepCompleted', 'confirm'])
 
+// 步骤5 挂表完成后至步骤9 结束显示终端编号提示面板（步骤10 盖盖、步骤11 铅封不显示）
+const showTerminalGuide = computed(
+  () => props.stepOrder >= 5 && props.stepOrder <= 9 && meterPlaced.value
+)
+
 // ─── 状态 ───
 const currentBg = ref(Images.meteringRoomNoMeter)
 const meterPlaced = ref(false)
@@ -55,6 +65,8 @@ const followStyle = ref({})
 const canvasStyle = ref({})
 // 确认键绝对定位样式（按画布实际像素计算，右下角，保持原有相对比例视觉）
 const confirmBtnStyle = ref({})
+// 终端编号提示面板绝对定位样式（按画布实际像素计算，锁定画布上方；宽度固定 px，不随视口缩放）
+const terminalGuideStyle = ref({})
 const switchStates = ref([])
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
@@ -297,6 +309,7 @@ function bindEvents(w, h) {
 /** 点击挂表热区（仅步骤5） */
 function handleDrop() {
   if (props.stepOrder !== 5) return
+  if (meterPlaced.value) return
   if (!isMeterFollowing.value) {
     ElMessage.warning('请先在右侧工具栏选择电表')
     emit('error')
@@ -314,6 +327,7 @@ function handleDrop() {
 /** 点击热区以外（仅步骤5） */
 function handleMiss() {
   if (props.stepOrder !== 5) return
+  if (meterPlaced.value) return
   if (!isMeterFollowing.value) return
   ElMessage.warning('请选择正确的放置位置')
   emit('error')
@@ -1385,6 +1399,18 @@ function updateConfirmBtn(w, h) {
   }
 }
 
+/** 终端编号提示面板：绝对定位锁定在画布正上方（底部贴画布顶边），宽度固定 px（强制不随视口缩放）；
+    位置按画布实际像素计算，createCanvas/onResize 时重算，故窗口缩放时仅跟随画布、不漂移 */
+const TG_WIDTH = 806 // 固定宽度(px)，约等于原方案 70vw*scale(0.6) 在 1920 宽下的视觉宽度；如需调尺寸只改这里
+function updateTerminalGuide(w, h) {
+  const left = Math.round((w - TG_WIDTH) / 2) - 48 // 水平居中于画布后左移 48px
+  terminalGuideStyle.value = {
+    left: left + 'px',
+    bottom: '100%', // 底部贴画布顶边（在画布上方）
+    width: TG_WIDTH + 'px'
+  }
+}
+
 async function createCanvas() {
   const img = bgImgRef.value
   if (!img) return
@@ -1393,6 +1419,7 @@ async function createCanvas() {
   const h = Math.round(r.height)
   canvasStyle.value = { width: w + 'px', height: h + 'px' }
   updateConfirmBtn(w, h)
+  updateTerminalGuide(w, h)
   leafer = new Leafer({ view: leaferViewRef.value, width: w, height: h })
   bgLayer = new Group()
   hitLayer = new Group()
@@ -1601,6 +1628,7 @@ function onResize() {
     canvasStyle.value = { width: w + 'px', height: h + 'px' }
     leafer.resize({ width: w, height: h })
     updateConfirmBtn(w, h)
+    updateTerminalGuide(w, h)
     // 背景图随画布尺寸重铺
     bgLayer.removeAll()
     bgLayer.add(new Image({ url: currentBg.value, x: 0, y: 0, width: w, height: h }))
@@ -1750,6 +1778,18 @@ defineExpose({
   align-items: center;
   justify-content: center;
   z-index: 5;
+}
+
+/* 终端编号提示面板浮层：绝对定位（position/left/bottom/width 由 terminalGuideStyle
+   按画布实际像素设定），锁定在画布上方；宽度固定 px，故窗口缩放时尺寸不变、且仅跟随
+   画布不漂移；z-index 6 在画布(5)之上、鼠标跟随(999)之下 */
+.terminal-guide-overlay {
+  position: absolute;
+  /* 底部贴画布顶边，缩放以底边为原点 → 底边固定不动、面板向上收缩，不会上飘 */
+  transform: scale(0.6);
+  transform-origin: bottom center;
+  z-index: 6;
+  pointer-events: none;
 }
 
 .canvas-stage {

@@ -138,6 +138,16 @@ const currentStepOrder = computed(() => {
 const isStep4 = computed(() => currentStepOrder.value === 4 || currentStepOrder.value === 12)
 const isMeteringStep = computed(() => currentStepOrder.value >= 5 && currentStepOrder.value <= 11)
 const isTerminalStep = computed(() => currentStepOrder.value >= 13)
+
+// stepId 跟随路由 query 同步：router.replace 跳步后原 stepId ref 不会自动更新，
+// 会导致后续 submitStep/saveDraft/getStepDraft 一直写到旧步骤、刷新才正确
+// （典型“必须刷新才能进入下一步”的根因）
+watch(
+  () => route.query.stepId,
+  id => {
+    if (id) stepId.value = id
+  }
+)
 // 计量小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
 const rightToolActiveIdxs = computed(() => {
   if (!isMeteringStep.value) return []
@@ -532,7 +542,9 @@ onMounted(async () => {
 
 // 同组件导航（画布步骤5-11 ↔ 中间栏步骤12 切换）时组件不重新挂载，onMounted 不会再次执行，
 // 需监听步骤变化确保进入步骤4/12 时物品显示为已放置状态
+// 同时重置 hasSubmitted，防止上一步的提交锁阻塞当前步骤（如步骤3 的锁残留到步骤5）
 watch(currentStepOrder, order => {
+  hasSubmitted.value = false
   if ((order === 4 || order === 12) && !middleRef.value?.itemPlaced?.some(v => v)) {
     middleRef.value?.markPlacedForStep4?.()
   }
