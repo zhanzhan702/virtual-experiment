@@ -409,9 +409,12 @@ function buildSwitches() {
   switchStates.value = []
   const { x: bx, y: by, w: bw, h: bh } = junctionBoxRect
   SWITCHES.forEach((cfg, i) => {
-    // 初始状态为闭合（on），用 on 坐标定位
-    const x = bx + cfg.on.x * bw
-    const y = by + cfg.on.y * bh
+    // 初始状态：步骤6 从闭合（on）开始；步骤10 直接为步骤6 结束状态（target），
+    // 内置在构建时保证开关就绪即状态正确，避免 watch 重置时序导致无法完成
+    const initState = props.stepOrder === 10 ? cfg.target : 'on'
+    const pos = initState === 'on' ? cfg.on : cfg.off
+    const x = bx + pos.x * bw
+    const y = by + pos.y * bh
     const sw = bw * SWITCH_SIZE.w
     const sh = sw / (switchAspect || SWITCH_ASPECT)
     const rotation = cfg.orient === 'v' ? 90 : cfg.orient === 'hD' ? 180 : 0
@@ -441,7 +444,7 @@ function buildSwitches() {
       hitLayer.add(rect)
     }
     switchRefs.push({ cfg, img, rect, sw })
-    switchStates.value.push('on')
+    switchStates.value.push(initState)
   })
   // 开关图片比例加载完成后校正高度（不压缩比例，热区同步）
   loadSwitchAspect().then(() => {
@@ -1713,7 +1716,7 @@ watch(
         } else if (!switchRefs[0].rect) {
           rebuildSwitches()
         }
-        // 步骤10：重置为步骤6 结束状态（1/4/7/10 断开、其余闭合），状态与视觉同步
+        // 步骤10：无论重建路径如何（onResize 等可能残留全 on 状态），强制重置为步骤6 结束状态
         if (order === 10) {
           switchStates.value = SWITCHES.map(s => s.target)
           switchRefs.forEach((s, i) => moveSwitch(s, switchStates.value[i]))
