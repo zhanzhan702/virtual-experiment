@@ -48,7 +48,7 @@
       :step-id="stepId"
       @operation="onOperation"
       @error="onError"
-      @step-completed="handleMeteringStepCompleted"
+      @step-completed="handleTerminalStepCompleted"
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
@@ -469,6 +469,58 @@ async function handleMeteringStepCompleted(stepOrder) {
           query: { experimentId: experimentId.value }
         })
       }, 800)
+    }
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    hasSubmitted.value = false
+  }
+}
+
+/** 终端小室子步骤完成（挂表/接线盒处理等） → 提交当前步骤并跳下一步 */
+async function handleTerminalStepCompleted(stepOrder) {
+  if (hasSubmitted.value) return
+  hasSubmitted.value = true
+  try {
+    const resultData = terminalRef.value?.getDraftState?.() || {}
+    await submitStep({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 1,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      score: Math.max(0, 100 - stats.error_count * 10),
+      resultData: JSON.stringify(resultData),
+      startedAt: startedAt.value
+    })
+    const nextMap = { 13: 14, 14: 15, 15: 16, 16: 17, 17: 18, 18: 19, 19: 20, 20: 21 }
+    const msgMap = {
+      13: '挂表成功',
+      14: '接线盒处理完成',
+      15: '接线完成',
+      16: '遥控压板处理完成',
+      17: '信号线连接完成',
+      18: '通信模块安装完成',
+      19: '绑扎带标识牌放置完成',
+      20: '接线盒处理完成'
+    }
+    const nextOrder = nextMap[stepOrder]
+    if (nextOrder) {
+      ElMessage.success(msgMap[stepOrder] || '步骤完成')
+      hasSubmitted.value = false
+      const next = getStepsFromStore().find(s => s.stepOrder === nextOrder)
+      router.replace({
+        path: '/HCL',
+        query: {
+          experimentId: experimentId.value,
+          stepId: next?.stepId || stepId.value,
+          stepOrder: nextOrder
+        }
+      })
+    } else {
+      // 步骤21 上电：提交后等待用户点击确认键（画布内）弹窗进入合闸
+      ElMessage.success('上电完成')
+      hasSubmitted.value = false
     }
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))

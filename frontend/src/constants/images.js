@@ -97,7 +97,7 @@ import checkMeterReading from '@/assets/images/cabinet/CheckMeterReading.png'
 import verifyMeterDataConsistency from '@/assets/images/cabinet/VerifyMeterDataConsistency.png'
 import verifyTerminalWiring from '@/assets/images/cabinet/VerifyTerminalWiring.png'
 
-// ─── 步骤12 终端小室 — 线材垃圾素材 ───
+// ─── 步骤12 柜体局部 — 线材垃圾素材 ───
 import wireTrash1 from '@/assets/images/cabinet/WireTrash1.png'
 import wireTrash2 from '@/assets/images/cabinet/WireTrash2.png'
 import wireTrash3 from '@/assets/images/cabinet/WireTrash3.png'
@@ -121,7 +121,7 @@ import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
 import barWireYellow from '@/assets/images/cabinet/toolbar/WireYellow.png'
 import barWireGreen from '@/assets/images/cabinet/toolbar/WireGreen.png'
 import barWireRed from '@/assets/images/cabinet/toolbar/WireRed.png'
-import barWire25mmBlack from '@/assets/images/tool-selection/wire/Wire25mmBlack.png'
+import barWire25mmBlack from '@/assets/images/tool-selection/wire/Wire25mmBlack.png' //todo： 该元素不需要，安全删去
 import barWire2Core from '@/assets/images/cabinet/toolbar/Wire2Core.png'
 import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
 import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
@@ -152,7 +152,8 @@ import terminalRoomWithAntenna from '@/assets/images/cabinet/room/terminal-room/
 import remoteControlBoard from '@/assets/images/cabinet/room/terminal-room/RemoteControlBoard.png'
 import remoteControlSwitch from '@/assets/images/cabinet/room/terminal-room/RemoteControlSwitch.png'
 import terminalSignalCable8Core from '@/assets/images/cabinet/room/terminal-room/SignalCable8Core.png'
-import terminalWire2Core from '@/assets/images/cabinet/room/terminal-room/Wire2Core.png'
+import remoteControlCable2Core from '@/assets/images/cabinet/room/terminal-room/RemoteControlCable2Core.png'
+import remoteSignalCable2Core from '@/assets/images/cabinet/room/terminal-room/RemoteSignalCable2Core.png'
 import signToMeteringRoom from '@/assets/images/cabinet/room/terminal-room/SignToMeteringRoom.png'
 import signToOutletCabinet from '@/assets/images/cabinet/room/terminal-room/SignToOutletCabinet.png'
 import terminalAntenna from '@/assets/images/cabinet/Antenna.png'
@@ -234,6 +235,7 @@ export default {
   powerSocket,
   electrifyCompleteNotice,
   meterRoomOperationSuccess,
+  terminalRoomCompleteNotice,
   readyForPowerOnNotice,
   checkMeterReading,
   verifyMeterDataConsistency,
@@ -288,11 +290,11 @@ export default {
   remoteControlBoard,
   remoteControlSwitch,
   terminalSignalCable8Core,
-  terminalWire2Core,
+  remoteControlCable2Core,
+  remoteSignalCable2Core,
   signToMeteringRoom,
   signToOutletCabinet,
-  terminalAntenna,
-  terminalRoomCompleteNotice
+  terminalAntenna
 }
 
 /**
