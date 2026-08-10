@@ -115,23 +115,23 @@ const DROP_ZONE = { x: 0.15, y: 0.04, w: 0.37, h: 0.53 }
 
 // ★ 接线盒（左下角贴底，宽固定为画布宽的 1/2，高度按图片比例 auto，用户按背景图微调）
 //   步骤5（未挂表）起显示，直到背景图切换为盖盖子的计量小室后隐藏
-const JUNCTION_BOX = { x: 0.2, y: 0.742, w: 0.27 }
+const JUNCTION_BOX = { x: 0.202, y: 0.746, w: 0.27 }
 
 // ★ 接线盒开关（10 个，一行排列：竖 双横 竖 双横 竖 双横 竖，竖作为双横的间隔）
 //   orient: v=竖(顺时针90°), hU=上排横(0°), hD=下排横(180°)
 //   target: 目标状态（按数组顺序 1/4/5 断开 off、2/3/6/7 闭合 on，8/9/10 待用户补充）
 //   on/off: 两个状态各自独立的坐标（相对接线盒左上角的比率 0~1），切换时直接定位173
 const SWITCHES = [
-  { orient: 'v', target: 'off', on: { x: 0.143, y: 0.41 }, off: { x: 0.143, y: 0.5 } },
+  { orient: 'v', target: 'off', on: { x: 0.145, y: 0.41 }, off: { x: 0.145, y: 0.55 } },
   { orient: 'hU', target: 'on', on: { x: 0.173, y: 0.4 }, off: { x: 0.225, y: 0.4 } },
-  { orient: 'hD', target: 'on', on: { x: 0.314, y: 0.66 }, off: { x: 0.26, y: 0.66 } },
-  { orient: 'v', target: 'off', on: { x: 0.394, y: 0.41 }, off: { x: 0.394, y: 0.5 } },
+  { orient: 'hD', target: 'on', on: { x: 0.314, y: 0.67 }, off: { x: 0.26, y: 0.67 } },
+  { orient: 'v', target: 'off', on: { x: 0.395, y: 0.41 }, off: { x: 0.395, y: 0.55 } },
   { orient: 'hU', target: 'on', on: { x: 0.433, y: 0.4 }, off: { x: 0.485, y: 0.4 } },
-  { orient: 'hD', target: 'on', on: { x: 0.574, y: 0.66 }, off: { x: 0.52, y: 0.66 } },
-  { orient: 'v', target: 'off', on: { x: 0.654, y: 0.41 }, off: { x: 0.654, y: 0.5 } },
+  { orient: 'hD', target: 'on', on: { x: 0.574, y: 0.67 }, off: { x: 0.52, y: 0.67 } },
+  { orient: 'v', target: 'off', on: { x: 0.654, y: 0.41 }, off: { x: 0.654, y: 0.55 } },
   { orient: 'hU', target: 'on', on: { x: 0.688, y: 0.4 }, off: { x: 0.74, y: 0.4 } },
-  { orient: 'hD', target: 'on', on: { x: 0.829, y: 0.66 }, off: { x: 0.775, y: 0.66 } },
-  { orient: 'v', target: 'off', on: { x: 0.907, y: 0.41 }, off: { x: 0.907, y: 0.5 } }
+  { orient: 'hD', target: 'on', on: { x: 0.829, y: 0.67 }, off: { x: 0.775, y: 0.67 } },
+  { orient: 'v', target: 'off', on: { x: 0.909, y: 0.41 }, off: { x: 0.909, y: 0.55 } }
 ]
 // 开关图宽（相对接线盒宽度的比率），高度按图片比例 auto（不压缩）
 const SWITCH_SIZE = { w: 0.1 }
@@ -149,20 +149,20 @@ const BOX_HOLES = { count: 13, x0: 0.13, x1: 0.866, y: 0.03, size: 0.05 }
 // ★ 电表底部 9 孔（相对画布比率）：3 组等腰三角形水平排列在挂表热区底部中间
 //   编号从右往左：右组=孔1-3、中组=孔4-6、左组=孔7-9；组内 k=1 左底、k=2 顶点(上)、k=3 右底
 const METER_HOLES = {
-  cx: 0.31,
-  spanW: 0.183,
-  y0: 0.535,
-  triH: 0.007,
+  cx: 0.309,
+  spanW: 0.176,
+  y0: 0.528,
+  triH: 0.005,
   size: 0.015
 }
 
 // ★ 7 根导线固定配对（接线顺序不限）；双色线（红黑/黄黑）用两条半宽线并排模拟
 const WIRE_CONNECTIONS = [
-  { spec: '4.0红黑', boxHole: 3, meterHole: 3, pathColor: '#000000', secondColor: '#d40000' },
+  { spec: '4.0红黑', boxHole: 3, meterHole: 3, pathColor: '#e60000', secondColor: '#000000' },
   { spec: '4.0红', boxHole: 4, meterHole: 1, pathColor: '#e60000' },
   { spec: '2.5红', boxHole: 5, meterHole: 2, pathColor: '#e60000' },
   { spec: '2.5绿', boxHole: 9, meterHole: 5, pathColor: '#00a650' },
-  { spec: '4.0黄黑', boxHole: 11, meterHole: 9, pathColor: '#000000', secondColor: '#FFFF00' },
+  { spec: '4.0黄黑', boxHole: 11, meterHole: 9, pathColor: '#FFFF00', secondColor: '#000000' },
   { spec: '4.0黄', boxHole: 12, meterHole: 7, pathColor: '#FFFF00' },
   { spec: '2.5黄', boxHole: 13, meterHole: 8, pathColor: '#FFFF00' }
 ]
@@ -203,12 +203,12 @@ const TERMINAL_BLOCK = {
 
 // 电表 16 孔（编号 13-28，同一水平线；13-15 大间隔、16-28 小间隔、15→16 过渡间隔占位）
 const METER_TERMINALS = {
-  x0: 0.231,
-  y: 0.429,
-  gapBig: 0.018,
-  gapSmall: 0.01254,
-  gapMid: 0.0255,
-  size: 0.005
+  x0: 0.2315,
+  y: 0.4225,
+  gapBig: 0.0175,
+  gapSmall: 0.01227,
+  gapMid: 0.0254,
+  size: 0.009
 }
 
 // 芯点（相对信号线图片比率，每个点独立 x/y 坐标，后期单独调整）
@@ -595,11 +595,17 @@ function makeWirePaths(from, to, wire) {
   if (!wire.secondColor) {
     return [mk(from.x, from.y, to.x, to.y, wire.pathColor, w)]
   }
+  // 法向统一为屏幕绝对基准：pathColor 恒偏移在屏幕左侧（法向 x 分量 ≤ 0），
+  // secondColor 在右侧——不随接线起点/方向变化（跟随与完成绘制一致）
   const dx = to.x - from.x
   const dy = to.y - from.y
   const len = Math.hypot(dx, dy) || 1
-  const nx = -dy / len
-  const ny = dx / len
+  let nx = -dy / len
+  let ny = dx / len
+  if (nx > 0) {
+    nx = -nx
+    ny = -ny
+  }
   const off = thin / 2
   return [
     mk(
@@ -964,7 +970,8 @@ function buildMeterTerminals() {
   const w = leafer.width
   const h = leafer.height
   const y = h * METER_TERMINALS.y
-  const sz = Math.max(w * METER_TERMINALS.size, 10)
+  // 热区大小与调试值（w * size）一致，不加最小下限
+  const sz = w * METER_TERMINALS.size
   let x = w * METER_TERMINALS.x0
   for (let n = 13; n <= 28; n++) {
     const rect = new Rect({
