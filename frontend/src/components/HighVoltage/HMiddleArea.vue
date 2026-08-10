@@ -361,8 +361,8 @@ defineExpose({
 }
 
 .cabinet-img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 55vw;
+  max-height: 55vh;
   display: block;
   user-select: none;
   pointer-events: auto;
