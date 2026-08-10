@@ -20,8 +20,13 @@
         draggable="false" />
       <img v-if="itemPlaced[3]" :src="Images.barSafetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
         draggable="false" />
-      <!-- 步骤12 终端小室：地板 3 张垃圾占位（后续替换为垃圾 png） -->
-      <div v-if="props.stepOrder === 12" class="trash-placeholder" v-for="t in 3" :key="t" :style="trashStyle(t - 1)" />
+      <!-- 步骤12 终端小室：地板 3 张线材垃圾 -->
+      <img v-if="props.stepOrder === 12" :src="Images.wireTrash1" class="trash-img" :style="TRASH_STYLES[0]"
+        draggable="false" />
+      <img v-if="props.stepOrder === 12" :src="Images.wireTrash2" class="trash-img" :style="TRASH_STYLES[1]"
+        draggable="false" />
+      <img v-if="props.stepOrder === 12" :src="Images.wireTrash3" class="trash-img" :style="TRASH_STYLES[2]"
+        draggable="false" />
     </div>
   </div>
 
@@ -43,15 +48,12 @@ const emit = defineEmits(['operation', 'error', 'fencesDone', 'voltageCheckDone'
 
 const isStep4 = computed(() => props.stepOrder === 4 || props.stepOrder === 12)
 
-// 步骤12 终端小室：3 张垃圾占位位置（相对柜体背景比率，占位微调）
+// 步骤12 终端小室：3 张垃圾位置（相对柜体背景比率，可微调）
 const TRASH_STYLES = [
-  { left: '-22%', top: '100%', width: '6%', height: '6%' },
-  { left: '43%', top: '121%', width: '7%', height: '7%' },
-  { left: '92%', top: '120%', width: '5%', height: '5%' }
+  { left: '-22%', top: '100%', width: '14%', height: '7%' },
+  { left: '43%', top: '121%', width: '15%', height: '8%' },
+  { left: '92%', top: '120%', width: '12%', height: '6%' }
 ]
-function trashStyle(i) {
-  return TRASH_STYLES[i]
-}
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───
 const itemPlaced = reactive([false, false, false, false])
@@ -426,11 +428,9 @@ defineExpose({
   object-fit: contain;
 }
 
-/* 步骤12 垃圾占位（后续替换为垃圾 png） */
-.trash-placeholder {
+/* 步骤12 线材垃圾（垃圾图宽扁比例不一，框内等比显示） */
+.trash-img {
   position: absolute;
-  background: rgba(120, 120, 120, 0.5);
-  border: 1px dashed rgba(80, 80, 80, 0.8);
-  border-radius: 4px;
+  object-fit: contain;
 }
 </style>

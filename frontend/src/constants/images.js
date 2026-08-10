@@ -97,6 +97,11 @@ import checkMeterReading from '@/assets/images/cabinet/CheckMeterReading.png'
 import verifyMeterDataConsistency from '@/assets/images/cabinet/VerifyMeterDataConsistency.png'
 import verifyTerminalWiring from '@/assets/images/cabinet/VerifyTerminalWiring.png'
 
+// ─── 步骤12 终端小室 — 线材垃圾素材 ───
+import wireTrash1 from '@/assets/images/cabinet/WireTrash1.png'
+import wireTrash2 from '@/assets/images/cabinet/WireTrash2.png'
+import wireTrash3 from '@/assets/images/cabinet/WireTrash3.png'
+
 // ─── 柜体操作 — 左侧工具栏（围栏/告示牌） ───
 import barLeftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
 import barRightFence from '@/assets/images/cabinet/toolbar/RightFence.png'
@@ -233,6 +238,10 @@ export default {
   checkMeterReading,
   verifyMeterDataConsistency,
   verifyTerminalWiring,
+  // 步骤12 终端小室 — 线材垃圾
+  wireTrash1,
+  wireTrash2,
+  wireTrash3,
   // 柜体操作 — 左侧工具栏（围栏/告示牌）
   barLeftFence,
   barRightFence,

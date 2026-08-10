@@ -21,8 +21,8 @@ const props = defineProps({
 const emit = defineEmits(['operation', 'error', 'stepCompleted'])
 
 // ─── 状态 ───
-// 终端小室背景图：暂共用计量小室首图，替换图片资源见待办清单
-const currentBg = ref(Images.meteringRoomNoMeter)
+// 终端小室背景图（步骤 13 起逐步替换为对应状态图）
+const currentBg = ref(Images.terminalRoomNoMeter)
 const canvasStyle = ref({})
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
