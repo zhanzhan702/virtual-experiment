@@ -87,11 +87,15 @@ import simCard from '@/assets/images/tool-selection/wire/SimCard.png'
 import antenna from '@/assets/images/tool-selection/wire/Antenna.png'
 import cableTieLabel from '@/assets/images/tool-selection/wire/CableTieLabel.png'
 
-// ─── 柜体局部操作 — 背景图 ───
+// ─── 柜体局部操作 — 背景图 / prompt 提示窗 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
 import meterRoomOperationSuccess from '@/assets/images/cabinet/MeterRoomOperationSuccess.png'
+import readyForPowerOnNotice from '@/assets/images/cabinet/ReadyForPowerOnNotice.png'
+import checkMeterReading from '@/assets/images/cabinet/CheckMeterReading.png'
+import verifyMeterDataConsistency from '@/assets/images/cabinet/VerifyMeterDataConsistency.png'
+import verifyTerminalWiring from '@/assets/images/cabinet/VerifyTerminalWiring.png'
 
 // ─── 柜体操作 — 左侧工具栏（围栏/告示牌） ───
 import barLeftFence from '@/assets/images/cabinet/toolbar/LeftFence.png'
@@ -124,19 +128,30 @@ import barSimCard from '@/assets/images/cabinet/toolbar/SimCard.png'
 import barAntenna from '@/assets/images/cabinet/toolbar/Antenna.png'
 
 // ─── 计量小室（leafer ui 画布） ───
-import meteringRoomNoMeter from '@/assets/images/cabinet/metering-room/MeteringRoomNoMeter.png'
-import meteringRoomWithMeter from '@/assets/images/cabinet/metering-room/MeteringRoomWithMeter.png'
-import meteringRoomWired from '@/assets/images/cabinet/metering-room/MeteringRoomWired.png'
-import meteringRoomWithCableTies from '@/assets/images/cabinet/metering-room/MeteringRoomWithCableTies.png'
-import meteringRoomCovered from '@/assets/images/cabinet/metering-room/MeteringRoomCovered.png'
-import junctionBox from '@/assets/images/cabinet/metering-room/JunctionBox.png'
-import junctionBoxSwitch from '@/assets/images/cabinet/metering-room/JunctionBoxSwitch.png'
-import strippedSignalCable6Core from '@/assets/images/cabinet/metering-room/StrippedSignalCable6Core.png'
+import meteringRoomNoMeter from '@/assets/images/cabinet/room/metering-room/MeteringRoomNoMeter.png'
+import meteringRoomWithMeter from '@/assets/images/cabinet/room/metering-room/MeteringRoomWithMeter.png'
+import meteringRoomWired from '@/assets/images/cabinet/room/metering-room/MeteringRoomWired.png'
+import meteringRoomWithCableTies from '@/assets/images/cabinet/room/metering-room/MeteringRoomWithCableTies.png'
+import meteringRoomCovered from '@/assets/images/cabinet/room/metering-room/MeteringRoomCovered.png'
+import junctionBox from '@/assets/images/cabinet/room/JunctionBox.png'
+import junctionBoxSwitch from '@/assets/images/cabinet/room/JunctionBoxSwitch.png'
+import strippedSignalCable6Core from '@/assets/images/cabinet/room/metering-room/StrippedSignalCable6Core.png'
 
-// ─── 后续步骤（预留） ───
-import checkMeterReading from '@/assets/images/CheckMeterReading.png'
-import verifyMeterDataConsistency from '@/assets/images/VerifyMeterDataConsistency.png'
-import verifyTerminalWiring from '@/assets/images/VerifyTerminalWiring.png'
+// ─── 终端小室（leafer ui 画布） ───
+import terminalRoomNoMeter from '@/assets/images/cabinet/room/terminal-room/TerminalRoomNoMeter.png'
+import terminalRoomWithMeter from '@/assets/images/cabinet/room/terminal-room/TerminalRoomWithMeter.png'
+import terminalRoomWired from '@/assets/images/cabinet/room/terminal-room/TerminalRoomWired.png'
+import terminalRoomCovered from '@/assets/images/cabinet/room/terminal-room/TerminalRoomCovered.png'
+import terminalRoomPendingCommModule from '@/assets/images/cabinet/room/terminal-room/TerminalRoomPendingCommModule.png'
+import terminalRoomWithAntenna from '@/assets/images/cabinet/room/terminal-room/TerminalRoomWithAntenna.png'
+import remoteControlBoard from '@/assets/images/cabinet/room/terminal-room/RemoteControlBoard.png'
+import remoteControlSwitch from '@/assets/images/cabinet/room/terminal-room/RemoteControlSwitch.png'
+import terminalSignalCable8Core from '@/assets/images/cabinet/room/terminal-room/SignalCable8Core.png'
+import terminalWire2Core from '@/assets/images/cabinet/room/terminal-room/Wire2Core.png'
+import signToMeteringRoom from '@/assets/images/cabinet/room/terminal-room/SignToMeteringRoom.png'
+import signToOutletCabinet from '@/assets/images/cabinet/room/terminal-room/SignToOutletCabinet.png'
+import terminalAntenna from '@/assets/images/cabinet/Antenna.png'
+import terminalRoomCompleteNotice from '@/assets/images/cabinet/TerminalRoomCompleteNotice.png'
 
 export default {
   // 通用
@@ -209,11 +224,15 @@ export default {
   simCard,
   antenna,
   cableTieLabel,
-  // 柜体操作 — 背景图
+  // 柜体操作 — 背景图 / prompt 提示窗
   cabinetGroupOverview,
   powerSocket,
   electrifyCompleteNotice,
   meterRoomOperationSuccess,
+  readyForPowerOnNotice,
+  checkMeterReading,
+  verifyMeterDataConsistency,
+  verifyTerminalWiring,
   // 柜体操作 — 左侧工具栏（围栏/告示牌）
   barLeftFence,
   barRightFence,
@@ -250,10 +269,21 @@ export default {
   junctionBox,
   junctionBoxSwitch,
   strippedSignalCable6Core,
-  // 后续步骤
-  checkMeterReading,
-  verifyMeterDataConsistency,
-  verifyTerminalWiring
+  // 终端小室（leafer ui 画布）
+  terminalRoomNoMeter,
+  terminalRoomWithMeter,
+  terminalRoomWired,
+  terminalRoomCovered,
+  terminalRoomPendingCommModule,
+  terminalRoomWithAntenna,
+  remoteControlBoard,
+  remoteControlSwitch,
+  terminalSignalCable8Core,
+  terminalWire2Core,
+  signToMeteringRoom,
+  signToOutletCabinet,
+  terminalAntenna,
+  terminalRoomCompleteNotice
 }
 
 /**
