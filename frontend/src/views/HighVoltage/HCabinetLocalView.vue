@@ -1,65 +1,29 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div
-    class="cabinet-local-page"
-    @mousemove="onPageMouseMove"
-    @mousedown="onPageMouseDown"
-    @mouseup="onPageMouseUp"
-    @click="onPageClick"
-  >
+  <div class="cabinet-local-page" @mousemove="onPageMouseMove" @mousedown="onPageMouseDown" @mouseup="onPageMouseUp"
+    @click="onPageClick">
     <!-- 左侧物品栏 -->
-    <HLeftToolBar
-      :items="leftTools"
-      :placed-mask="middleRef?.itemPlaced || []"
-      :active-idx="middleRef?.followingToolIdx"
-      @select="onLeftToolSelect"
-    />
+    <HLeftToolBar :items="leftTools" :placed-mask="middleRef?.itemPlaced || []"
+      :active-idx="middleRef?.followingToolIdx" @select="onLeftToolSelect" />
 
     <!-- 中间交互区域（步骤3/4/12 围栏/告示牌+三步验电；步骤21 上电后回柜体局部+合闸热区） -->
-    <HMiddleArea
-      v-if="!isMeteringStep && (!isTerminalStep || showCabinetAfterPowerOn)"
-      ref="middleRef"
-      :step-order="currentStepOrder"
-      @operation="onOperation"
-      @error="onError"
-      @fences-done="handleFencesDone"
-      @voltage-check-done="submitVoltageCheck"
-    />
+    <HMiddleArea v-if="!isMeteringStep && (!isTerminalStep || showCabinetAfterPowerOn)" ref="middleRef"
+      :step-order="currentStepOrder" @operation="onOperation" @error="onError" @fences-done="handleFencesDone"
+      @voltage-check-done="submitVoltageCheck" />
 
     <!-- 计量小室操作画布（步骤5+：挂电表 / 接线盒） -->
-    <HMeteringRoomCanvas
-      v-if="isMeteringStep"
-      ref="meteringRef"
-      :step-order="currentStepOrder"
-      :experiment-id="experimentId"
-      :step-id="stepId"
-      @operation="onOperation"
-      @error="onError"
-      @step-completed="handleMeteringStepCompleted"
-      @confirm="onConfirmClick"
-    />
+    <HMeteringRoomCanvas v-if="isMeteringStep" ref="meteringRef" :step-order="currentStepOrder"
+      :experiment-id="experimentId" :step-id="stepId" @operation="onOperation" @error="onError"
+      @step-completed="handleMeteringStepCompleted" @confirm="onConfirmClick" />
 
     <!-- 终端小室操作画布（步骤13+，流程与计量小室一致；步骤21 确认后销毁回柜体局部） -->
-    <HTerminalRoomCanvas
-      v-if="isTerminalStep && !showCabinetAfterPowerOn"
-      ref="terminalRef"
-      :step-order="currentStepOrder"
-      :experiment-id="experimentId"
-      :step-id="stepId"
-      @operation="onOperation"
-      @error="onError"
-      @step-completed="handleTerminalStepCompleted"
-      @confirm="onConfirmClick"
-    />
+    <HTerminalRoomCanvas v-if="isTerminalStep && !showCabinetAfterPowerOn" ref="terminalRef"
+      :step-order="currentStepOrder" :experiment-id="experimentId" :step-id="stepId" @operation="onOperation"
+      @error="onError" @step-completed="handleTerminalStepCompleted" @confirm="onConfirmClick" />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
-    <HRightToolBar
-      :items="rightTools"
-      :vt-active="middleRef?.vtActive || false"
-      :vt-done="middleRef?.vtDone || false"
-      :active-idxs="rightToolActiveIdxs"
-      @click="onRightToolClick"
-    />
+    <HRightToolBar :items="rightTools" :vt-active="middleRef?.vtActive || false" :vt-done="middleRef?.vtDone || false"
+      :active-idxs="rightToolActiveIdxs" @click="onRightToolClick" />
 
     <!-- 视频占位 -->
     <div v-if="showVideo" class="video-overlay">
@@ -75,33 +39,21 @@
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
     <!-- 验电完成提示弹窗（提交后展示，确认后进入下一步） -->
-    <PromptModal
-      :visible="showElectrifyNotice"
-      @close="onElectrifyNoticeClose"
-      :button-bottom="'18%'"
-    >
+    <PromptModal :visible="showElectrifyNotice" @close="onElectrifyNoticeClose" :button-bottom="'18%'">
       <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
 
     <!-- 计量小室操作完成弹窗（步骤11 确认键触发，确认后进入终端小室验电） -->
-    <PromptModal
-      :visible="showMeterRoomSuccess"
-      @close="onMeterRoomSuccessClose"
-      :button-bottom="'22%'"
-    >
+    <PromptModal :visible="showMeterRoomSuccess" @close="onMeterRoomSuccessClose" :button-bottom="'22%'">
       <img :src="Images.meterRoomOperationSuccess" alt="计量小室操作完成" class="work-bg-img" />
     </PromptModal>
 
     <!-- 终端小室上电完成弹窗（步骤21 确认键触发 → 终端小室完成 → 送电完成提示 → 回柜体局部） -->
-    <PromptModal
-      :visible="showTerminalComplete"
-      @close="onTerminalCompleteClose"
-      :button-bottom="'22%'"
-    >
+    <PromptModal :visible="showTerminalComplete" @close="onTerminalCompleteClose" :button-bottom="'22%'">
       <img :src="Images.terminalRoomCompleteNotice" alt="终端小室操作完成" class="work-bg-img" />
     </PromptModal>
 
-    <PromptModal :visible="showReadyForPowerOn" @close="onReadyForPowerOnClose">
+    <PromptModal :visible="showReadyForPowerOn" @close="onReadyForPowerOnClose" :button-bottom="'24%'">
       <img :src="Images.readyForPowerOnNotice" alt="送电完成提示" class="work-bg-img" />
     </PromptModal>
 
@@ -582,10 +534,10 @@ const saveProgress = async () => {
       : isTerminalStep.value
         ? { ...(terminalRef.value?.getFullState?.() || {}) }
         : {
-            itemPlaced: [...(m?.itemPlaced || [])],
-            vtDone: m?.vtDone || false,
-            vtStep: m?.vtStep ?? 0
-          }
+          itemPlaced: [...(m?.itemPlaced || [])],
+          vtDone: m?.vtDone || false,
+          vtStep: m?.vtStep ?? 0
+        }
     await saveDraft({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -614,7 +566,7 @@ onMounted(async () => {
         if (steps?.length) {
           localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(steps))
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     try {
       // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
@@ -626,7 +578,7 @@ onMounted(async () => {
       } else {
         middleRef.value?.restoreDraft?.(d)
       }
-    } catch (_) {}
+    } catch (_) { }
   }
   // 步骤4/12（验电）：物品必为已放置（步骤3 完成条件=4 个全放），无条件标记，防止草稿残留旧值干扰
   if (isStep4.value) {

@@ -14,11 +14,7 @@
       </div>
       <!-- 步骤17 信号线跟随 -->
       <div v-if="cableFollowing != null" class="meter-following" :style="cableFollowStyle">
-        <img
-          :src="SIGNAL_CABLES[cableFollowing].img"
-          :alt="SIGNAL_CABLES[cableFollowing].name"
-          draggable="false"
-        />
+        <img :src="SIGNAL_CABLES[cableFollowing].img" :alt="SIGNAL_CABLES[cableFollowing].name" draggable="false" />
       </div>
       <!-- 步骤18 安装跟随（通信模块/SIM卡/天线） -->
       <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
@@ -127,7 +123,7 @@ const tooltipText = ref('')
 const DROP_ZONE = { x: 0.15, y: 0.04, w: 0.37, h: 0.58 }
 
 // ★ 接线盒（与计量小室一致：左下角贴底，宽固定画布 27%，高按图片比例 auto）
-const JUNCTION_BOX = { x: 0.202, y: 0.746, w: 0.27 }
+const JUNCTION_BOX = { x: 0.202, y: 0.748, w: 0.27 }
 
 // ★ 接线盒开关（10 个，位置与计量小室一致；on/off 独立坐标相对接线盒左上角）
 const SWITCHES = [
@@ -147,7 +143,7 @@ const SWITCH_SIZE = { w: 0.1 }
 // 步骤14 第一次开关目标状态（按开关顺序 1-10）
 const SWITCH_TARGETS_1 = ['off', 'on', 'on', 'off', 'off', 'off', 'off', 'on', 'on', 'off']
 // 步骤20 第二次开关目标状态（初始 = 步骤14 结束状态）
-const SWITCH_TARGETS_2 = ['on', 'off', 'on', 'on', 'off', 'off', 'on', 'off', 'on', 'on']
+const SWITCH_TARGETS_2 = ['on', 'off', 'on', 'on', 'on', 'on', 'on', 'off', 'on', 'on']
 // 图片宽高比兜底值（与计量小室一致；运行时优先加载真实比例）
 const JUNCTION_BOX_ASPECT = 2.519
 const SWITCH_ASPECT = 2.109
@@ -159,37 +155,37 @@ const CONTROL_SWITCH_ASPECT = 3.465
 let controlBoardAspect = null
 
 // ★ 遥控压板面板（右侧靠上，占位，用户按背景图微调；高按图片比例 auto）
-const CONTROL_BOARD = { x: 0.6825, y: 0.124, w: 0.217 }
+const CONTROL_BOARD = { x: 0.6747, y: 0.11, w: 0.235 }
 
 // ★ 遥控压板开关（4 个，覆盖在压板热区上方，相对压板左上角定位）
 //   target: 目标状态（关），on/off: 两个状态独立坐标（相对压板比率），点击热区切换
 const CONTROL_SWITCHES = [
-  { target: 'off', on: { x: 0.28, y: 0.066 }, off: { x: 0.43, y: 0.066 } },
-  { target: 'off', on: { x: 0.28, y: 0.325 }, off: { x: 0.43, y: 0.325 } },
-  { target: 'off', on: { x: 0.28, y: 0.566 }, off: { x: 0.43, y: 0.566 } },
-  { target: 'off', on: { x: 0.28, y: 0.818 }, off: { x: 0.43, y: 0.818 } }
+  { target: 'off', on: { x: 0.3, y: 0.09 }, off: { x: 0.43, y: 0.09 } },
+  { target: 'off', on: { x: 0.3, y: 0.325 }, off: { x: 0.43, y: 0.325 } },
+  { target: 'off', on: { x: 0.3, y: 0.555 }, off: { x: 0.43, y: 0.5555 } },
+  { target: 'off', on: { x: 0.3, y: 0.78 }, off: { x: 0.43, y: 0.78 } }
 ]
 // 压板开关图宽（相对压板宽度比率），高度按图片比例 auto
-const CONTROL_SWITCH_SIZE = { w: 0.29 }
+const CONTROL_SWITCH_SIZE = { w: 0.27 }
 
 // ★ 压板内 4 个竖直长方体热区（信息显示层：开关下一层、面板上一层；hover 浮窗显示名称）
 //   y 与 CONTROL_SWITCHES 对齐（自上而下遥控1-1/1-2/2-1/2-2），连线终点在长方条左侧边中点
 // 中心 y = h/2 + i*h（间距 = 高度 h 时紧贴无间隙），覆盖压板全高 0~1
 const CONTROL_STRIPS = [
-  { name: '遥控1-1', y: 0.125 },
-  { name: '遥控1-2', y: 0.375 },
-  { name: '遥控2-1', y: 0.625 },
-  { name: '遥控2-2', y: 0.875 }
+  { name: '遥控1-1', y: 0.15 },
+  { name: '遥控1-2', y: 0.39 },
+  { name: '遥控2-1', y: 0.61 },
+  { name: '遥控2-2', y: 0.84 }
 ]
 // 长方条宽/高（相对压板宽度/高度比率，占位，用户按背景图微调）
-const CONTROL_STRIP_SIZE = { w: 0.987, h: 0.25, x: 0 }
+const CONTROL_STRIP_SIZE = { w: 0.92, h: 0.23, x: 9 }
 
 // ★ 压板下方 12 个长方形热区（横条上下贴排，占位，用户按背景图微调）
 const TERMINAL_STRIPS = {
-  x: 0.728,
-  y: 0.342,
-  w: 0.122,
-  h: 0.315,
+  x: 0.73,
+  y: 0.335,
+  w: 0.123,
+  h: 0.321,
   names: [
     '遥信1-1',
     '遥信1-2',
@@ -213,7 +209,7 @@ const TERMINAL_HOLES = {
   size: 0.007,
   row1: {
     y: 0.476,
-    x0: 0.216,
+    x0: 0.22,
     groups: [
       { start: 13, count: 8, gap: 0.00365 },
       { start: 21, count: 8, gap: 0.0017 },
@@ -223,7 +219,7 @@ const TERMINAL_HOLES = {
   },
   row2: {
     y: 0.432,
-    x0: 0.216,
+    x0: 0.219,
     groups: [
       { start: 39, count: 3, gap: 0.0048 },
       { start: 42, count: 3, gap: 0.0048 },
@@ -240,12 +236,12 @@ const BOX_HOLES = { count: 13, x0: 0.13, x1: 0.866, y: 0.03, size: 0.05 }
 //   右组=孔1-3、中组=孔4-6、左组=孔7-9；组内 k=1 左底、k=2 顶点上、k=3 右底）
 //   cx/y0/spanW = 画布比率（位置/组间距），triW/triH/size = 像素（三角形宽/高、孔径）
 //   占位，用户按背景图微调；右侧 3 孔见 EXTRA_HOLES
-const TERMINAL_HOLES_12 = { cx: 0.3085, spanW: 0.18, triW: 33, y0: 0.576, triH: 4, size: 13 }
+const TERMINAL_HOLES_12 = { cx: 0.311, spanW: 0.18, triW: 33, y0: 0.576, triH: 4, size: 13 }
 
 // ★ 终端下方右侧 3 孔 = 1 组倒三角（孔10-12，无需连线，占位，用户按背景图微调）
 //   cx/y0 = 画布比率（中心位置），spanW/triH/size = 像素（三角形总宽、高、孔径）
 //   组内：k=1 左底、k=2 顶点(下)、k=3 右底
-const EXTRA_HOLES = { cx: 0.423, y0: 0.57, spanW: 33, triH: 4, size: 13 }
+const EXTRA_HOLES = { cx: 0.427, y0: 0.57, spanW: 33, triH: 4, size: 13 }
 
 // ★ 7 根导线固定配对（与计量小室一致：接线盒孔 → 终端孔）；双色线用两条半宽线并排模拟
 const WIRE_CONNECTIONS = [
@@ -364,9 +360,9 @@ const TIE_ZONES = [
   { x: 0.41, y: 0.53, w: 0.27, h: 0.14 }
 ]
 const TIE_IMG = [
-  { x: 0.58, y: 0.2, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 }, // 1193×1069
-  { x: 0.57, y: 0.4, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 },
-  { x: 0.52, y: 0.57, w: 0.1, img: Images.signToMeteringRoom, aspect: 0.932 } // 1116×1197
+  { x: 0.58, y: 0.208, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 }, // 1193×1069
+  { x: 0.58, y: 0.395, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 },
+  { x: 0.52, y: 0.579, w: 0.1, img: Images.signToMeteringRoom, aspect: 0.932 } // 1116×1197
 ]
 
 // 背景按步骤切换（步骤18 按安装进度推断：待装模块→装天线→销毁线材后 Wired）
@@ -1008,24 +1004,24 @@ function corePos(ci, side, idx) {
 /** 构建指定线的芯点热区（追加，不清除其他线的芯点——多根线热区共存） */
 function buildCableCores(ci) {
   const cfg = SIGNAL_CABLES[ci]
-  ;['right', 'left'].forEach(side => {
-    cfg[side].forEach((_, idx) => {
-      const p = corePos(ci, side, idx)
-      const rect = new Rect({
-        x: p.x - CORE_SIZE / 2,
-        y: p.y - CORE_SIZE / 2,
-        width: CORE_SIZE,
-        height: CORE_SIZE,
-        fill: 'rgba(0, 150, 255, 0.3)',
-        stroke: 'rgba(0, 150, 255, 0.9)',
-        strokeWidth: 1,
-        zIndex: 5 // 芯点热区在线材图片与放置热区之上
+    ;['right', 'left'].forEach(side => {
+      cfg[side].forEach((_, idx) => {
+        const p = corePos(ci, side, idx)
+        const rect = new Rect({
+          x: p.x - CORE_SIZE / 2,
+          y: p.y - CORE_SIZE / 2,
+          width: CORE_SIZE,
+          height: CORE_SIZE,
+          fill: 'rgba(0, 150, 255, 0.3)',
+          stroke: 'rgba(0, 150, 255, 0.9)',
+          strokeWidth: 1,
+          zIndex: 5 // 芯点热区在线材图片与放置热区之上
+        })
+        rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
+        hitLayer.add(rect)
+        signalCoreRects.push(rect)
       })
-      rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
-      hitLayer.add(rect)
-      signalCoreRects.push(rect)
     })
-  })
 }
 
 /** 重建全部已放置线的芯点热区（比例校正/画布重建后恢复） */
@@ -1593,8 +1589,8 @@ function positionControlSwitch(ref) {
 
 function toggleControlSwitch(i) {
   // 13-15 热区仅提示位置，调整操作在第16步
-  if (props.stepOrder !== 16) {
-    ElMessage.warning('请在第16步调整遥控压板')
+  if (props.stepOrder > 16) {
+    ElMessage.warning('请误调整遥控压板')
     emit('error')
     return
   }
@@ -1887,7 +1883,7 @@ function persistState() {
         tiePlaced: [...tiePlaced.value]
       })
     )
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /** 全量状态（存档用）：画布所有状态字段（与 localStorage 兜底内容一致） */
@@ -1968,7 +1964,7 @@ function restoreDraft(d) {
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
-  } catch (_) {}
+  } catch (_) { }
   if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
   if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
   const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
@@ -2089,6 +2085,9 @@ function applyDraft() {
   // 步骤19：重建指示牌热区 + 已放置指示牌
   if (props.stepOrder === 19) {
     buildTieZones()
+  }
+  // 步骤19-21：重建已放置指示牌（生命周期从创建到实验结束，20/21 刷新同样显示）
+  if (props.stepOrder >= 19) {
     redrawTies()
   }
 }
@@ -2231,7 +2230,7 @@ onMounted(() => {
         // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
         restoreDraft(d || {})
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 })
 onUnmounted(() => {

@@ -982,6 +982,7 @@ function buildTerminalBlocks() {
       fill: 'rgba(0, 150, 255, 0.25)',
       stroke: 'rgba(0, 150, 255, 0.9)',
       strokeWidth: 1,
+      strokeAlign: 'inside', // 描边向内，相邻格边界不重叠成双线
       zIndex: 3
     })
     rect.on(PointerEvent.CLICK, () => onTerminalClick(i + 1))
