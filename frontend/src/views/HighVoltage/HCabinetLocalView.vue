@@ -148,10 +148,11 @@ watch(
     if (id) stepId.value = id
   }
 )
-// 计量小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
+// 计量/终端小室步骤右栏工具高亮（接线状态机激活的工具：剥线钳+当前导线持续高亮）
 const rightToolActiveIdxs = computed(() => {
-  if (!isMeteringStep.value) return []
-  return meteringRef.value?.activeToolIdxs ?? []
+  if (isMeteringStep.value) return meteringRef.value?.activeToolIdxs ?? []
+  if (isTerminalStep.value) return terminalRef.value?.activeToolIdxs ?? []
+  return []
 })
 
 // ─── 4 物品：[围栏, 高压警示牌, 工作牌, 安全须知] ───

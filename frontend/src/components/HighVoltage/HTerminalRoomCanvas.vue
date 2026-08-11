@@ -8,6 +8,10 @@
       <div v-if="isMeterFollowing" class="meter-following" :style="followStyle">
         <img :src="Images.barThreePhaseThreeWireTerminal" alt="专变终端" draggable="false" />
       </div>
+      <!-- 步骤15 十字螺丝刀跟随 -->
+      <div v-if="screwdriverFollowing" class="meter-following" :style="screwdriverStyle">
+        <img :src="Images.barCrossScrewdriver" alt="螺丝刀" draggable="false" />
+      </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（照搬计量小室：正方形常驻，hover 换图放大；绝对定位按画布像素） -->
@@ -19,7 +23,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Leafer, Group, Image, Rect, PointerEvent } from 'leafer-ui'
+import { Leafer, Group, Image, Rect, Path, PointerEvent } from 'leafer-ui'
 import Images from '@/constants/images'
 import { getStepDraft } from '@/api/experiment'
 
@@ -39,6 +43,15 @@ const canvasStyle = ref({})
 const confirmBtnStyle = ref({})
 const switchStates = ref([])
 const controlSwitchStates = ref([])
+// 步骤15 接线状态机
+const wiringStep = ref('idle') // idle | plier_selected | wire_selected | screwdriver_active | wire_drawing
+const selectedWire = ref(null)
+const wireStart = ref(null) // { type: 'box' | 'terminal', hole: n }
+const wireStartPos = ref(null)
+const connectedWires = ref([]) // [{ boxHole, terminalHole, spec }]
+const activeToolIdxs = ref([]) // 剥线钳+当前导线持续高亮，螺丝刀不高亮（仅跟随）
+const screwdriverFollowing = ref(false)
+const screwdriverStyle = ref({})
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -57,6 +70,10 @@ let controlBoardImg = null
 let controlBoardRect = null
 const stripRects = [] // 12 长方条热区
 const holeRects = [] // 36 孔热区
+const boxHoleRects = [] // 接线盒 13 孔热区（步骤15）
+const terminalHoleRects = [] // 终端下方 12 孔 + 3 倒三角孔热区（步骤15）
+const wirePaths = [] // 已连接导线 Path
+let wireFollowPaths = [] // 跟随线 Path
 // 悬浮提示
 const tooltipVisible = ref(false)
 const tooltipStyle = ref({})
@@ -168,6 +185,41 @@ const TERMINAL_HOLES = {
     ],
     gapBetween: [0.004, 0.0035]
   }
+}
+
+// ★ 接线盒顶部 13 孔（与计量小室一致，编号从右往左：孔1 最右、孔13 最左）
+const BOX_HOLES = { count: 13, x0: 0.13, x1: 0.866, y: 0.03, size: 0.05 }
+
+// ★ 终端下方左侧 9 孔 = 3 组正三角水平排列（编号与计量小室一致从右往左：
+//   右组=孔1-3、中组=孔4-6、左组=孔7-9；组内 k=1 左底、k=2 顶点上、k=3 右底）
+//   cx/y0/spanW = 画布比率（位置/组间距），triW/triH/size = 像素（三角形宽/高、孔径）
+//   占位，用户按背景图微调；右侧 3 孔见 EXTRA_HOLES
+const TERMINAL_HOLES_12 = { cx: 0.3085, spanW: 0.18, triW: 33, y0: 0.576, triH: 4, size: 13 }
+
+// ★ 终端下方右侧 3 孔 = 1 组倒三角（孔10-12，无需连线，占位，用户按背景图微调）
+//   cx/y0 = 画布比率（中心位置），spanW/triH/size = 像素（三角形总宽、高、孔径）
+//   组内：k=1 左底、k=2 顶点(下)、k=3 右底
+const EXTRA_HOLES = { cx: 0.423, y0: 0.57, spanW: 33, triH: 4, size: 13 }
+
+// ★ 7 根导线固定配对（与计量小室一致：接线盒孔 → 终端孔）；双色线用两条半宽线并排模拟
+const WIRE_CONNECTIONS = [
+  { spec: '4.0红黑', boxHole: 3, terminalHole: 3, pathColor: '#e60000', secondColor: '#000000' },
+  { spec: '4.0红', boxHole: 4, terminalHole: 1, pathColor: '#e60000' },
+  { spec: '2.5红', boxHole: 5, terminalHole: 2, pathColor: '#e60000' },
+  { spec: '2.5绿', boxHole: 9, terminalHole: 5, pathColor: '#00a650' },
+  { spec: '4.0黄黑', boxHole: 11, terminalHole: 9, pathColor: '#FFFF00', secondColor: '#000000' },
+  { spec: '4.0黄', boxHole: 12, terminalHole: 7, pathColor: '#FFFF00' },
+  { spec: '2.5黄', boxHole: 13, terminalHole: 8, pathColor: '#FFFF00' }
+]
+// 右栏工具索引 → 导线配对（rightTools 顺序：6=2.5黄 7=2.5绿 8=2.5红 9=4.0黄 10=4.0黄黑 11=4.0红 12=4.0红黑）
+const TOOL_IDX_TO_WIRE = {
+  6: WIRE_CONNECTIONS[6],
+  7: WIRE_CONNECTIONS[3],
+  8: WIRE_CONNECTIONS[2],
+  9: WIRE_CONNECTIONS[5],
+  10: WIRE_CONNECTIONS[4],
+  11: WIRE_CONNECTIONS[1],
+  12: WIRE_CONNECTIONS[0]
 }
 
 // 背景按步骤切换
@@ -289,14 +341,18 @@ function buildJunctionBox(w, h) {
       h: junctionBoxImg.height
     }
     rebuildSwitches()
+    rebuildHoles15()
+    redrawConnectedWires()
   }
   probe.src = Images.junctionBox
 }
 
 /** 构建 10 个开关小图 + 热区（照搬计量小室：初始状态 on，位置相对接线盒，按 orient 旋转） */
+// 热区生命周期：步骤13（挂表）起可点击 → 步骤14 结束后移除 → 步骤20（第二次调整）再出现
 function buildSwitches() {
   switchRefs.length = 0
   switchStates.value = []
+  const showRects = props.stepOrder === 13 || props.stepOrder === 14 || props.stepOrder === 20
   const { x: bx, y: by, w: bw, h: bh } = junctionBoxRect
   SWITCHES.forEach((cfg, i) => {
     const state = 'on'
@@ -317,17 +373,20 @@ function buildSwitches() {
       zIndex: 2
     })
     hitLayer.add(img)
-    const rect = new Rect({
-      x,
-      y,
-      width: sw,
-      height: sh,
-      fill: 'rgba(0, 150, 255, 0.25)',
-      rotation,
-      zIndex: 3
-    })
-    rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
-    hitLayer.add(rect)
+    let rect = null
+    if (showRects) {
+      rect = new Rect({
+        x,
+        y,
+        width: sw,
+        height: sh,
+        fill: 'rgba(0, 150, 255, 0.25)',
+        rotation,
+        zIndex: 3
+      })
+      rect.on(PointerEvent.CLICK, () => toggleSwitch(i))
+      hitLayer.add(rect)
+    }
     switchRefs.push({ cfg, img, rect, sw })
   })
   // 开关图片比例加载完成后校正高度（不压缩比例，热区同步）
@@ -406,11 +465,336 @@ function rebuildSwitches() {
   })
 }
 
-/** 步骤14 完成检测：开关状态全部匹配目标 */
+/** 步骤14 完成检测：开关状态全部匹配目标 → 销毁开关热区并提交 */
 function checkSwitches() {
   if (switchStates.value.length !== SWITCH_TARGETS_1.length) return
   const ok = SWITCH_TARGETS_1.every((t, i) => switchStates.value[i] === t)
-  if (ok) emit('stepCompleted', props.stepOrder)
+  if (ok) {
+    // 销毁开关热区（保留开关小图），进入步骤15 接线
+    switchRefs.forEach(s => {
+      s.rect?.remove()
+      s.rect = null
+    })
+    emit('stepCompleted', props.stepOrder)
+  }
+}
+
+// ─── 步骤15：接电压、电流进出线（7 根导线） ───
+
+/** 接线盒孔 i（1~13，右起）绝对坐标 */
+function boxHolePos(i) {
+  const rx =
+    BOX_HOLES.x0 + ((BOX_HOLES.count - i) / (BOX_HOLES.count - 1)) * (BOX_HOLES.x1 - BOX_HOLES.x0)
+  return {
+    x: junctionBoxRect.x + rx * junctionBoxRect.w,
+    y: junctionBoxRect.y + BOX_HOLES.y * junctionBoxRect.h
+  }
+}
+
+/** 终端左侧孔 i（1~9，右起）绝对坐标：3 组正三角水平排列（编号与计量小室一致从右往左） */
+function terminalHolePos(i) {
+  const g = Math.ceil(i / 3) // 1=右组 2=中组 3=左组
+  const k = ((i - 1) % 3) + 1 // 组内 1=左底 2=顶点(上) 3=右底
+  const groupStep = TERMINAL_HOLES_12.spanW / 3 // 组间距（跨度/3，画布比率）
+  const gc = TERMINAL_HOLES_12.cx + (g === 1 ? groupStep : g === 2 ? 0 : -groupStep)
+  const half = TERMINAL_HOLES_12.triW / 2 // 组内三角形半宽（像素）
+  const xBase = gc * leafer.width
+  const y0 = TERMINAL_HOLES_12.y0 * leafer.height
+  if (k === 1) return { x: xBase - half, y: y0 }
+  if (k === 2) return { x: xBase, y: y0 - TERMINAL_HOLES_12.triH }
+  return { x: xBase + half, y: y0 }
+}
+
+/** 右侧倒三角孔 k（1=左底、2=顶点下、3=右底）绝对坐标（spanW/triH 为像素） */
+function extraHolePos(k) {
+  const half = EXTRA_HOLES.spanW / 2
+  const cx = EXTRA_HOLES.cx * leafer.width
+  const y0 = EXTRA_HOLES.y0 * leafer.height
+  if (k === 1) return { x: cx - half, y: y0 }
+  if (k === 2) return { x: cx, y: y0 + EXTRA_HOLES.triH }
+  return { x: cx + half, y: y0 }
+}
+
+/** 步骤15：接线盒就绪后构建孔热区 */
+function ensureHoles15() {
+  if (props.stepOrder !== 15 || junctionBoxRect.w <= 0 || !leafer) return
+  buildBoxHoles()
+  buildTerminalHoles12()
+}
+
+function buildBoxHoles() {
+  if (boxHoleRects.length > 0) return
+  const sz = junctionBoxRect.w * BOX_HOLES.size
+  for (let i = 1; i <= BOX_HOLES.count; i++) {
+    const p = boxHolePos(i)
+    const rect = new Rect({
+      x: p.x - sz / 2,
+      y: p.y - sz / 2,
+      width: sz,
+      height: sz,
+      fill: 'rgba(0, 150, 255, 0.25)',
+      stroke: 'rgba(0, 150, 255, 0.9)',
+      strokeWidth: 1,
+      zIndex: 3
+    })
+    rect.on(PointerEvent.CLICK, () => onHoleClick('box', i))
+    hitLayer.add(rect)
+    boxHoleRects.push(rect)
+  }
+}
+
+function buildTerminalHoles12() {
+  if (terminalHoleRects.length > 0) return
+  // 左侧 9 孔（1-9）：3 组正三角，可连线
+  const sz = TERMINAL_HOLES_12.size // 像素
+  for (let j = 1; j <= 9; j++) {
+    const p = terminalHolePos(j)
+    const rect = new Rect({
+      x: p.x - sz / 2,
+      y: p.y - sz / 2,
+      width: sz,
+      height: sz,
+      fill: 'rgba(0, 150, 255, 0.25)',
+      stroke: 'rgba(0, 150, 255, 0.9)',
+      strokeWidth: 1,
+      zIndex: 3
+    })
+    rect.on(PointerEvent.CLICK, () => onHoleClick('terminal', j))
+    hitLayer.add(rect)
+    terminalHoleRects.push(rect)
+  }
+  // 右侧 3 孔（10-12）：倒三角，无需连线（点击提示）
+  const esz = EXTRA_HOLES.size // 像素
+  for (let k = 1; k <= 3; k++) {
+    const p = extraHolePos(k)
+    const rect = new Rect({
+      x: p.x - esz / 2,
+      y: p.y - esz / 2,
+      width: esz,
+      height: esz,
+      fill: 'rgba(0, 150, 255, 0.2)',
+      stroke: 'rgba(0, 150, 255, 0.7)',
+      strokeWidth: 1,
+      zIndex: 3
+    })
+    rect.on(PointerEvent.CLICK, () => {
+      ElMessage.warning('该孔无需连线')
+      emit('error')
+    })
+    hitLayer.add(rect)
+    terminalHoleRects.push(rect)
+  }
+}
+
+/** 接线盒比例校正后重建孔热区 */
+function rebuildHoles15() {
+  boxHoleRects.forEach(r => r.remove())
+  boxHoleRects.length = 0
+  terminalHoleRects.forEach(r => r.remove())
+  terminalHoleRects.length = 0
+  ensureHoles15()
+}
+
+/** 2.5 细线基准宽 */
+function thinWireWidth() {
+  return junctionBoxRect.w * 0.006
+}
+
+/** 生成导线 Path 列表（单色 1 条；4.0=2 倍细线宽，双色线=两条细线并排拼接，法向统一屏幕左侧） */
+function makeWirePaths(from, to, wire) {
+  const thin = thinWireWidth()
+  const w = wire.spec.startsWith('4.0') ? thin * 2 : thin
+  const mk = (x1, y1, x2, y2, color, width) =>
+    new Path({
+      path: `M ${x1} ${y1} L ${x2} ${y2}`,
+      stroke: color,
+      strokeWidth: width,
+      lineCap: 'round',
+      zIndex: 4,
+      hittable: false
+    })
+  if (!wire.secondColor) {
+    return [mk(from.x, from.y, to.x, to.y, wire.pathColor, w)]
+  }
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const len = Math.hypot(dx, dy) || 1
+  let nx = -dy / len
+  let ny = dx / len
+  if (nx > 0) {
+    nx = -nx
+    ny = -ny
+  }
+  const off = thin / 2
+  return [
+    mk(
+      from.x + nx * off,
+      from.y + ny * off,
+      to.x + nx * off,
+      to.y + ny * off,
+      wire.pathColor,
+      thin
+    ),
+    mk(
+      from.x - nx * off,
+      from.y - ny * off,
+      to.x - nx * off,
+      to.y - ny * off,
+      wire.secondColor,
+      thin
+    )
+  ]
+}
+
+/** 绘制一根导线（持久，zIndex 4 在孔热区之上） */
+function drawWirePath(boxHole, terminalHole, wire) {
+  const from = boxHolePos(boxHole)
+  const to = terminalHolePos(terminalHole)
+  const paths = makeWirePaths(from, to, wire)
+  paths.forEach(p => hitLayer.add(p))
+  wirePaths.push(...paths)
+}
+
+/** 按已接导线重绘（画布重建/比例校正后恢复视觉） */
+function redrawConnectedWires() {
+  wirePaths.forEach(p => p.remove())
+  wirePaths.length = 0
+  if (junctionBoxRect.w <= 0) return
+  connectedWires.value.forEach(w => {
+    const conn = WIRE_CONNECTIONS.find(
+      c => c.boxHole === w.boxHole && c.terminalHole === w.terminalHole
+    )
+    if (conn) drawWirePath(w.boxHole, w.terminalHole, conn)
+  })
+}
+
+/** 孔绝对像素坐标 */
+function holeAbsPos(type, hole) {
+  if (type === 'box') return boxHolePos(hole)
+  return terminalHolePos(hole)
+}
+
+/** 点孔：起点固定为接线盒（screwdriver_active 只接受 box），终点为终端下方孔 */
+function onHoleClick(type, hole) {
+  if (props.stepOrder !== 15) return
+  if (wiringStep.value === 'screwdriver_active') {
+    if (type !== 'box') {
+      ElMessage.warning('请先点击接线盒孔作为起点')
+      emit('error')
+      return
+    }
+    wireStart.value = { type, hole }
+    wireStartPos.value = holeAbsPos(type, hole)
+    wiringStep.value = 'wire_drawing'
+    const p = wireStartPos.value
+    // 跟随线不拦截点击，保证终点孔热区可命中
+    wireFollowPaths = makeWirePaths(p, { x: p.x, y: p.y }, selectedWire.value)
+    wireFollowPaths.forEach(ph => hitLayer.add(ph))
+    leafer.on(PointerEvent.MOVE, onWireMove)
+    return
+  }
+  if (wiringStep.value === 'wire_drawing') {
+    const start = wireStart.value
+    if (type === 'box') {
+      ElMessage.warning('请点击终端下方的接线孔作为终点')
+      emit('error')
+      return
+    }
+    stopWireFollow()
+    const w = selectedWire.value
+    if (w && start.hole === w.boxHole && hole === w.terminalHole) {
+      drawWirePath(start.hole, hole, w)
+      connectedWires.value.push({ boxHole: start.hole, terminalHole: hole, spec: w.spec })
+      emit('operation')
+      resetWiring()
+      checkWires15()
+    } else {
+      ElMessage.warning('接线位置错误')
+      emit('error')
+      resetWiring()
+    }
+  }
+}
+
+function onWireMove(e) {
+  if (wireFollowPaths.length === 0 || !wireStartPos.value) return
+  const p = e.getLocalPoint()
+  const s = wireStartPos.value
+  const paths = makeWirePaths(s, { x: p.x, y: p.y }, selectedWire.value)
+  wireFollowPaths.forEach((ph, i) => {
+    if (paths[i]) ph.path = paths[i].path
+  })
+}
+
+function stopWireFollow() {
+  leafer.off(PointerEvent.MOVE, onWireMove)
+  wireFollowPaths.forEach(ph => ph.remove())
+  wireFollowPaths = []
+}
+
+function resetWiring() {
+  wiringStep.value = 'idle'
+  selectedWire.value = null
+  wireStart.value = null
+  wireStartPos.value = null
+  activeToolIdxs.value = []
+  screwdriverFollowing.value = false
+  stopWireFollow()
+}
+
+/** 7 根全部接完 → 销毁孔热区并提交（仅步骤15） */
+function checkWires15() {
+  if (props.stepOrder !== 15) return
+  const allOk = WIRE_CONNECTIONS.every(c =>
+    connectedWires.value.some(w => w.boxHole === c.boxHole && w.terminalHole === c.terminalHole)
+  )
+  if (allOk) {
+    boxHoleRects.forEach(r => r.remove())
+    boxHoleRects.length = 0
+    terminalHoleRects.forEach(r => r.remove())
+    terminalHoleRects.length = 0
+    emit('stepCompleted', props.stepOrder)
+  }
+}
+
+/** 步骤15 接线状态机（剥线钳→导线→螺丝刀→接线盒孔→终端孔）；剥线钳与当前导线持续高亮 */
+function onWiringToolClick(idx, e) {
+  if (idx === 3) {
+    if (wiringStep.value !== 'idle' && wiringStep.value !== 'plier_selected') {
+      ElMessage.warning('请先完成当前接线')
+      emit('error')
+      return
+    }
+    wiringStep.value = 'plier_selected'
+    if (!activeToolIdxs.value.includes(idx)) activeToolIdxs.value.push(idx)
+    return
+  }
+  const wire = TOOL_IDX_TO_WIRE[idx]
+  if (wire) {
+    if (wiringStep.value !== 'plier_selected' && wiringStep.value !== 'wire_selected') {
+      ElMessage.warning('请先选择剥线钳')
+      emit('error')
+      return
+    }
+    selectedWire.value = wire
+    wiringStep.value = 'wire_selected'
+    // 只保留剥线钳与当前导线的高亮（换线时移除上一根）
+    activeToolIdxs.value = activeToolIdxs.value.filter(i => i !== idx && !TOOL_IDX_TO_WIRE[i])
+    activeToolIdxs.value.push(idx)
+    return
+  }
+  if (idx === 2) {
+    if (wiringStep.value !== 'wire_selected') {
+      ElMessage.warning('请先选择导线')
+      emit('error')
+      return
+    }
+    wiringStep.value = 'screwdriver_active'
+    screwdriverFollowing.value = true
+    screwdriverStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+    return
+  }
+  ElMessage.info('该工具将在后续步骤中使用')
 }
 
 function buildControlBoard(w, h) {
@@ -677,9 +1061,15 @@ function onConfirmClick() {
   emit('error')
 }
 
-// ─── 右侧工具栏（挂表用第 2 个：三相三线专变终端） ───
+// ─── 右侧工具栏 ───
 function onRightToolClick(idx, e) {
   emit('operation')
+  // 步骤15：接线状态机（剥线钳→导线→螺丝刀→接线盒孔→终端孔）
+  if (props.stepOrder === 15) {
+    onWiringToolClick(idx, e)
+    return
+  }
+  // 步骤13 挂表：第 2 个为三相三线专变终端
   if (idx !== 1) {
     ElMessage.info('该工具将在后续步骤中使用')
     return
@@ -702,6 +1092,9 @@ function onPageMouseMove(e) {
   if (isMeterFollowing.value) {
     followStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (screwdriverFollowing.value) {
+    screwdriverStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 // ─── 存档 ───
@@ -715,7 +1108,8 @@ function persistState() {
       JSON.stringify({
         meterPlaced: meterPlaced.value,
         switchStates: [...switchStates.value],
-        controlSwitchStates: [...controlSwitchStates.value]
+        controlSwitchStates: [...controlSwitchStates.value],
+        connectedWires: connectedWires.value.map(w => ({ ...w }))
       })
     )
   } catch (_) {}
@@ -727,6 +1121,7 @@ function getDraftState() {
     meterPlaced: meterPlaced.value,
     switchStates: [...switchStates.value],
     controlSwitchStates: [...controlSwitchStates.value],
+    connectedWires: connectedWires.value.map(w => ({ ...w })),
     stepOrder: props.stepOrder
   }
 }
@@ -746,6 +1141,8 @@ function restoreDraft(d) {
   if (merged.switchStates?.length) switchStates.value = [...merged.switchStates]
   if (merged.controlSwitchStates?.length)
     controlSwitchStates.value = [...merged.controlSwitchStates]
+  if (merged.connectedWires?.length)
+    connectedWires.value = merged.connectedWires.map(w => ({ ...w }))
   if (leafer) {
     applyDraft()
   } else {
@@ -764,6 +1161,10 @@ function applyDraft() {
   controlStripRects.length = 0
   stripRects.length = 0
   holeRects.length = 0
+  boxHoleRects.length = 0
+  terminalHoleRects.length = 0
+  wirePaths.length = 0
+  wireFollowPaths = []
   dropZoneRect = null
   junctionBoxImg = null
   controlBoardImg = null
@@ -775,6 +1176,11 @@ function applyDraft() {
   controlSwitchStates.value.forEach((v, i) => {
     if (controlSwitchRefs[i]) moveControlSwitch(controlSwitchRefs[i], v)
   })
+  // 步骤15：重建孔热区 + 已接导线
+  if (props.stepOrder === 15) {
+    ensureHoles15()
+    redrawConnectedWires()
+  }
 }
 
 // ─── 生命周期 ───
@@ -812,6 +1218,11 @@ watch(
       // 已符合目标（如回档时已调整过）直接完成
       checkSwitches()
     }
+    // 步骤15：构建接线孔热区（接线盒/终端孔）
+    if (order === 15 && leafer) {
+      ensureHoles15()
+      redrawConnectedWires()
+    }
   }
 )
 
@@ -824,8 +1235,23 @@ onMounted(() => {
   // 组件重挂载（刷新/HMR）时自行恢复草稿；HCL 恢复逻辑保留作双保险（restoreDraft 幂等）
   if (props.experimentId && props.stepId) {
     getStepDraft(props.experimentId, props.stepId)
-      .then(d => {
-        if (d) restoreDraft(d)
+      .then(async d => {
+        if (d) {
+          // 当前步骤草稿缺步骤15 接线结果（HMR 后未保存过）→ 从前序步骤记录补充（仿照计量小室）
+          if (props.stepOrder >= 15 && (!d.connectedWires || d.connectedWires.length === 0)) {
+            const steps = JSON.parse(
+              localStorage.getItem('experimentSteps_' + props.experimentId) || '[]'
+            )
+            const prevId = steps.find(s => s.stepOrder === props.stepOrder - 1)?.stepId || ''
+            if (prevId && prevId !== props.stepId) {
+              try {
+                const prev = await getStepDraft(props.experimentId, prevId)
+                if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
+              } catch (_) {}
+            }
+          }
+          restoreDraft(d)
+        }
       })
       .catch(() => {})
   }
@@ -833,6 +1259,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   if (resizeTimer) clearTimeout(resizeTimer)
+  stopWireFollow()
   leafer?.destroy()
 })
 
@@ -840,7 +1267,8 @@ defineExpose({
   onRightToolClick,
   onPageMouseMove,
   getDraftState,
-  restoreDraft
+  restoreDraft,
+  activeToolIdxs
 })
 </script>
 
