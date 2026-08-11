@@ -1,6 +1,7 @@
 package com.example.experiment.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.example.experiment.dto.experiment.ExperimentStartDTO;
 import com.example.experiment.dto.experiment.ExperimentStartVO;
 import com.example.experiment.dto.experiment.ExperimentStepSubmitDTO;
@@ -118,9 +119,27 @@ public class ExperimentServiceImpl implements ExperimentService {
         (stepRecord.getErrorCount() != null ? stepRecord.getErrorCount() : 0)
             + (dto.getErrorCount() != null ? dto.getErrorCount() : 0));
     stepRecord.setScore(dto.getScore() != null ? new java.math.BigDecimal(dto.getScore()) : null);
-    stepRecord.setResultData(dto.getResultData());
     stepRecord.setFinishedAt(LocalDateTime.now());
     userExperimentStepsMapper.updateById(stepRecord);
+
+    // 实验级草稿/工作票数据（result_data 从步骤表移到实验表）：
+    // 工作票步骤（order=1）提交数据写入 ticket_data 保留；任何步骤提交都清空当前草稿
+    // （草稿必须显式 set null：MyBatis-Plus updateById 默认跳过 null 字段，直接赋值不会清空）
+    var expRecord = userExperimentsMapper.selectById(dto.getExperimentId());
+    if (expRecord != null) {
+      var stepDef = stepsMapper.selectById(stepRecord.getStepId());
+      boolean isTicketStep =
+          stepDef != null && stepDef.getStepOrder() != null && stepDef.getStepOrder() == 1;
+      if (isTicketStep && dto.getResultData() != null) {
+        expRecord.setTicketData(dto.getResultData());
+        userExperimentsMapper.updateById(expRecord);
+      }
+      userExperimentsMapper.update(
+          null,
+          new LambdaUpdateWrapper<UserExperiments>()
+              .eq(UserExperiments::getId, dto.getExperimentId())
+              .set(UserExperiments::getDraftData, null));
+    }
 
     // 检查是否全部完成 → 更新 experiment 状态
     var unfinished =
@@ -169,8 +188,16 @@ public class ExperimentServiceImpl implements ExperimentService {
     stepRecord.setErrorCount(
         (stepRecord.getErrorCount() != null ? stepRecord.getErrorCount() : 0)
             + (dto.getErrorCount() != null ? dto.getErrorCount() : 0));
-    stepRecord.setResultData(dto.getResultData());
+    // 存档时当前步骤标记为未完成（防已提交步骤残留完成态导致恢复逻辑跳过）
+    stepRecord.setStatus(0);
     userExperimentStepsMapper.updateById(stepRecord);
+
+    // 草稿写到实验表（只存当前存档步骤内容，不占步骤表）
+    var expRecord = userExperimentsMapper.selectById(dto.getExperimentId());
+    if (expRecord != null) {
+      expRecord.setDraftData(dto.getResultData());
+      userExperimentsMapper.updateById(expRecord);
+    }
   }
 
   @Override
@@ -235,14 +262,11 @@ public class ExperimentServiceImpl implements ExperimentService {
 
   @Override
   public Map<String, Object> getStepDraftData(String experimentId, String stepId) {
-    var step =
-        userExperimentStepsMapper.selectOne(
-            new LambdaQueryWrapper<UserExperimentSteps>()
-                .eq(UserExperimentSteps::getExperimentId, experimentId)
-                .eq(UserExperimentSteps::getStepId, stepId));
-    if (step == null || step.getResultData() == null) return Map.of();
+    // result_data 已移到实验表：草稿按实验 ID 查（stepId 参数保留兼容，不再按步骤区分）
+    var exp = userExperimentsMapper.selectById(experimentId);
+    if (exp == null || exp.getDraftData() == null) return Map.of();
     try {
-      return new ObjectMapper().readValue(step.getResultData(), Map.class);
+      return new ObjectMapper().readValue(exp.getDraftData(), Map.class);
     } catch (Exception e) {
       return Map.of();
     }

@@ -70,6 +70,8 @@ CREATE TABLE experiment_steps (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 用户实验记录表
+-- draft_data：当前存档步骤草稿（saveDraft 写入，submitStep 清空）
+-- ticket_data：工作票提交数据（ticketNo + member1，submitStep 写入，不清空）
 CREATE TABLE user_experiments (
     id BINARY(16) PRIMARY KEY,
     user_id BINARY(16) NOT NULL,
@@ -79,12 +81,14 @@ CREATE TABLE user_experiments (
     total_duration INT DEFAULT 0,
     status TINYINT DEFAULT 0 COMMENT '0进行中 1完成',
     score DECIMAL(5,2),
+    draft_data JSON COMMENT '当前存档步骤草稿（saveDraft写入，submitStep清空）',
+    ticket_data JSON COMMENT '工作票提交数据（ticketNo+member1）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (template_id) REFERENCES experiment_templates(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 用户实验步骤记录表
+-- 用户实验步骤记录表（result_data 已移除：草稿/工作票数据存 user_experiments）
 CREATE TABLE user_experiment_steps (
     id BINARY(16) PRIMARY KEY,
     experiment_id BINARY(16) NOT NULL,
@@ -94,10 +98,9 @@ CREATE TABLE user_experiment_steps (
     operation_count INT DEFAULT 0,
     error_count INT DEFAULT 0,
     score DECIMAL(5,2),
-    result_data JSON,
-                                       started_at DATETIME,
-                                       finished_at DATETIME,
-                                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                       FOREIGN KEY (experiment_id) REFERENCES user_experiments(id),
-                                       FOREIGN KEY (step_id) REFERENCES experiment_steps(id)
+    started_at DATETIME,
+    finished_at DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (experiment_id) REFERENCES user_experiments(id),
+    FOREIGN KEY (step_id) REFERENCES experiment_steps(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

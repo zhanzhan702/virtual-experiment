@@ -20,7 +20,6 @@ public class UserExperimentSteps {
   private Integer operationCount;
   private Integer errorCount;
   private BigDecimal score;
-  private String resultData; // JSON string
   private LocalDateTime startedAt;
   private LocalDateTime finishedAt;
   private LocalDateTime createdAt;
