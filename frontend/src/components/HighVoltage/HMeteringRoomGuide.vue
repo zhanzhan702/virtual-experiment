@@ -9,13 +9,25 @@
           <div class="tg-box">{{ item.num }}</div>
           <div v-if="item.arrow" class="tg-arrow">
             <svg viewBox="0 0 12 18" width="12" height="18">
-              <path d="M6 1L6 13M2 10L6 15L10 10" stroke="currentColor" stroke-width="1.2" fill="none"
-                stroke-linecap="round" stroke-linejoin="round" />
+              <path
+                d="M6 1L6 13M2 10L6 15L10 10"
+                stroke="currentColor"
+                stroke-width="1.2"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </div>
           <div v-else-if="item.line" class="tg-line">
             <svg viewBox="0 0 12 18" width="12" height="18">
-              <path d="M6 1L6 15" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <path
+                d="M6 1L6 15"
+                stroke="currentColor"
+                stroke-width="1.2"
+                fill="none"
+                stroke-linecap="round"
+              />
             </svg>
           </div>
           <div class="tg-label">{{ item.label }}</div>
@@ -25,18 +37,48 @@
           <svg viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
             <!-- 接口1：端子 24(中心718.75) + 25(中心781.25) 汇聚到中点750 -->
             <!-- 竖线24 → 横线 → 竖线25（倒U形），再从中点竖线到端口 -->
-            <path d="M718.75 0 L718.75 14 L781.25 14 L781.25 0" fill="none" stroke="currentColor" stroke-width="1.2" />
+            <path
+              d="M718.75 0 L718.75 14 L781.25 14 L781.25 0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
             <line x1="750" y1="14" x2="750" y2="30" stroke="currentColor" stroke-width="1.2" />
             <!-- 485 端口框（width/height 加大即放大；x 保持中点居中，文字 y 随框微调） -->
-            <rect x="725" y="30" width="50" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="1.2" />
+            <rect
+              x="725"
+              y="30"
+              width="50"
+              height="25"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
             <text x="750" y="50" text-anchor="middle" class="tg-group-text" font-size="9">485</text>
             <text x="750" y="85" text-anchor="middle" class="tg-group-text">接口1</text>
 
             <!-- 接口2：端子 27(中心906.25) + 28(中心968.75) 汇聚到中点937.5 -->
-            <path d="M906.25 0 L906.25 14 L968.75 14 L968.75 0" fill="none" stroke="currentColor" stroke-width="1.2" />
+            <path
+              d="M906.25 0 L906.25 14 L968.75 14 L968.75 0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
             <line x1="937.5" y1="14" x2="937.5" y2="30" stroke="currentColor" stroke-width="1.2" />
-            <rect x="912.5" y="30" width="50" height="25" rx="2" fill="none" stroke="currentColor" stroke-width="1.2" />
-            <text x="937.5" y="50" text-anchor="middle" class="tg-group-text" font-size="9">485</text>
+            <rect
+              x="912.5"
+              y="30"
+              width="50"
+              height="25"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.2"
+            />
+            <text x="937.5" y="50" text-anchor="middle" class="tg-group-text" font-size="9">
+              485
+            </text>
             <text x="937.5" y="85" text-anchor="middle" class="tg-group-text">接口2</text>
           </svg>
         </div>

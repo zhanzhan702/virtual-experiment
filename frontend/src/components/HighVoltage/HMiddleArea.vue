@@ -459,8 +459,8 @@ defineExpose({
 .power-socket-img {
   position: absolute;
   left: -15%;
-  top: 15%;
-  width: 12%;
+  top: 17%;
+  width: 7%;
   max-width: 120px;
   object-fit: contain;
   pointer-events: auto;
