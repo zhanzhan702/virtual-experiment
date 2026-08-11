@@ -1,32 +1,102 @@
 <!-- 中间交互区域：围栏/告示牌放置（步骤3）+ 三步验电（步骤4）+ 鼠标跟随 -->
 <template>
   <!-- 中间交互区域（cabinet-group 固定图像宽高比，所有物品 % 定位） -->
-  <div class="middle-area" :class="{ 'is-following': showFollowing }" :style="middleAreaStyle"
-    @click="onMiddleAreaClick">
+  <div
+    class="middle-area"
+    :class="{ 'is-following': showFollowing }"
+    :style="middleAreaStyle"
+    @click="onMiddleAreaClick"
+  >
     <div class="cabinet-group" ref="cabinetGroupRef">
-      <img :src="Images.cabinetGroupOverview" alt="柜体局部" class="cabinet-img" draggable="false" />
+      <img
+        :src="Images.cabinetGroupOverview"
+        alt="柜体局部"
+        class="cabinet-img"
+        draggable="false"
+      />
       <!-- 三步验电第2步：柜体验电区域点击热区可视化（区域由 CABINET_CHECK_ZONE 控制） -->
       <div v-if="vtActive && vtStep === 1" class="cabinet-hit-zone" :style="hitZoneStyle" />
       <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
-      <img v-if="itemPlaced[0]" :src="Images.barLeftFence" class="placed-img" :style="LEFT_FENCE_STYLE"
-        draggable="false" />
-      <img v-if="itemPlaced[0]" :src="Images.barRightFence" class="placed-img" :style="RIGHT_FENCE_STYLE"
-        draggable="false" />
-      <img v-if="itemPlaced[1]" :src="Images.barSignStopHighVoltage" class="placed-img" :style="LEFT_SIGN_HV_STYLE"
-        draggable="false" />
-      <img v-if="itemPlaced[1]" :src="Images.barSignStopHighVoltage" class="placed-img" :style="RIGHT_SIGN_HV_STYLE"
-        draggable="false" />
-      <img v-if="itemPlaced[2]" :src="Images.barSignPersonWorking" class="placed-img" :style="SIGN_WORKING_STYLE"
-        draggable="false" />
-      <img v-if="itemPlaced[3]" :src="Images.barSafetyNotice" class="placed-img" :style="SAFETY_NOTICE_STYLE"
-        draggable="false" />
-      <!-- 步骤12 终端小室：地板 3 张线材垃圾 -->
-      <img v-if="props.stepOrder === 12" :src="Images.wireTrash1" class="trash-img" :style="TRASH_STYLES[0]"
-        draggable="false" />
-      <img v-if="props.stepOrder === 12" :src="Images.wireTrash2" class="trash-img" :style="TRASH_STYLES[1]"
-        draggable="false" />
-      <img v-if="props.stepOrder === 12" :src="Images.wireTrash3" class="trash-img" :style="TRASH_STYLES[2]"
-        draggable="false" />
+      <!-- 步骤21 回柜体局部：围栏/告示牌/垃圾强制显示（模拟实验完成状态） -->
+      <img
+        v-if="itemPlaced[0] || props.stepOrder === 21"
+        :src="Images.barLeftFence"
+        class="placed-img"
+        :style="LEFT_FENCE_STYLE"
+        draggable="false"
+      />
+      <img
+        v-if="itemPlaced[0] || props.stepOrder === 21"
+        :src="Images.barRightFence"
+        class="placed-img"
+        :style="RIGHT_FENCE_STYLE"
+        draggable="false"
+      />
+      <img
+        v-if="itemPlaced[1] || props.stepOrder === 21"
+        :src="Images.barSignStopHighVoltage"
+        class="placed-img"
+        :style="LEFT_SIGN_HV_STYLE"
+        draggable="false"
+      />
+      <img
+        v-if="itemPlaced[1] || props.stepOrder === 21"
+        :src="Images.barSignStopHighVoltage"
+        class="placed-img"
+        :style="RIGHT_SIGN_HV_STYLE"
+        draggable="false"
+      />
+      <img
+        v-if="itemPlaced[2] || props.stepOrder === 21"
+        :src="Images.barSignPersonWorking"
+        class="placed-img"
+        :style="SIGN_WORKING_STYLE"
+        draggable="false"
+      />
+      <img
+        v-if="itemPlaced[3] || props.stepOrder === 21"
+        :src="Images.barSafetyNotice"
+        class="placed-img"
+        :style="SAFETY_NOTICE_STYLE"
+        draggable="false"
+      />
+      <!-- 步骤12/21：地板 3 张线材垃圾 -->
+      <img
+        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        :src="Images.wireTrash1"
+        class="trash-img"
+        :style="TRASH_STYLES[0]"
+        draggable="false"
+      />
+      <img
+        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        :src="Images.wireTrash2"
+        class="trash-img"
+        :style="TRASH_STYLES[1]"
+        draggable="false"
+      />
+      <img
+        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        :src="Images.wireTrash3"
+        class="trash-img"
+        :style="TRASH_STYLES[2]"
+        draggable="false"
+      />
+      <!-- 步骤21：天线（位置大小可调） -->
+      <img
+        v-if="props.stepOrder === 21"
+        :src="Images.terminalAntenna"
+        class="placed-img"
+        :style="ANTENNA_STYLE"
+        draggable="false"
+      />
+      <!-- 步骤21 上电完成：合闸热区（动画待开发） -->
+      <div
+        v-if="props.stepOrder === 21"
+        class="power-zone"
+        :style="POWER_ZONE_STYLE"
+        @click="onPowerZoneClick"
+      />
     </div>
   </div>
 
@@ -47,6 +117,15 @@ const props = defineProps({
 const emit = defineEmits(['operation', 'error', 'fencesDone', 'voltageCheckDone'])
 
 const isStep4 = computed(() => props.stepOrder === 4 || props.stepOrder === 12)
+
+// 步骤21 合闸热区（相对柜体背景 %，占位用户微调；动画待开发）
+const POWER_ZONE_STYLE = { left: '19.8%', top: '27.5%', width: '8.3%', height: '6%' }
+function onPowerZoneClick() {
+  ElMessage.info('合闸动画待开发')
+}
+
+// 步骤21 天线位置（相对柜体背景 %，占位用户微调）
+const ANTENNA_STYLE = { left: '45.3%', top: '-16.2%', width: '6%', height: 'auto' }
 
 // 步骤12 终端小室：3 张垃圾位置（相对柜体背景比率，可微调）
 const TRASH_STYLES = [
@@ -432,5 +511,14 @@ defineExpose({
 .trash-img {
   position: absolute;
   object-fit: contain;
+}
+
+/* 步骤21 合闸热区（蓝色可视化，动画待开发） */
+.power-zone {
+  position: absolute;
+  background: rgba(0, 150, 255, 0.25);
+  border: 1px dashed rgba(0, 150, 255, 0.9);
+  border-radius: 6px;
+  cursor: pointer;
 }
 </style>

@@ -24,6 +24,10 @@
       <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
         <img :src="INSTALL_TOOLS[installFollowing]" alt="安装件" draggable="false" />
       </div>
+      <!-- 步骤19 扎带标识牌跟随 -->
+      <div v-if="tieFollowing" class="meter-following" :style="tieFollowStyle">
+        <img :src="Images.barCableTieLabel" alt="扎带标识牌" draggable="false" />
+      </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（照搬计量小室：正方形常驻，hover 换图放大；绝对定位按画布像素） -->
@@ -78,6 +82,11 @@ const installStep = ref('idle') // idle | module（已装通信模块）| sim（
 const installFollowing = ref(null) // 跟随中的物品栏 idx（18 模块/19 SIM/20 天线）
 const installFollowStyle = ref({})
 const cablesCleared = ref(false) // 天线装完停 1 秒后线材/模块已销毁（切 Wired）
+// 步骤19 绑扎带指示牌
+const tiePlaced = ref([false, false, false]) // 3 根线是否已贴指示牌
+const tieFollowing = ref(false)
+const tieFollowStyle = ref({})
+const tieZoneRects = [] // 3 块指示牌热区引用（放置后销毁）
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -136,6 +145,8 @@ const SWITCHES = [
 const SWITCH_SIZE = { w: 0.1 }
 // 步骤14 第一次开关目标状态（按开关顺序 1-10）
 const SWITCH_TARGETS_1 = ['off', 'on', 'on', 'off', 'off', 'off', 'off', 'on', 'on', 'off']
+// 步骤20 第二次开关目标状态（初始 = 步骤14 结束状态）
+const SWITCH_TARGETS_2 = ['on', 'off', 'on', 'on', 'off', 'off', 'on', 'off', 'on', 'on']
 // 图片宽高比兜底值（与计量小室一致；运行时优先加载真实比例）
 const JUNCTION_BOX_ASPECT = 2.519
 const SWITCH_ASPECT = 2.109
@@ -271,7 +282,7 @@ const SIGNAL_CABLES = [
     name: '2芯遥控线',
     toolIdx: 14,
     img: Images.remoteControlCable2Core,
-    rect: { x: 0.49, y: 0.35, w: 0.16 },
+    rect: { x: 0.47, y: 0.24, w: 0.16 },
     aspect: 1.03, // 与真实资源一致：1007×978
     // 芯点位置（相对线材图片比率，pos 每点独立可调）
     right: [
@@ -288,7 +299,7 @@ const SIGNAL_CABLES = [
     name: '2芯遥信线',
     toolIdx: 15,
     img: Images.remoteSignalCable2Core,
-    rect: { x: 0.49, y: 0.46, w: 0.17 },
+    rect: { x: 0.49, y: 0.4, w: 0.17 },
     aspect: 1.294, // 与真实资源一致：1170×904
     right: [
       { color: '#e60000', label: '红', pos: { x: 0.84, y: 0.055 }, target: { type: 's', idx: 0 } }, // 遥信1-1
@@ -304,7 +315,7 @@ const SIGNAL_CABLES = [
     name: '8芯信号线',
     toolIdx: 17,
     img: Images.terminalSignalCable8Core,
-    rect: { x: 0.5, y: 0.56, w: 0.21 },
+    rect: { x: 0.49, y: 0.55, w: 0.21 },
     aspect: 1.222, // 与真实资源一致：1253×1025
     right: [
       { color: '#000000', label: '黑', pos: { x: 0.655, y: 0.17 }, target: { type: 's', idx: 4 } }, // 正向有功+
@@ -342,6 +353,20 @@ const INSTALL_TOOLS = {
 // 模块/SIM 图片位置与尺寸分开定义（画布比率，高按比例 auto；资源 500×500 宽高比 1）
 const INSTALL_MODULE_IMG = { x: 0.36, y: 0.297, w: 0.085 }
 const INSTALL_SIM_IMG = { x: 0.392, y: 0.317, w: 0.042 }
+
+// ─── 步骤19：绑扎带指示牌 ───
+// 3 块热区对应 3 根线（各自位置可调）；指示牌图片位置独立
+// 2芯遥控线/2芯遥信线 → SignToOutletCabinet；8芯信号线 → SignToMeteringRoom
+const TIE_ZONES = [
+  { x: 0.47, y: 0.2, w: 0.18, h: 0.35 },
+  { x: 0.45, y: 0.37, w: 0.22, h: 0.25 },
+  { x: 0.41, y: 0.53, w: 0.27, h: 0.14 }
+]
+const TIE_IMG = [
+  { x: 0.58, y: 0.2, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 }, // 1193×1069
+  { x: 0.57, y: 0.4, w: 0.1, img: Images.signToOutletCabinet, aspect: 1.116 },
+  { x: 0.52, y: 0.57, w: 0.1, img: Images.signToMeteringRoom, aspect: 0.932 } // 1116×1197
+]
 
 // 背景按步骤切换（步骤18 按安装进度推断：待装模块→装天线→销毁线材后 Wired）
 function bgForStep(order) {
@@ -548,7 +573,7 @@ function toggleSwitch(i) {
   switchStates.value[i] = next
   moveSwitch(s, next)
   // 步骤14：状态匹配目标则完成
-  if (props.stepOrder === 14) checkSwitches()
+  if (props.stepOrder === 14 || props.stepOrder === 20) checkSwitches()
 }
 
 /** 开关位置：按状态取 on/off 两套独立坐标（相对接线盒），直接定位 */
@@ -591,12 +616,13 @@ function rebuildSwitches() {
   })
 }
 
-/** 步骤14 完成检测：开关状态全部匹配目标 → 销毁开关热区并提交 */
+/** 步骤14/20 完成检测：开关状态全部匹配目标 → 销毁开关热区并提交 */
 function checkSwitches() {
   if (switchStates.value.length !== SWITCH_TARGETS_1.length) return
-  const ok = SWITCH_TARGETS_1.every((t, i) => switchStates.value[i] === t)
+  const targets = props.stepOrder === 20 ? SWITCH_TARGETS_2 : SWITCH_TARGETS_1
+  const ok = targets.every((t, i) => switchStates.value[i] === t)
   if (ok) {
-    // 销毁开关热区（保留开关小图），进入步骤15 接线
+    // 销毁开关热区（保留开关小图）
     switchRefs.forEach(s => {
       s.rect?.remove()
       s.rect = null
@@ -1268,6 +1294,88 @@ function destroyInstalledItems() {
   simImg = null
 }
 
+// ─── 步骤19：绑扎带指示牌 ───
+
+/** 构建 3 块指示牌热区（未放置的线） */
+function buildTieZones() {
+  if (props.stepOrder !== 19 || !leafer) return
+  tieZoneRects.forEach(r => r?.remove())
+  tieZoneRects.length = 0
+  const w = leafer.width
+  const h = leafer.height
+  TIE_ZONES.forEach((zone, i) => {
+    if (tiePlaced.value[i]) return
+    const rect = new Rect({
+      x: w * zone.x,
+      y: h * zone.y,
+      width: w * zone.w,
+      height: h * zone.h,
+      fill: 'rgba(0, 150, 255, 0.25)',
+      stroke: 'rgba(0, 150, 255, 0.9)',
+      strokeWidth: 2,
+      zIndex: 3
+    })
+    rect.on(PointerEvent.CLICK, () => onTieZoneClick(i))
+    hitLayer.add(rect)
+    tieZoneRects.push(rect)
+  })
+}
+
+/** 点击热区：需扎带标识牌跟随中 → 绘制指示牌图片（按真实比例不压缩）并销毁该热区 */
+function onTieZoneClick(i) {
+  if (props.stepOrder !== 19 || tiePlaced.value[i]) return
+  if (!tieFollowing.value) return // 未选工具静默
+  tieFollowing.value = false
+  tiePlaced.value[i] = true
+  const cfg = TIE_IMG[i]
+  const img = new Image({
+    url: cfg.img,
+    x: leafer.width * cfg.x,
+    y: leafer.height * cfg.y,
+    width: leafer.width * cfg.w,
+    height: (leafer.width * cfg.w) / cfg.aspect,
+    zIndex: 5 // 扎带图片在安装热区（zIndex 3）之上
+  })
+  hitLayer.add(img)
+  const probe = new Image()
+  probe.onload = () => {
+    const aspect = probe.naturalWidth / probe.naturalHeight || cfg.aspect
+    img.height = img.width / aspect
+  }
+  probe.src = cfg.img
+  // 销毁该热区
+  tieZoneRects[i]?.remove()
+  tieZoneRects[i] = null
+  emit('operation')
+  persistState()
+  // 3 块全部放置 → 提交
+  if (tiePlaced.value.every(Boolean)) {
+    emit('stepCompleted', props.stepOrder)
+  }
+}
+
+/** 按状态重绘已放置的指示牌（画布重建后恢复视觉） */
+function redrawTies() {
+  TIE_IMG.forEach((cfg, i) => {
+    if (!tiePlaced.value[i]) return
+    const img = new Image({
+      url: cfg.img,
+      x: leafer.width * cfg.x,
+      y: leafer.height * cfg.y,
+      width: leafer.width * cfg.w,
+      height: (leafer.width * cfg.w) / cfg.aspect,
+      zIndex: 5 // 扎带图片在安装热区（zIndex 3）之上
+    })
+    hitLayer.add(img)
+    const probe = new Image()
+    probe.onload = () => {
+      const aspect = probe.naturalWidth / probe.naturalHeight || cfg.aspect
+      img.height = img.width / aspect
+    }
+    probe.src = cfg.img
+  })
+}
+
 /** 按安装状态重绘模块/SIM（画布重建后恢复视觉） */
 function buildInstalledImgs() {
   moduleImg?.remove()
@@ -1615,8 +1723,26 @@ function updateConfirmBtn(w, h) {
 }
 
 function onConfirmClick() {
+  // 步骤21 上电完成：确认键 → HCL 销毁画布回柜体局部并弹窗
+  if (props.stepOrder === 21) {
+    emit('confirm')
+    return
+  }
   ElMessage.warning('请先完成当前步骤')
   emit('error')
+}
+
+/** 步骤21：销毁接线盒及其开关（线已销毁）、切 Covered 背景 */
+function destroyJunctionBox() {
+  junctionBoxImg?.remove()
+  junctionBoxImg = null
+  junctionBoxRect = null
+  switchRefs.forEach(s => {
+    s.img?.remove()
+    s.rect?.remove()
+  })
+  switchRefs.length = 0
+  switchStates.value = []
 }
 
 // ─── 右侧工具栏 ───
@@ -1647,6 +1773,16 @@ function onRightToolClick(idx, e) {
   if (props.stepOrder === 18) {
     if (idx === 18 || idx === 19 || idx === 20) {
       onInstallToolClick(idx, e)
+      return
+    }
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
+  // 步骤19：扎带标识牌（idx 13）→ 跟随
+  if (props.stepOrder === 19) {
+    if (idx === 13) {
+      tieFollowing.value = true
+      tieFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
       return
     }
     ElMessage.info('该工具将在后续步骤中使用')
@@ -1684,6 +1820,9 @@ function onPageMouseMove(e) {
   if (installFollowing.value != null) {
     installFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (tieFollowing.value) {
+    tieFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 // ─── 存档 ───
@@ -1703,7 +1842,8 @@ function persistState() {
         cablePhase: [...cablePhase.value],
         connectedCores: connectedCores.value.map(c => ({ ...c })),
         installStep: installStep.value,
-        cablesCleared: cablesCleared.value
+        cablesCleared: cablesCleared.value,
+        tiePlaced: [...tiePlaced.value]
       })
     )
   } catch (_) {}
@@ -1743,6 +1883,7 @@ function restoreDraft(d) {
     connectedCores.value = merged.connectedCores.map(c => ({ ...c }))
   if (merged.installStep) installStep.value = merged.installStep
   if (merged.cablesCleared) cablesCleared.value = true
+  if (merged.tiePlaced?.length) tiePlaced.value = [...merged.tiePlaced]
   if (leafer) {
     applyDraft()
   } else {
@@ -1766,6 +1907,7 @@ function applyDraft() {
   wirePaths.length = 0
   wireFollowPaths = []
   signalDropRects.length = 0
+  tieZoneRects.length = 0
   signalCableImgs.length = 0
   signalCoreRects.length = 0
   signalPaths.length = 0
@@ -1796,6 +1938,11 @@ function applyDraft() {
     if (!cablesCleared.value) redrawSignalCables()
     ensureInstallZone()
     buildInstalledImgs()
+  }
+  // 步骤19：重建指示牌热区 + 已放置指示牌
+  if (props.stepOrder === 19) {
+    buildTieZones()
+    redrawTies()
   }
 }
 
@@ -1898,6 +2045,25 @@ watch(
         s.rect = null
       })
       buildSignalDrops()
+    }
+    // 步骤19：构建指示牌热区 + 重绘已放置（回档）
+    if (order === 19 && leafer) {
+      buildTieZones()
+      redrawTies()
+    }
+    // 步骤20：重建开关热区（步骤14 完成后 rect 已置 null）+ 已符合目标（回档）直接完成
+    if (order === 20 && leafer) {
+      if (switchRefs.length === 0) {
+        buildSwitches()
+      } else if (!switchRefs[0].rect) {
+        rebuildSwitches()
+      }
+      checkSwitches()
+    }
+    // 步骤21：销毁接线盒及开关（线已销毁）→ 切 Covered 背景
+    if (order === 21 && leafer) {
+      destroyJunctionBox()
+      switchBackground(Images.terminalRoomCovered)
     }
   }
 )

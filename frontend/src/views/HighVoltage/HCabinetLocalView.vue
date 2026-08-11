@@ -15,9 +15,9 @@
       @select="onLeftToolSelect"
     />
 
-    <!-- 中间交互区域（步骤3/4/12：围栏/告示牌放置 + 三步验电） -->
+    <!-- 中间交互区域（步骤3/4/12 围栏/告示牌+三步验电；步骤21 上电后回柜体局部+合闸热区） -->
     <HMiddleArea
-      v-if="!isMeteringStep && !isTerminalStep"
+      v-if="!isMeteringStep && (!isTerminalStep || showCabinetAfterPowerOn)"
       ref="middleRef"
       :step-order="currentStepOrder"
       @operation="onOperation"
@@ -39,9 +39,9 @@
       @confirm="onConfirmClick"
     />
 
-    <!-- 终端小室操作画布（步骤13+，流程与计量小室一致） -->
+    <!-- 终端小室操作画布（步骤13+，流程与计量小室一致；步骤21 确认后销毁回柜体局部） -->
     <HTerminalRoomCanvas
-      v-if="isTerminalStep"
+      v-if="isTerminalStep && !showCabinetAfterPowerOn"
       ref="terminalRef"
       :step-order="currentStepOrder"
       :experiment-id="experimentId"
@@ -49,6 +49,7 @@
       @operation="onOperation"
       @error="onError"
       @step-completed="handleTerminalStepCompleted"
+      @confirm="onConfirmClick"
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
@@ -91,6 +92,19 @@
       <img :src="Images.meterRoomOperationSuccess" alt="计量小室操作完成" class="work-bg-img" />
     </PromptModal>
 
+    <!-- 终端小室上电完成弹窗（步骤21 确认键触发 → 终端小室完成 → 送电完成提示 → 回柜体局部） -->
+    <PromptModal
+      :visible="showTerminalComplete"
+      @close="onTerminalCompleteClose"
+      :button-bottom="'22%'"
+    >
+      <img :src="Images.terminalRoomCompleteNotice" alt="终端小室操作完成" class="work-bg-img" />
+    </PromptModal>
+
+    <PromptModal :visible="showReadyForPowerOn" @close="onReadyForPowerOnClose">
+      <img :src="Images.readyForPowerOnNotice" alt="送电完成提示" class="work-bg-img" />
+    </PromptModal>
+
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
@@ -121,6 +135,10 @@ const showWorkBg = ref(false)
 const showVideo = ref(false)
 const showElectrifyNotice = ref(false)
 const showMeterRoomSuccess = ref(false)
+const showTerminalComplete = ref(false)
+const showReadyForPowerOn = ref(false)
+// 步骤21 上电完成后回柜体局部页面（HMiddleArea + 合闸热区）
+const showCabinetAfterPowerOn = ref(false)
 const hasSubmitted = ref(false)
 const saving = ref(false)
 
@@ -332,7 +350,24 @@ async function submitVoltageCheck() {
 
 /** 画布确认键点击（步骤11 铅封完成后）→ 显示计量小室完成弹窗 */
 function onConfirmClick() {
+  // 终端小室步骤21 确认键 → 销毁画布回柜体局部 → 双确认弹窗
+  if (isTerminalStep.value && currentStepOrder.value === 21) {
+    showCabinetAfterPowerOn.value = true
+    showTerminalComplete.value = true
+    return
+  }
   showMeterRoomSuccess.value = true
+}
+
+/** 终端小室完成弹窗确认 → 送电完成提示弹窗 */
+function onTerminalCompleteClose() {
+  showTerminalComplete.value = false
+  showReadyForPowerOn.value = true
+}
+
+/** 送电完成提示关闭（柜体局部已在显示，合闸热区可见） */
+function onReadyForPowerOnClose() {
+  showReadyForPowerOn.value = false
 }
 
 /** 计量小室完成弹窗确认 → 进入终端小室三步验电（步骤12） */
