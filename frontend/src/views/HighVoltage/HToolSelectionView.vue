@@ -166,7 +166,8 @@ const handleToolSelectionSubmit = async selectedMap => {
   pointer-events: none;
 }
 
-.tool-selection-view > * {
+/* 内容元素盖在背景之上；固定定位按钮（保存进度/查看工作任务）除外，保持 main.css 的 fixed 定位 */
+.tool-selection-view > :not(.save-bar-fixed):not(.work-task-btn) {
   position: relative;
   z-index: 1;
 }
