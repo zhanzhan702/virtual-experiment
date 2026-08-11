@@ -1525,12 +1525,12 @@ function buildControlStrips() {
 }
 
 /** 构建压板 4 个开关小图 + 热区（初始 on，目标为关）
- *  热区生命周期：仅步骤16（调整压板）显示；16 调完后销毁且后续（17+）不重建，
+ *  热区生命周期：进入画布（步骤13）即构建 → 步骤16 调整完全 off 后销毁 → 17+ 不重建，
  *  开关图片保留并固定显示关闭状态 */
 function buildControlSwitches() {
   controlSwitchRefs.length = 0
   controlSwitchStates.value = []
-  const showRects = props.stepOrder === 16
+  const showRects = props.stepOrder <= 16
   CONTROL_SWITCHES.forEach(cfg => {
     // 初始状态：步骤16 从 on 开始（调整压板）；17+ 固定全关（热区生命周期已结束）
     const state = props.stepOrder >= 17 ? 'off' : 'on'
@@ -1592,6 +1592,12 @@ function positionControlSwitch(ref) {
 }
 
 function toggleControlSwitch(i) {
+  // 13-15 热区仅提示位置，调整操作在第16步
+  if (props.stepOrder !== 16) {
+    ElMessage.warning('请在第16步调整遥控压板')
+    emit('error')
+    return
+  }
   emit('operation')
   const v = controlSwitchStates.value[i]
   const next = v === 'on' ? 'off' : 'on'
@@ -1997,6 +2003,20 @@ function restoreDraft(d) {
   if (merged.tiePlaced?.length) tiePlaced.value = [...merged.tiePlaced]
   if (leafer) {
     applyDraft()
+    // applyDraft 内 buildAll → buildSwitches/buildControlSwitches 会把状态重置为步骤初始值，
+    // 此处按合并结果重新恢复（否则草稿/标准值被覆盖，如步骤20 恢复后变回步骤14 结束状态导致无法完成）
+    if (merged.switchStates?.length) {
+      switchStates.value = [...merged.switchStates]
+      switchStates.value.forEach((v, i) => {
+        if (switchRefs[i]) moveSwitch(switchRefs[i], v)
+      })
+    }
+    if (merged.controlSwitchStates?.length) {
+      controlSwitchStates.value = [...merged.controlSwitchStates]
+      controlSwitchStates.value.forEach((v, i) => {
+        if (controlSwitchRefs[i]) moveControlSwitch(controlSwitchRefs[i], v)
+      })
+    }
     // 回档到完成态（标准推断/草稿恢复后已符合目标）→ 直接完成提交
     if (props.stepOrder === 14 || props.stepOrder === 20) checkSwitches()
     if (props.stepOrder === 16 && controlSwitchStates.value.every(s => s === 'off')) {

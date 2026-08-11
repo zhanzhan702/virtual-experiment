@@ -260,6 +260,7 @@ let junctionBoxImg = null
 let junctionBoxRect = { x: 0, y: 0, w: 0, h: 0 }
 let dropZoneRect = null
 let switchesCompleted = false
+let switchesCompletedStep = 0 // 完成标志按步骤隔离：步骤6 完成后不影响步骤10 的第二次检测
 let wiresCompleted = false
 let pendingDraft = null
 // 步骤8 热区/元素引用
@@ -1337,11 +1338,13 @@ function toggleSwitch(i) {
 /** 全部开关达到目标状态 → 提交（步骤6/10），移除开关热区；步骤10 额外销毁接线盒/开关并切 Covered 背景 */
 function checkSwitches() {
   if (props.stepOrder !== 6 && props.stepOrder !== 10) return
-  if (switchesCompleted) return
+  // 完成标志按步骤隔离：步骤6 完成置 true 后，步骤10 重新检测不被拦截
+  if (switchesCompleted && switchesCompletedStep === props.stepOrder) return
   const targets = props.stepOrder === 10 ? SWITCH_TARGETS_2 : SWITCHES.map(s => s.target)
   const allOk = targets.every((t, i) => switchStates.value[i] === t)
   if (allOk) {
     switchesCompleted = true
+    switchesCompletedStep = props.stepOrder
     persistState()
     // 移除热区并置 null：步骤9→10 需重建热区，watch 以 rect 为空判断
     switchRefs.forEach(s => {
@@ -1707,7 +1710,7 @@ function restoreDraft(d) {
     applyDraft(merged)
     // 回档到完成态（标准推断/草稿恢复后已符合目标）→ 直接完成提交
     if (props.stepOrder === 6 || props.stepOrder === 10) checkSwitches()
-    if (props.stepOrder === 7 && wiresCompleted === false) checkWires()
+    if (props.stepOrder === 7) checkWires() // checkWires 内部有 wiresCompleted 防重
     if (props.stepOrder === 9 && tiePlaced.value) {
       setTimeout(() => emit('stepCompleted', props.stepOrder), 500)
     }
