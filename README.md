@@ -94,7 +94,7 @@ virtual-experiment/
 │   │   │   ├── ScenarioSelector.vue         # 高/低压场景选择
 │   │   │   ├── PromptModal.vue              # 通用弹窗（确认按钮叠加）
 │   │   │   ├── HighVoltage/
-│   │   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
+│   │   │   │   ├── HWorkTicketForm.vue      # 高压工作票表单
 │   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
 │   │   │   │   ├── HLeftToolBar.vue         # 左侧工具栏（围栏/告示牌）
 │   │   │   │   ├── HRightToolBar.vue        # 右侧工具栏（终端/工器具/线材）
@@ -153,31 +153,31 @@ flowchart LR
 
 ### 已实现
 
-| 步骤 | 页面路由 | 组件 | 说明 |
-|------|---------|------|------|
-| 场景选择 | `/experiment` | `ExperimentView` | 高/低压实验场景选择、未完成实验恢复 |
-| 全景漫游 | `/HSO` | `HSceneOverviewView` | 配电房全景图、梯形热区定位、柜体入口 |
-| 步骤 1 | `/HWT` | `HWorkTicketView` | 填写工作票（手动校验、存档/恢复） |
-| 步骤 2 | `/HTS` | `HToolSelectionView` | 工器具选择向导（分页、选项卡、存档/恢复） |
-| 步骤 3 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 设围栏 + 挂告示牌（4 物品拖放） |
-| 步骤 4 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 三步验电（电源→柜体→电源） |
-| 步骤 5 | `/HCL` | `HMeteringRoomCanvas` | 挂电表（点击跟随 + 热区放置 + 背景切换） |
-| 步骤 6 | `/HCL` | `HMeteringRoomCanvas` | 接线盒开关调整（10 开关双坐标定位） |
-| 步骤 7 | `/HCL` | `HMeteringRoomCanvas` | 接电压电流进出线（7 根导线，状态机 + Path 绘制） |
-| 步骤 8 | `/HCL` | `HMeteringRoomCanvas` | 6芯信号线连接（两阶段接线 + 悬浮孔位信息） |
-| 步骤 9 | `/HCL` | `HMeteringRoomCanvas` | 扎带标识牌放置（单步 + 背景切换） |
-| 步骤 10 | `/HCL` | `HMeteringRoomCanvas` | 接线盒第二次调整 + 盖盖（Covered 背景） |
-| 步骤 11 | `/HCL` | `HMeteringRoomCanvas` | 加铅封（5 处独立坐标/旋转）+ 确认键 |
-| 步骤 12 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 终端小室三步验电（第2步验电位置与步骤4 区分） |
-| 步骤 13 | `/HCL` | `HTerminalRoomCanvas` | 挂表（专变终端）+ 36 孔热区（vue 浮窗） |
-| 步骤 14 | `/HCL` | `HTerminalRoomCanvas` | 接线盒处理（10 开关，目标 off,on,on,off,off,off,off,on,on,off） |
-| 步骤 15 | `/HCL` | `HTerminalRoomCanvas` | 接电压电流进出线（7 根，起点固定接线盒） |
-| 步骤 16 | `/HCL` | `HTerminalRoomCanvas` | 遥控压板调关（4 开关全 off 后热区销毁不再重建） |
-| 步骤 17 | `/HCL` | `HTerminalRoomCanvas` | 信号线连接（2芯遥控/2芯遥信/8芯，先右后左逐线独立） |
-| 步骤 18 | `/HCL` | `HTerminalRoomCanvas` | 安装通信模块/SIM/天线（天线后销毁线材/36孔/模块并切 Wired） |
-| 步骤 19 | `/HCL` | `HTerminalRoomCanvas` | 绑扎带指示牌（3 块热区，放置一块销毁一块） |
-| 步骤 20 | `/HCL` | `HTerminalRoomCanvas` | 接线盒第二次调整（开关恢复 14 结束状态）→ 盖盖 |
-| 步骤 21 | `/HCL` | `HTerminalRoomCanvas` → `HMiddleArea` | 上电合闸（销毁接线盒→双弹窗→柜体局部+合闸热区，动画待开发） |
+| 步骤     | 页面路由      | 组件                                  | 说明                                                            |
+| -------- | ------------- | ------------------------------------- | --------------------------------------------------------------- |
+| 场景选择 | `/experiment` | `ExperimentView`                      | 高/低压实验场景选择、未完成实验恢复                             |
+| 全景漫游 | `/HSO`        | `HSceneOverviewView`                  | 配电房全景图、梯形热区定位、柜体入口                            |
+| 步骤 1   | `/HWT`        | `HWorkTicketView`                     | 填写工作票（手动校验、存档/恢复）                               |
+| 步骤 2   | `/HTS`        | `HToolSelectionView`                  | 工器具选择向导（分页、选项卡、存档/恢复）                       |
+| 步骤 3   | `/HCL`        | `HCabinetLocalView` + `HMiddleArea`   | 设围栏 + 挂告示牌（4 物品拖放）                                 |
+| 步骤 4   | `/HCL`        | `HCabinetLocalView` + `HMiddleArea`   | 三步验电（电源→柜体→电源）                                      |
+| 步骤 5   | `/HCL`        | `HMeteringRoomCanvas`                 | 挂电表（点击跟随 + 热区放置 + 背景切换）                        |
+| 步骤 6   | `/HCL`        | `HMeteringRoomCanvas`                 | 接线盒开关调整（10 开关双坐标定位）                             |
+| 步骤 7   | `/HCL`        | `HMeteringRoomCanvas`                 | 接电压电流进出线（7 根导线，状态机 + Path 绘制）                |
+| 步骤 8   | `/HCL`        | `HMeteringRoomCanvas`                 | 6芯信号线连接（两阶段接线 + 悬浮孔位信息）                      |
+| 步骤 9   | `/HCL`        | `HMeteringRoomCanvas`                 | 扎带标识牌放置（单步 + 背景切换）                               |
+| 步骤 10  | `/HCL`        | `HMeteringRoomCanvas`                 | 接线盒第二次调整 + 盖盖（Covered 背景）                         |
+| 步骤 11  | `/HCL`        | `HMeteringRoomCanvas`                 | 加铅封（5 处独立坐标/旋转）+ 确认键                             |
+| 步骤 12  | `/HCL`        | `HCabinetLocalView` + `HMiddleArea`   | 终端小室三步验电（第2步验电位置与步骤4 区分）                   |
+| 步骤 13  | `/HCL`        | `HTerminalRoomCanvas`                 | 挂表（专变终端）+ 36 孔热区（vue 浮窗）                         |
+| 步骤 14  | `/HCL`        | `HTerminalRoomCanvas`                 | 接线盒处理（10 开关，目标 off,on,on,off,off,off,off,on,on,off） |
+| 步骤 15  | `/HCL`        | `HTerminalRoomCanvas`                 | 接电压电流进出线（7 根，起点固定接线盒）                        |
+| 步骤 16  | `/HCL`        | `HTerminalRoomCanvas`                 | 遥控压板调关（4 开关全 off 后热区销毁不再重建）                 |
+| 步骤 17  | `/HCL`        | `HTerminalRoomCanvas`                 | 信号线连接（2芯遥控/2芯遥信/8芯，先右后左逐线独立）             |
+| 步骤 18  | `/HCL`        | `HTerminalRoomCanvas`                 | 安装通信模块/SIM/天线（天线后销毁线材/36孔/模块并切 Wired）     |
+| 步骤 19  | `/HCL`        | `HTerminalRoomCanvas`                 | 绑扎带指示牌（3 块热区，放置一块销毁一块）                      |
+| 步骤 20  | `/HCL`        | `HTerminalRoomCanvas`                 | 接线盒第二次调整（开关恢复 14 结束状态）→ 盖盖                  |
+| 步骤 21  | `/HCL`        | `HTerminalRoomCanvas` → `HMiddleArea` | 上电合闸（销毁接线盒→双弹窗→柜体局部+合闸热区，动画待开发）     |
 
 ### 已实现功能
 
@@ -277,15 +277,15 @@ npm run dev
 
 ### 实验
 
-| 方法   | 路径                          | 说明                   | 认证       |
-| ------ | ----------------------------- | ---------------------- | ---------- |
-| POST   | `/api/experiment/start`       | 启动实验               | Bearer JWT |
-| POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）   | Bearer JWT |
-| POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分） | Bearer JWT |
-| GET    | `/api/experiment/unfinished`  | 查询未完成实验         | Bearer JWT |
-| GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据       | Bearer JWT |
+| 方法   | 路径                          | 说明                                   | 认证       |
+| ------ | ----------------------------- | -------------------------------------- | ---------- |
+| POST   | `/api/experiment/start`       | 启动实验                               | Bearer JWT |
+| POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）                   | Bearer JWT |
+| POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分）                 | Bearer JWT |
+| GET    | `/api/experiment/unfinished`  | 查询未完成实验                         | Bearer JWT |
+| GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据                       | Bearer JWT |
 | GET    | `/api/experiment/{id}/steps`  | 获取实验步骤列表（恢复时重建步骤映射） | Bearer JWT |
-| DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联） | Bearer JWT |
+| DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联）                 | Bearer JWT |
 
 ### 登录响应示例
 
@@ -317,9 +317,7 @@ npm run dev
   "experimentId": "abc123...",
   "templateName": "高压训练场景V1",
   "startTime": "2026-06-17T10:30:00",
-  "steps": [
-    { "stepId": "def456...", "stepName": "填写工作票", "stepOrder": 1 }
-  ]
+  "steps": [{ "stepId": "def456...", "stepName": "填写工作票", "stepOrder": 1 }]
 }
 ```
 
@@ -327,32 +325,32 @@ npm run dev
 
 ## 路由设计
 
-| 路径          | 页面             | 访问权限          |
-| ------------- | ---------------- | ----------------- |
-| `/`           | 登录页           | 公开              |
-| `/register`   | 学生注册页       | 公开              |
-| `/experiment` | 实验场景选择页   | 登录即可          |
-| `/admin`      | 管理后台         | 教师/管理员       |
-| `/HSO`        | 高压配电房全景图 | 登录即可          |
-| `/HWT`        | 高压工作票填写   | 登录即可          |
-| `/HTS`        | 高压工器具选择   | 登录即可          |
+| 路径          | 页面             | 访问权限                |
+| ------------- | ---------------- | ----------------------- |
+| `/`           | 登录页           | 公开                    |
+| `/register`   | 学生注册页       | 公开                    |
+| `/experiment` | 实验场景选择页   | 登录即可                |
+| `/admin`      | 管理后台         | 教师/管理员             |
+| `/HSO`        | 高压配电房全景图 | 登录即可                |
+| `/HWT`        | 高压工作票填写   | 登录即可                |
+| `/HTS`        | 高压工器具选择   | 登录即可                |
 | `/HCL`        | 柜体局部操作     | 登录即可（步骤3/4共用） |
-| `/LWT`        | 低压工作票填写   | 登录即可          |
+| `/LWT`        | 低压工作票填写   | 登录即可                |
 
 ---
 
 ## 数据库表
 
-| 表名                    | 说明                                       |
-| ----------------------- | ------------------------------------------ |
-| `organization`          | 组织架构（树形：大学→学院→专业→年级→班级） |
-| `users`                 | 用户（BCrypt 密码）                        |
-| `roles`                 | 角色（admin / teacher / student）          |
-| `user_roles`            | 用户角色关联                               |
-| `experiment_templates`  | 实验模板                                   |
-| `experiment_steps`      | 实验步骤                                   |
+| 表名                    | 说明                                                                     |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `organization`          | 组织架构（树形：大学→学院→专业→年级→班级）                               |
+| `users`                 | 用户（BCrypt 密码）                                                      |
+| `roles`                 | 角色（admin / teacher / student）                                        |
+| `user_roles`            | 用户角色关联                                                             |
+| `experiment_templates`  | 实验模板                                                                 |
+| `experiment_steps`      | 实验步骤                                                                 |
 | `user_experiments`      | 用户实验记录（`draft_data` 当前步骤草稿 / `ticket_data` 工作票提交数据） |
-| `user_experiment_steps` | 用户实验步骤记录（操作统计 / 评分，result_data 列已移除） |
+| `user_experiment_steps` | 用户实验步骤记录（操作统计 / 评分，result_data 列已移除）                |
 
 ---
 
@@ -381,13 +379,13 @@ npm run dev
 
 ### API 用法（易踩坑）
 
-| 要点 | 说明 |
-| ---- | ---- |
-| `PointerEvent.CLICK` | 事件常量在 `PointerEvent` 上，基础 `Event` 类没有 `CLICK` |
-| `e.getLocalPoint()` | 取画布局部坐标（`getLocal()` 是 protected，构建产物不可用） |
-| `leafer.resize({ width, height })` | resize 需传对象参数，不是 `(w, h)` |
-| `hittable: false` | 元素不参与命中检测、不拦截点击（用于导线/跟随线等纯视觉元素；属性名是 `hittable` 不是 `hit`） |
-| `zIndex` | 仅在同一父级内比较，跨 Group 不生效 |
+| 要点                               | 说明                                                                                          |
+| ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| `PointerEvent.CLICK`               | 事件常量在 `PointerEvent` 上，基础 `Event` 类没有 `CLICK`                                     |
+| `e.getLocalPoint()`                | 取画布局部坐标（`getLocal()` 是 protected，构建产物不可用）                                   |
+| `leafer.resize({ width, height })` | resize 需传对象参数，不是 `(w, h)`                                                            |
+| `hittable: false`                  | 元素不参与命中检测、不拦截点击（用于导线/跟随线等纯视觉元素；属性名是 `hittable` 不是 `hit`） |
+| `zIndex`                           | 仅在同一父级内比较，跨 Group 不生效                                                           |
 
 ### 画布对齐（防缩放错位）
 
