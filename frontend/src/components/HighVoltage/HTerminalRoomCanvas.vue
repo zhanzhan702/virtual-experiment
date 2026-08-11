@@ -87,6 +87,7 @@ const tiePlaced = ref([false, false, false]) // 3 根线是否已贴指示牌
 const tieFollowing = ref(false)
 const tieFollowStyle = ref({})
 const tieZoneRects = [] // 3 块指示牌热区引用（放置后销毁）
+let tieImgs = [] // 已绘制指示牌图片引用（redrawTies 清理重绘，防叠图）
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -416,12 +417,15 @@ async function createCanvas() {
 
 /** 构建全部初始元素（接线盒/开关、遥控压板/开关、12 长方条、挂表热区） */
 function buildAll(w, h) {
-  buildJunctionBox(w, h)
+  // 步骤21（上电合闸）：接线盒及开关已销毁（生命周期结束），刷新/重建时不构建
+  if (props.stepOrder < 21) buildJunctionBox(w, h)
   buildControlBoard(w, h)
   buildTerminalStrips(w, h)
   buildDropZone(w, h)
-  // 挂表后构建 36 孔热区（含回档恢复场景）
-  if (meterPlaced.value) buildTerminalHoles(w, h)
+  // 挂表后构建 36 孔热区（含回档恢复场景）；18 天线装完销毁（cablesCleared）后 19+ 不重建
+  if (meterPlaced.value && props.stepOrder <= 18 && !cablesCleared.value) {
+    buildTerminalHoles(w, h)
+  }
 }
 
 function bindEvents(w, h) {
@@ -459,6 +463,7 @@ function handleDrop() {
   switchBackground(Images.terminalRoomWithMeter)
   // 挂表完成后绘制 36 孔热区（步骤17 连线用）
   buildTerminalHoles(leafer.width, leafer.height)
+  persistState()
   emit('stepCompleted', props.stepOrder)
 }
 
@@ -506,7 +511,8 @@ function buildSwitches() {
   const showRects = props.stepOrder === 13 || props.stepOrder === 14 || props.stepOrder === 20
   const { x: bx, y: by, w: bw, h: bh } = junctionBoxRect
   SWITCHES.forEach((cfg, i) => {
-    const state = 'on'
+    // 初始状态：步骤14 从 on 开始（第一次调整）；15+ 为步骤14 结束状态（TARGETS_1，20 保持）
+    const state = props.stepOrder >= 15 ? SWITCH_TARGETS_1[i] : 'on'
     switchStates.value.push(state)
     const pos = cfg[state]
     const x = bx + pos.x * bw
@@ -572,6 +578,8 @@ function toggleSwitch(i) {
   const next = cur === 'on' ? 'off' : 'on'
   switchStates.value[i] = next
   moveSwitch(s, next)
+  // 每次切换即持久化，保证 localStorage 兜底是最新状态（否则旧值会以最高优先级覆盖草稿）
+  persistState()
   // 步骤14：状态匹配目标则完成
   if (props.stepOrder === 14 || props.stepOrder === 20) checkSwitches()
 }
@@ -627,6 +635,7 @@ function checkSwitches() {
       s.rect?.remove()
       s.rect = null
     })
+    persistState()
     emit('stepCompleted', props.stepOrder)
   }
 }
@@ -854,7 +863,11 @@ function onHoleClick(type, hole) {
     }
     stopWireFollow()
     const w = selectedWire.value
-    if (w && start.hole === w.boxHole && hole === w.terminalHole) {
+    // 防重复接线：同一配对已连接过则拒绝（否则存档/绘制会出现重复线）
+    const already = connectedWires.value.some(
+      x => x.boxHole === start.hole && x.terminalHole === hole
+    )
+    if (w && start.hole === w.boxHole && hole === w.terminalHole && !already) {
       drawWirePath(start.hole, hole, w)
       connectedWires.value.push({ boxHole: start.hole, terminalHole: hole, spec: w.spec })
       // 连线成功即时持久化（中途刷新/HMR 可恢复）
@@ -1146,8 +1159,6 @@ function onTargetClick(target) {
   })
   emit('operation')
   resetCableStep()
-  // 连线成功即时持久化（中途刷新/HMR 可恢复）
-  persistState()
   // 该线右侧（长方条）全部完成 → 该线进入左端（终端孔）阶段（各线独立）
   const rightCount = cfg.right.length
   const doneRight = connectedCores.value.filter(
@@ -1157,6 +1168,8 @@ function onTargetClick(target) {
     cablePhase.value[sel.cableIdx] = 'left'
     // ElMessage.info(cfg.name + '长方条端接线完成，请开始连接终端孔端')
   }
+  // 阶段切换完成后再持久化（否则 localStorage 存的是旧 phase，恢复时以最高优先级覆盖草稿）
+  persistState()
   checkCablesDone()
 }
 
@@ -1356,6 +1369,9 @@ function onTieZoneClick(i) {
 
 /** 按状态重绘已放置的指示牌（画布重建后恢复视觉） */
 function redrawTies() {
+  // 先清理再重绘（restoreDraft 双保险/onResize 会多次调用，否则叠图）
+  tieImgs.forEach(img => img.remove())
+  tieImgs.length = 0
   TIE_IMG.forEach((cfg, i) => {
     if (!tiePlaced.value[i]) return
     const img = new Image({
@@ -1367,6 +1383,7 @@ function redrawTies() {
       zIndex: 5 // 扎带图片在安装热区（zIndex 3）之上
     })
     hitLayer.add(img)
+    tieImgs.push(img)
     const probe = new Image()
     probe.onload = () => {
       const aspect = probe.naturalWidth / probe.naturalHeight || cfg.aspect
@@ -1507,12 +1524,16 @@ function buildControlStrips() {
   })
 }
 
-/** 构建压板 4 个开关小图 + 热区（初始 on，目标为关） */
+/** 构建压板 4 个开关小图 + 热区（初始 on，目标为关）
+ *  热区生命周期：仅步骤16（调整压板）显示；16 调完后销毁且后续（17+）不重建，
+ *  开关图片保留并固定显示关闭状态 */
 function buildControlSwitches() {
   controlSwitchRefs.length = 0
   controlSwitchStates.value = []
+  const showRects = props.stepOrder === 16
   CONTROL_SWITCHES.forEach(cfg => {
-    const state = 'on'
+    // 初始状态：步骤16 从 on 开始（调整压板）；17+ 固定全关（热区生命周期已结束）
+    const state = props.stepOrder >= 17 ? 'off' : 'on'
     controlSwitchStates.value.push(state)
     const img = new Image({
       url: Images.remoteControlSwitch,
@@ -1524,26 +1545,31 @@ function buildControlSwitches() {
       hittable: false // 不拦截点击，压板内长方条（连线终点）可命中
     })
     hitLayer.add(img)
-    const rect = new Rect({
-      x: 0,
-      y: 0,
-      width: 1,
-      height: 1,
-      fill: 'rgba(0, 150, 255, 0.2)',
-      stroke: 'rgba(0, 150, 255, 0.8)',
-      strokeWidth: 1,
-      zIndex: 3
-    })
-    hitLayer.add(rect)
+    let rect = null
+    if (showRects) {
+      rect = new Rect({
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        fill: 'rgba(0, 150, 255, 0.2)',
+        stroke: 'rgba(0, 150, 255, 0.8)',
+        strokeWidth: 1,
+        zIndex: 3
+      })
+      hitLayer.add(rect)
+    }
     const ref = { img, rect, cfg }
     controlSwitchRefs.push(ref)
     positionControlSwitch(ref)
   })
-  controlSwitchRefs.forEach((ref, i) => {
-    ref.rect.on(PointerEvent.CLICK, () => {
-      toggleControlSwitch(i)
+  if (showRects) {
+    controlSwitchRefs.forEach((ref, i) => {
+      ref.rect.on(PointerEvent.CLICK, () => {
+        toggleControlSwitch(i)
+      })
     })
-  })
+  }
 }
 
 function positionControlSwitch(ref) {
@@ -1551,14 +1577,18 @@ function positionControlSwitch(ref) {
   const w = controlBoardRect.w * CONTROL_SWITCH_SIZE.w
   const h = w / CONTROL_SWITCH_ASPECT
   const pos = ref.cfg[controlSwitchStates.value[controlSwitchRefs.indexOf(ref)]]
+  if (!pos) return
   ref.img.x = controlBoardRect.x + controlBoardRect.w * pos.x
   ref.img.y = controlBoardRect.y + controlBoardRect.h * pos.y
   ref.img.width = w
   ref.img.height = h
-  ref.rect.x = ref.img.x
-  ref.rect.y = ref.img.y
-  ref.rect.width = w
-  ref.rect.height = h
+  // rect 可能为 null（16 调完后 17+ 不再构建开关热区）；空指针会中断构建循环
+  if (ref.rect) {
+    ref.rect.x = ref.img.x
+    ref.rect.y = ref.img.y
+    ref.rect.width = w
+    ref.rect.height = h
+  }
 }
 
 function toggleControlSwitch(i) {
@@ -1567,6 +1597,7 @@ function toggleControlSwitch(i) {
   const next = v === 'on' ? 'off' : 'on'
   controlSwitchStates.value[i] = next
   moveControlSwitch(controlSwitchRefs[i], next)
+  persistState()
   // 步骤16：压板 4 开关全部调为关 → 销毁压板开关热区并提交
   if (props.stepOrder === 16 && controlSwitchStates.value.every(s => s === 'off')) {
     controlSwitchRefs.forEach(s => {
@@ -1582,14 +1613,18 @@ function moveControlSwitch(ref, state) {
   const w = controlBoardRect.w * CONTROL_SWITCH_SIZE.w
   const h = w / CONTROL_SWITCH_ASPECT
   const pos = ref.cfg[state]
+  if (!pos) return
   ref.img.x = controlBoardRect.x + controlBoardRect.w * pos.x
   ref.img.y = controlBoardRect.y + controlBoardRect.h * pos.y
   ref.img.width = w
   ref.img.height = h
-  ref.rect.x = ref.img.x
-  ref.rect.y = ref.img.y
-  ref.rect.width = w
-  ref.rect.height = h
+  // rect 可能为 null（16 调完后 17+ 不再构建开关热区）；空指针会中断 applyDraft 后续执行
+  if (ref.rect) {
+    ref.rect.x = ref.img.x
+    ref.rect.y = ref.img.y
+    ref.rect.width = w
+    ref.rect.height = h
+  }
 }
 
 function rebuildControlSwitches() {
@@ -1849,25 +1884,94 @@ function persistState() {
   } catch (_) {}
 }
 
-function getDraftState() {
-  persistState()
+/** 全量状态（存档用）：画布所有状态字段（与 localStorage 兜底内容一致） */
+function getFullState() {
   return {
+    stepOrder: props.stepOrder, // 标记存档所属步骤，恢复时用于丢弃跨步骤残留
     meterPlaced: meterPlaced.value,
     switchStates: [...switchStates.value],
     controlSwitchStates: [...controlSwitchStates.value],
     connectedWires: connectedWires.value.map(w => ({ ...w })),
-    stepOrder: props.stepOrder
+    cablePlaced: [...cablePlaced.value],
+    cablePhase: [...cablePhase.value],
+    connectedCores: connectedCores.value.map(c => ({ ...c })),
+    installStep: installStep.value,
+    cablesCleared: cablesCleared.value,
+    tiePlaced: [...tiePlaced.value]
   }
 }
 
+/** 标准结果推断：进入步骤 order 时前序步骤成果（非当前步骤信息不依赖存档，按确定常量恢复） */
+function standardStateForStep(order) {
+  const s = {}
+  if (order >= 14) s.meterPlaced = true // 步骤13 挂表完成
+  if (order >= 15) s.switchStates = [...SWITCH_TARGETS_1] // 步骤14 结束状态（第一次调整完成）
+  if (order >= 16) {
+    // 步骤15 结束：7 根进出线全连（固定配对）
+    s.connectedWires = WIRE_CONNECTIONS.map(w => ({
+      boxHole: w.boxHole,
+      terminalHole: w.terminalHole,
+      spec: w.spec
+    }))
+  }
+  if (order >= 17) {
+    // 步骤16 结束：遥控压板 4 个开关全关
+    s.controlSwitchStates = CONTROL_SWITCHES.map(() => 'off')
+  }
+  if (order >= 18) {
+    // 步骤17 结束：3 根信号线全连（固定配对）
+    s.cablePlaced = SIGNAL_CABLES.map(() => true)
+    s.connectedCores = []
+    SIGNAL_CABLES.forEach((cfg, ci) => {
+      ;['right', 'left'].forEach(side => {
+        cfg[side].forEach((core, idx) => {
+          s.connectedCores.push({ cableIdx: ci, side, idx, color: core.color })
+        })
+      })
+    })
+  }
+  if (order >= 19) {
+    // 步骤18 结束：模块/SIM/天线已装（元素已销毁），背景按 Wired 推断
+    s.installStep = 'antenna'
+    s.cablesCleared = true
+  }
+  if (order >= 20) {
+    // 步骤19 结束：扎带已放；步骤20 开始时开关恢复到步骤14 结束状态（回档兜底）
+    s.tiePlaced = TIE_ZONES.map(() => true)
+    s.switchStates = [...SWITCH_TARGETS_1]
+  }
+  return s
+}
+
 let pendingDraft = null
+// 当前步骤可交互字段（草稿/local 仅影响这些；其余前序结果字段强制按标准推断，防旧草稿污染固定结果）
+const CURRENT_STEP_FIELDS = {
+  13: ['meterPlaced'],
+  14: ['switchStates'],
+  15: ['connectedWires'],
+  16: ['controlSwitchStates'],
+  17: ['cablePlaced', 'cablePhase', 'connectedCores'],
+  18: ['installStep', 'cablesCleared'],
+  19: ['tiePlaced'],
+  20: ['switchStates'],
+  21: []
+}
 function restoreDraft(d) {
-  // 后端草稿优先，缺失字段（如挂表状态）从前序提交的 localStorage 兜底
+  // 恢复优先级：标准结果推断（前序）→ 后端草稿（当前步骤中途态）→ localStorage（最新全量，优先）
+  // 跨步骤残留防护：local/草稿只有步骤与当前一致才合并（否则是旧步骤数据，会导致误判完成态）
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
   } catch (_) {}
-  const merged = { ...local, ...(d || {}) }
+  if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
+  if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
+  const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
+  // 前序结果字段强制：非当前步骤交互字段一律按标准推断覆盖（如 17+ 压板固定全关、15+ 开关=步骤14 结束状态）
+  const std = standardStateForStep(props.stepOrder)
+  const cur = CURRENT_STEP_FIELDS[props.stepOrder] || []
+  Object.keys(std).forEach(k => {
+    if (!cur.includes(k)) merged[k] = std[k]
+  })
   if (merged.meterPlaced) {
     meterPlaced.value = true
     switchBackground(bgForStep(props.stepOrder))
@@ -1881,11 +1985,33 @@ function restoreDraft(d) {
   if (merged.cablePhase?.length) cablePhase.value = [...merged.cablePhase]
   if (merged.connectedCores?.length)
     connectedCores.value = merged.connectedCores.map(c => ({ ...c }))
-  if (merged.installStep) installStep.value = merged.installStep
-  if (merged.cablesCleared) cablesCleared.value = true
+  if (merged.installStep) {
+    installStep.value = merged.installStep
+    // 背景随安装进度（步骤18 分支依赖 installStep/cablesCleared 推断，恢复后需刷新）
+    switchBackground(bgForStep(props.stepOrder))
+  }
+  if (merged.cablesCleared) {
+    cablesCleared.value = true
+    switchBackground(bgForStep(props.stepOrder))
+  }
   if (merged.tiePlaced?.length) tiePlaced.value = [...merged.tiePlaced]
   if (leafer) {
     applyDraft()
+    // 回档到完成态（标准推断/草稿恢复后已符合目标）→ 直接完成提交
+    if (props.stepOrder === 14 || props.stepOrder === 20) checkSwitches()
+    if (props.stepOrder === 16 && controlSwitchStates.value.every(s => s === 'off')) {
+      emit('stepCompleted', props.stepOrder)
+    }
+    if (props.stepOrder === 15) checkWires15()
+    if (props.stepOrder === 17) checkCablesDone()
+    if (props.stepOrder === 18 && installStep.value === 'antenna' && cablesCleared.value) {
+      // 天线装完元素已销毁（回档完成态）→ 自动提交
+      emit('stepCompleted', props.stepOrder)
+    }
+    if (props.stepOrder === 19 && tiePlaced.value.every(Boolean)) {
+      // 3 块扎带全放（回档完成态）→ 自动提交
+      emit('stepCompleted', props.stepOrder)
+    }
   } else {
     pendingDraft = merged
   }
@@ -1915,6 +2041,7 @@ function applyDraft() {
   dropZoneRect = null
   junctionBoxImg = null
   controlBoardImg = null
+  installZoneRect = null // removeAll 后必须清引用，否则 ensureInstallZone 误判已构建而跳过重建
   buildAll(w, h)
   // 恢复开关状态位置
   switchStates.value.forEach((v, i) => {
@@ -2069,6 +2196,8 @@ watch(
 )
 
 onMounted(() => {
+  // 刷新/挂载时背景直接按步骤推断（避免 21 等步骤短暂显示初始背景图）
+  currentBg.value = bgForStep(props.stepOrder)
   const img = bgImgRef.value
   if (!img) return
   if (img.complete) createCanvas()
@@ -2077,23 +2206,10 @@ onMounted(() => {
   // 组件重挂载（刷新/HMR）时自行恢复草稿；HCL 恢复逻辑保留作双保险（restoreDraft 幂等）
   if (props.experimentId && props.stepId) {
     getStepDraft(props.experimentId, props.stepId)
-      .then(async d => {
-        if (d) {
-          // 当前步骤草稿缺步骤15 接线结果（HMR 后未保存过）→ 从前序步骤记录补充（仿照计量小室）
-          if (props.stepOrder >= 15 && (!d.connectedWires || d.connectedWires.length === 0)) {
-            const steps = JSON.parse(
-              localStorage.getItem('experimentSteps_' + props.experimentId) || '[]'
-            )
-            const prevId = steps.find(s => s.stepOrder === props.stepOrder - 1)?.stepId || ''
-            if (prevId && prevId !== props.stepId) {
-              try {
-                const prev = await getStepDraft(props.experimentId, prevId)
-                if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
-              } catch (_) {}
-            }
-          }
-          restoreDraft(d)
-        }
+      .then(d => {
+        // 前序步骤成果由 standardStateForStep 按标准推断，草稿只含当前步骤中途态；
+        // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
+        restoreDraft(d || {})
       })
       .catch(() => {})
   }
@@ -2109,7 +2225,7 @@ onUnmounted(() => {
 defineExpose({
   onRightToolClick,
   onPageMouseMove,
-  getDraftState,
+  getFullState,
   restoreDraft,
   activeToolIdxs
 })

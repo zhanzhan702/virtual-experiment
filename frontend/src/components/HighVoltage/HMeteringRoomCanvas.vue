@@ -319,6 +319,9 @@ function handleDrop() {
   dropZoneRect?.remove()
   dropZoneRect = null
   switchBackground(Images.meteringRoomWithMeter)
+  // 挂表后显示电表下方芯孔热区（接线完成后销毁）
+  ensureHoles()
+  persistState()
   emit('stepCompleted', props.stepOrder)
 }
 
@@ -414,9 +417,9 @@ function buildSwitches() {
   switchStates.value = []
   const { x: bx, y: by, w: bw, h: bh } = junctionBoxRect
   SWITCHES.forEach((cfg, i) => {
-    // 初始状态：步骤6 从闭合（on）开始；步骤10 直接为步骤6 结束状态（target），
+    // 初始状态：步骤6 从闭合（on）开始；7-10 为步骤6 结束状态（target），
     // 内置在构建时保证开关就绪即状态正确，避免 watch 重置时序导致无法完成
-    const initState = props.stepOrder === 10 ? cfg.target : 'on'
+    const initState = props.stepOrder >= 7 ? cfg.target : 'on'
     const pos = initState === 'on' ? cfg.on : cfg.off
     const x = bx + pos.x * bw
     const y = by + pos.y * bh
@@ -520,9 +523,10 @@ function meterHoleRatio(j) {
   return { x: gc + half, y: METER_HOLES.y0 }
 }
 
-/** 步骤7：接线盒就绪后构建孔热区（接线盒构建完成后即可） */
+/** 挂表后构建孔热区（步骤5 挂表完成即显示，接线完成后销毁） */
 function ensureHoles() {
-  if (props.stepOrder !== 7 || junctionBoxRect.w <= 0 || !leafer) return
+  if (!meterPlaced.value || props.stepOrder < 5 || props.stepOrder > 7) return
+  if (junctionBoxRect.w <= 0 || !leafer) return
   buildBoxHoles()
   buildMeterHoles()
 }
@@ -692,9 +696,14 @@ function onHoleClick(type, hole) {
     const meterHole = start.type === 'meter' ? start.hole : hole
     stopWireFollow()
     const w = selectedWire.value
-    if (w && boxHole === w.boxHole && meterHole === w.meterHole) {
+    // 防重复接线：同一配对已连接过则拒绝（否则存档/绘制会出现重复线）
+    const already = connectedWires.value.some(
+      x => x.boxHole === boxHole && x.meterHole === meterHole
+    )
+    if (w && boxHole === w.boxHole && meterHole === w.meterHole && !already) {
       drawWirePath(boxHole, meterHole, w)
       connectedWires.value.push({ boxHole, meterHole, spec: w.spec })
+      persistState()
       emit('operation')
       resetWiring()
       checkWires()
@@ -852,6 +861,7 @@ function onSealClick(i) {
   hitLayer.add(img)
   sealImgs.push(img)
   sealPlaced.value[i] = true
+  persistState()
   emit('operation')
   if (sealPlaced.value.filter(Boolean).length === SEALS.length) {
     sealsDone = true
@@ -866,7 +876,9 @@ function onSealClick(i) {
 function redrawSeals() {
   sealImgs.forEach(img => img.remove())
   sealImgs.length = 0
-  if (sealsDone || !leafer) return
+  // 不能以 sealsDone 拦截：restoreDraft 双保险会调用两次，第二次时 sealsDone 已为 true，
+  // 若直接 return 会导致"先移除全部图标再跳过重绘"→ 铅封消失。重绘本身幂等，无需守卫
+  if (!leafer) return
   const w = leafer.width
   const h = leafer.height
   const sz = w * SEAL_SIZE
@@ -907,6 +919,7 @@ function onTieDropZoneClick() {
   }
   tieFollowing.value = false
   tiePlaced.value = true
+  persistState()
   tieDropZoneRect?.remove()
   tieDropZoneRect = null
   // 扎带小图（热区中心，占位尺寸）短暂显示
@@ -1067,6 +1080,7 @@ function onCableDropZoneClick() {
   })
   hitLayer.add(signalCableImg)
   buildCoreTips()
+  persistState()
 }
 
 /** 点芯点：选芯并开始跟随（右端阶段只响应右端芯） */
@@ -1138,6 +1152,8 @@ function connectCore(sel, terminal) {
     phase.value = 'left'
     ElMessage.info('长方体端接线完成，请开始连接电表端')
   }
+  // 阶段切换完成后再持久化（否则 localStorage 存的是旧 phase，恢复时以最高优先级覆盖草稿）
+  persistState()
   // 12 条全部完成
   if (connectedCores.value.length === 12) {
     finishSignalCable()
@@ -1198,6 +1214,7 @@ function onCoreMove(e) {
 function finishSignalCable() {
   if (cableDone) return
   cableDone = true
+  persistState()
   setTimeout(() => {
     switchBackground(Images.meteringRoomWired)
     destroyCableHoles()
@@ -1209,7 +1226,9 @@ function finishSignalCable() {
 function redrawCableCores() {
   coreTipLinks.forEach(p => p.remove())
   coreTipLinks.length = 0
-  if (!cablePlaced.value || cableDone) return
+  // 不能以 cableDone 拦截：restoreDraft 双保险第二次调用时 cableDone 已为 true，
+  // 直接 return 会导致"先移除连线再跳过重绘"→ 连线消失。重绘本身幂等，无需守卫
+  if (!cablePlaced.value) return
   connectedCores.value.forEach(c => {
     const core = (c.side === 'right' ? CORE_TIPS.right : CORE_TIPS.left)[c.idx]
     const from = coreTipPos(c.side, c.idx)
@@ -1310,6 +1329,8 @@ function toggleSwitch(i) {
   const next = cur === 'on' ? 'off' : 'on'
   switchStates.value[i] = next
   moveSwitch(s, next)
+  // 每次切换即持久化，保证 localStorage 兜底是最新状态（否则旧值会以最高优先级覆盖草稿）
+  persistState()
   checkSwitches()
 }
 
@@ -1321,6 +1342,7 @@ function checkSwitches() {
   const allOk = targets.every((t, i) => switchStates.value[i] === t)
   if (allOk) {
     switchesCompleted = true
+    persistState()
     // 移除热区并置 null：步骤9→10 需重建热区，watch 以 rect 为空判断
     switchRefs.forEach(s => {
       s.rect?.remove()
@@ -1340,6 +1362,8 @@ function checkSwitches() {
 
 /** 恢复开关状态（位置/视觉）与已接导线 */
 function applyDraft(d) {
+  // 回档到挂表后状态时补构建芯孔热区（挂表后-接线完成前显示）
+  ensureHoles()
   if (Array.isArray(d?.switchStates)) {
     d.switchStates.forEach((v, i) => {
       if (!switchRefs[i]) return
@@ -1380,8 +1404,15 @@ function applyDraft(d) {
         cableDone = true
         switchBackground(Images.meteringRoomWired)
         destroyCableHoles()
+        // 回档到完成态（12 根全连）：停顿后自动提交（与 finishSignalCable 一致，避免无热区卡死）
+        setTimeout(() => emit('stepCompleted', props.stepOrder), 1000)
       }
     }
+  }
+  // 步骤9：恢复扎带放置状态（背景切换为已绑扎带）
+  if (d?.tiePlaced && props.stepOrder === 9) {
+    tiePlaced.value = true
+    switchBackground(Images.meteringRoomWithCableTies)
   }
   // 步骤11：恢复铅封放置状态（画布先于草稿构建，需同步重绘）
   if (Array.isArray(d?.sealPlaced) && d.sealPlaced.some(Boolean)) {
@@ -1582,22 +1613,86 @@ function onPageMouseMove(e) {
   }
 }
 
-function getDraftState() {
+/** 全量状态（存档用）：画布所有状态字段（localStorage 兜底内容一致） */
+function getFullState() {
   return {
+    stepOrder: props.stepOrder, // 标记存档所属步骤，恢复时用于丢弃跨步骤残留
     meterPlaced: meterPlaced.value,
     switchStates: [...switchStates.value],
     connectedWires: connectedWires.value.map(w => ({ ...w })),
     cablePlaced: cablePlaced.value,
     phase: phase.value,
     connectedCores: connectedCores.value.map(c => ({ ...c })),
+    tiePlaced: tiePlaced.value,
     // 铅封放置状态归一化为定长数组（部分放置时为稀疏数组，JSON 序列化后长度不一致）
-    sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i]),
-    stepOrder: props.stepOrder
+    sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
   }
 }
 
+/** 标准结果推断：进入步骤 order 时前序步骤成果（非当前步骤信息不依赖存档，按确定常量恢复） */
+function standardStateForStep(order) {
+  const s = {}
+  if (order >= 6) s.meterPlaced = true // 步骤5 挂表完成
+  if (order >= 7) s.switchStates = SWITCHES.map(x => x.target) // 步骤6 结束状态（第一次调整完成）
+  if (order >= 8) {
+    // 步骤7 结束：7 根进出线全连（固定配对）
+    s.connectedWires = WIRE_CONNECTIONS.map(w => ({
+      boxHole: w.boxHole,
+      meterHole: w.meterHole,
+      spec: w.spec
+    }))
+  }
+  if (order >= 9) {
+    // 步骤8 结束：6 芯信号线已放置并全连（固定配对）
+    s.cablePlaced = true
+    s.phase = 'left'
+    s.connectedCores = []
+    ;['right', 'left'].forEach(side => {
+      CORE_TIPS[side].forEach((core, idx) => {
+        s.connectedCores.push({ side, idx, terminal: core.terminal, color: core.color })
+      })
+    })
+  }
+  if (order >= 10) s.tiePlaced = true // 步骤9 结束：扎带已放（靠背景图体现）
+  if (order >= 11) s.switchStates = [...SWITCH_TARGETS_2] // 步骤10 结束（第二次调整完成）
+  return s
+}
+
+// localStorage 全量兜底（双保险）：操作成功时即时持久化，恢复时优先合并
+const LS_KEY = () => 'meteringRoom_' + props.experimentId
+function persistState() {
+  try {
+    localStorage.setItem(LS_KEY(), JSON.stringify(getFullState()))
+  } catch (_) {}
+}
+
+// 当前步骤可交互字段（草稿/local 仅影响这些；其余前序结果字段强制按标准推断，防旧草稿污染固定结果）
+const CURRENT_STEP_FIELDS = {
+  5: ['meterPlaced'],
+  6: ['switchStates'],
+  7: ['connectedWires'],
+  8: ['cablePlaced', 'phase', 'connectedCores'],
+  9: ['tiePlaced'],
+  10: ['switchStates'],
+  11: ['sealPlaced']
+}
 function restoreDraft(d) {
-  if (d?.meterPlaced) {
+  // 恢复优先级：标准结果推断（前序）→ 后端草稿（当前步骤中途态）→ localStorage（最新全量，优先）
+  // 跨步骤残留防护：local/草稿只有步骤与当前一致才合并（否则是旧步骤数据，会导致误判完成态）
+  let local = {}
+  try {
+    local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
+  } catch (_) {}
+  if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
+  if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
+  const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
+  // 前序结果字段强制：非当前步骤交互字段一律按标准推断覆盖（如 7+ 开关=步骤6 结束状态）
+  const std = standardStateForStep(props.stepOrder)
+  const cur = CURRENT_STEP_FIELDS[props.stepOrder] || []
+  Object.keys(std).forEach(k => {
+    if (!cur.includes(k)) merged[k] = std[k]
+  })
+  if (merged.meterPlaced) {
     meterPlaced.value = true
     // 步骤5 回档：保留挂表热区供再次点击提交（单步完成态，用户未提交时靠热区补提交）；步骤6+ 移除
     if (props.stepOrder >= 6) {
@@ -1609,9 +1704,15 @@ function restoreDraft(d) {
   }
   // 画布就绪即可恢复（步骤11 无接线盒，junctionBoxRect.w 恒为 0，不能作为就绪条件）
   if (leafer) {
-    applyDraft(d)
+    applyDraft(merged)
+    // 回档到完成态（标准推断/草稿恢复后已符合目标）→ 直接完成提交
+    if (props.stepOrder === 6 || props.stepOrder === 10) checkSwitches()
+    if (props.stepOrder === 7 && wiresCompleted === false) checkWires()
+    if (props.stepOrder === 9 && tiePlaced.value) {
+      setTimeout(() => emit('stepCompleted', props.stepOrder), 500)
+    }
   } else {
-    pendingDraft = d
+    pendingDraft = merged
   }
 }
 
@@ -1695,23 +1796,10 @@ onMounted(() => {
   // 组件重挂载（刷新/HMR）时自行恢复草稿；HCL 恢复逻辑保留作双保险（restoreDraft 幂等）
   if (props.experimentId && props.stepId) {
     getStepDraft(props.experimentId, props.stepId)
-      .then(async d => {
-        if (d) {
-          // 当前步骤草稿缺步骤7 结果（HMR 后未保存过）→ 从前序步骤记录补充
-          if (props.stepOrder >= 7 && (!d.connectedWires || d.connectedWires.length === 0)) {
-            const steps = JSON.parse(
-              localStorage.getItem('experimentSteps_' + props.experimentId) || '[]'
-            )
-            const prevId = steps.find(s => s.stepOrder === props.stepOrder - 1)?.stepId || ''
-            if (prevId && prevId !== props.stepId) {
-              try {
-                const prev = await getStepDraft(props.experimentId, prevId)
-                if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
-              } catch (_) {}
-            }
-          }
-          restoreDraft(d)
-        }
+      .then(d => {
+        // 前序步骤成果由 standardStateForStep 按标准推断，草稿只含当前步骤中途态；
+        // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
+        restoreDraft(d || {})
       })
       .catch(() => {})
   }
@@ -1738,6 +1826,8 @@ watch(
           switchStates.value = SWITCHES.map(s => s.target)
           switchRefs.forEach((s, i) => moveSwitch(s, switchStates.value[i]))
         }
+        // 已符合目标（如回档时已调整过）直接完成
+        checkSwitches()
       }
       // 步骤7→8：清理步骤7 接线孔热区，构建步骤8 热区
       if (order === 8) {
@@ -1764,7 +1854,7 @@ onUnmounted(() => {
 defineExpose({
   onRightToolClick,
   onPageMouseMove,
-  getDraftState,
+  getFullState,
   restoreDraft,
   activeToolIdxs
 })

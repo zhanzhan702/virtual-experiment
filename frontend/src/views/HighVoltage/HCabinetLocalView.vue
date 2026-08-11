@@ -288,7 +288,8 @@ async function handleFencesDone() {
       operationCount: stats.operation_count,
       errorCount: stats.error_count,
       score: Math.max(0, 100 - stats.error_count * 10),
-      resultData: JSON.stringify({ itemPlaced: [...(middleRef.value?.itemPlaced || [])] }),
+      // 标准流程：提交时用空内容覆盖存档内容（恢复时物品按标准强制显示）
+      resultData: '{}',
       startedAt: startedAt.value
     })
     ElMessage.success('围栏与标示牌放置完成')
@@ -334,7 +335,8 @@ async function submitVoltageCheck() {
     operationCount: stats.operation_count,
     errorCount: stats.error_count,
     score: 100.0 - stats.error_count * 10 > 0 ? 100.0 - stats.error_count * 10 : 0, //最低得分为0分
-    resultData: JSON.stringify({ vtDone: true, vtStep: 3 }),
+    // 标准流程：提交时用空内容覆盖存档内容（验电结果按标准恢复）
+    resultData: '{}',
     startedAt: startedAt.value
   }
 
@@ -408,7 +410,7 @@ async function handleMeteringStepCompleted(stepOrder) {
   if (hasSubmitted.value) return
   hasSubmitted.value = true
   try {
-    const resultData = meteringRef.value?.getDraftState?.() || {}
+    // 画布步骤为标准流程：提交时用空内容覆盖存档内容（防数据库冗余），恢复靠标准推断+草稿
     await submitStep({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -417,9 +419,11 @@ async function handleMeteringStepCompleted(stepOrder) {
       operationCount: stats.operation_count,
       errorCount: stats.error_count,
       score: Math.max(0, 100 - stats.error_count * 10),
-      resultData: JSON.stringify(resultData),
+      resultData: '{}',
       startedAt: startedAt.value
     })
+    // 步骤提交完成：清空本地兜底（防止回退/重进时残留旧状态误判完成态）
+    localStorage.removeItem('meteringRoom_' + experimentId.value)
     if (stepOrder === 5) {
       ElMessage.success('挂表成功')
       hasSubmitted.value = false
@@ -517,7 +521,7 @@ async function handleTerminalStepCompleted(stepOrder) {
   if (hasSubmitted.value) return
   hasSubmitted.value = true
   try {
-    const resultData = terminalRef.value?.getDraftState?.() || {}
+    // 画布步骤为标准流程：提交时用空内容覆盖存档内容（防数据库冗余），恢复靠标准推断+草稿
     await submitStep({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -526,9 +530,11 @@ async function handleTerminalStepCompleted(stepOrder) {
       operationCount: stats.operation_count,
       errorCount: stats.error_count,
       score: Math.max(0, 100 - stats.error_count * 10),
-      resultData: JSON.stringify(resultData),
+      resultData: '{}',
       startedAt: startedAt.value
     })
+    // 步骤提交完成：清空本地兜底（防止回退/重进时残留旧状态误判完成态）
+    localStorage.removeItem('terminalRoom_' + experimentId.value)
     const nextMap = { 13: 14, 14: 15, 15: 16, 16: 17, 17: 18, 18: 19, 19: 20, 20: 21 }
     const msgMap = {
       13: '挂表成功',
@@ -570,10 +576,11 @@ const saveProgress = async () => {
   try {
     const m = middleRef.value
     const metering = meteringRef.value
+    // 存档时该步骤全量传入后端（getFullState），提交时清空（见 handleMetering/TerminalStepCompleted）
     const base = isMeteringStep.value
-      ? { ...(metering?.getDraftState?.() || {}) }
+      ? { ...(metering?.getFullState?.() || {}) }
       : isTerminalStep.value
-        ? { ...(terminalRef.value?.getDraftState?.() || {}) }
+        ? { ...(terminalRef.value?.getFullState?.() || {}) }
         : {
             itemPlaced: [...(m?.itemPlaced || [])],
             vtDone: m?.vtDone || false,
@@ -610,20 +617,19 @@ onMounted(async () => {
       } catch (_) {}
     }
     try {
-      const d = await getStepDraft(experimentId.value, stepId.value)
-      if (d) {
-        if (isMeteringStep.value) {
-          meteringRef.value?.restoreDraft?.(d)
-        } else if (isTerminalStep.value) {
-          terminalRef.value?.restoreDraft?.(d)
-        } else {
-          middleRef.value?.restoreDraft?.(d)
-        }
+      // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
+      const d = (await getStepDraft(experimentId.value, stepId.value)) || {}
+      if (isMeteringStep.value) {
+        meteringRef.value?.restoreDraft?.(d)
+      } else if (isTerminalStep.value) {
+        terminalRef.value?.restoreDraft?.(d)
+      } else {
+        middleRef.value?.restoreDraft?.(d)
       }
     } catch (_) {}
   }
-  // 步骤4无草稿时确保物品显示为已放置
-  if (isStep4.value && !middleRef.value?.itemPlaced?.some(v => v)) {
+  // 步骤4/12（验电）：物品必为已放置（步骤3 完成条件=4 个全放），无条件标记，防止草稿残留旧值干扰
+  if (isStep4.value) {
     middleRef.value?.markPlacedForStep4?.()
   }
 })
@@ -633,7 +639,7 @@ onMounted(async () => {
 // 同时重置 hasSubmitted，防止上一步的提交锁阻塞当前步骤（如步骤3 的锁残留到步骤5）
 watch(currentStepOrder, order => {
   hasSubmitted.value = false
-  if ((order === 4 || order === 12) && !middleRef.value?.itemPlaced?.some(v => v)) {
+  if (order === 4 || order === 12) {
     middleRef.value?.markPlacedForStep4?.()
   }
 })
