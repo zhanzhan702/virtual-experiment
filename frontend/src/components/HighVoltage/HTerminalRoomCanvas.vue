@@ -12,6 +12,14 @@
       <div v-if="screwdriverFollowing" class="meter-following" :style="screwdriverStyle">
         <img :src="Images.barCrossScrewdriver" alt="螺丝刀" draggable="false" />
       </div>
+      <!-- 步骤17 信号线跟随 -->
+      <div v-if="cableFollowing != null" class="meter-following" :style="cableFollowStyle">
+        <img
+          :src="SIGNAL_CABLES[cableFollowing].img"
+          :alt="SIGNAL_CABLES[cableFollowing].name"
+          draggable="false"
+        />
+      </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（照搬计量小室：正方形常驻，hover 换图放大；绝对定位按画布像素） -->
@@ -52,6 +60,15 @@ const connectedWires = ref([]) // [{ boxHole, terminalHole, spec }]
 const activeToolIdxs = ref([]) // 剥线钳+当前导线持续高亮，螺丝刀不高亮（仅跟随）
 const screwdriverFollowing = ref(false)
 const screwdriverStyle = ref({})
+// 步骤16-17 信号线状态机
+const cablePlaced = ref([false, false, false]) // 3 根线是否已放置
+const cableFollowing = ref(null) // 跟随中的线索引（null 无）
+const cableFollowStyle = ref({})
+const cableStep = ref('idle') // idle | core_following
+// 每根线独立的连线阶段：right=长方条端（先连）| left=终端孔端（该线右侧完成后可连）
+const cablePhase = ref(['right', 'right', 'right'])
+const selectedCore = ref(null) // { cableIdx, side, idx }
+const connectedCores = ref([]) // [{ cableIdx, side, idx, color }]
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -74,6 +91,11 @@ const boxHoleRects = [] // 接线盒 13 孔热区（步骤15）
 const terminalHoleRects = [] // 终端下方 12 孔 + 3 倒三角孔热区（步骤15）
 const wirePaths = [] // 已连接导线 Path
 let wireFollowPaths = [] // 跟随线 Path
+const signalDropRects = [] // 3 根信号线放置热区（步骤17）
+const signalCableImgs = [] // 已放置信号线图片
+const signalCoreRects = [] // 信号线芯点热区
+const signalPaths = [] // 信号线芯点连线 Path
+let coreFollowPaths = [] // 芯点跟随线 Path
 // 悬浮提示
 const tooltipVisible = ref(false)
 const tooltipStyle = ref({})
@@ -136,11 +158,11 @@ const CONTROL_STRIPS = [
   { name: '遥控2-2', y: 0.875 }
 ]
 // 长方条宽/高（相对压板宽度/高度比率，占位，用户按背景图微调）
-const CONTROL_STRIP_SIZE = { w: 0.987, h: 0.25, x: 2 }
+const CONTROL_STRIP_SIZE = { w: 0.987, h: 0.25, x: 0 }
 
 // ★ 压板下方 12 个长方形热区（横条上下贴排，占位，用户按背景图微调）
 const TERMINAL_STRIPS = {
-  x: 0.73,
+  x: 0.728,
   y: 0.342,
   w: 0.122,
   h: 0.315,
@@ -221,6 +243,79 @@ const TOOL_IDX_TO_WIRE = {
   11: WIRE_CONNECTIONS[1],
   12: WIRE_CONNECTIONS[0]
 }
+
+// ─── 步骤16-17：3 根信号线（放置 + 芯点连线） ───
+// 3 根线共用一个放置热区（一整块）；线材图片绘制在各自 rect 位置（占位用户微调）
+// 右端芯点连长方条（先连）、左端芯点连终端孔
+// target: { type: 'c', idx } = 压板内长方条（遥控1-1 等） | { type: 's', idx } = 12 长方条（遥信1-1 等）
+const SIGNAL_DROP_ZONE = { x: 0.47, y: 0.3, w: 0.21, h: 0.5 }
+
+// 芯点热区边长（像素，用户可调）
+const CORE_SIZE = 9
+
+const SIGNAL_CABLES = [
+  {
+    key: 'control',
+    name: '2芯遥控线',
+    toolIdx: 14,
+    img: Images.remoteControlCable2Core,
+    rect: { x: 0.49, y: 0.35, w: 0.16 },
+    aspect: 1.03, // 与真实资源一致：1007×978
+    // 芯点位置（相对线材图片比率，pos 每点独立可调）
+    right: [
+      { color: '#e60000', label: '红', pos: { x: 0.75, y: 0.07 }, target: { type: 'c', idx: 0 } }, // 遥控1-1
+      { color: '#000000', label: '黑', pos: { x: 0.89, y: 0.08 }, target: { type: 'c', idx: 1 } } // 遥控1-2
+    ],
+    left: [
+      { color: '#000000', label: '黑', pos: { x: 0.1, y: 0.92 }, terminal: 39 },
+      { color: '#e60000', label: '红', pos: { x: 0.18, y: 0.85 }, terminal: 40 }
+    ]
+  },
+  {
+    key: 'signal',
+    name: '2芯遥信线',
+    toolIdx: 15,
+    img: Images.remoteSignalCable2Core,
+    rect: { x: 0.49, y: 0.46, w: 0.17 },
+    aspect: 1.294, // 与真实资源一致：1170×904
+    right: [
+      { color: '#e60000', label: '红', pos: { x: 0.84, y: 0.055 }, target: { type: 's', idx: 0 } }, // 遥信1-1
+      { color: '#000000', label: '黑', pos: { x: 0.96, y: 0.08 }, target: { type: 's', idx: 1 } } // 遥信1-2
+    ],
+    left: [
+      { color: '#000000', label: '黑', pos: { x: 0.11, y: 0.83 }, terminal: 46 },
+      { color: '#e60000', label: '红', pos: { x: 0.05, y: 0.94 }, terminal: 45 }
+    ]
+  },
+  {
+    key: 'eight',
+    name: '8芯信号线',
+    toolIdx: 17,
+    img: Images.terminalSignalCable8Core,
+    rect: { x: 0.5, y: 0.56, w: 0.21 },
+    aspect: 1.222, // 与真实资源一致：1253×1025
+    right: [
+      { color: '#000000', label: '黑', pos: { x: 0.655, y: 0.17 }, target: { type: 's', idx: 4 } }, // 正向有功+
+      { color: '#e60000', label: '红', pos: { x: 0.685, y: 0.115 }, target: { type: 's', idx: 5 } }, // 正向有功-
+      { color: '#FF9900', label: '橙', pos: { x: 0.725, y: 0.065 }, target: { type: 's', idx: 6 } }, // 正向无功+
+      { color: '#FFFF00', label: '黄', pos: { x: 0.77, y: 0.04 }, target: { type: 's', idx: 7 } }, // 正向无功-
+      { color: '#1E7E67', label: '绿', pos: { x: 0.82, y: 0.065 }, target: { type: 's', idx: 8 } }, // RS485 A
+      { color: '#4632FE', label: '蓝', pos: { x: 0.86, y: 0.095 }, target: { type: 's', idx: 9 } }, // RS485 B
+      { color: '#666666', label: '灰', pos: { x: 0.898, y: 0.13 }, target: { type: 's', idx: 10 } }, // 前门禁1
+      { color: '#FFFFFF', label: '白', pos: { x: 0.925, y: 0.18 }, target: { type: 's', idx: 11 } } // 前门禁2
+    ],
+    left: [
+      { color: '#FFFFFF', label: '白', pos: { x: 0.178, y: 0.934 }, terminal: 38 },
+      { color: '#666666', label: '灰', pos: { x: 0.132, y: 0.884 }, terminal: 37 },
+      { color: '#4632FE', label: '蓝', pos: { x: 0.1, y: 0.837 }, terminal: 34 },
+      { color: '#1E7E67', label: '绿', pos: { x: 0.085, y: 0.775 }, terminal: 33 },
+      { color: '#FFFF00', label: '黄', pos: { x: 0.118, y: 0.698 }, terminal: 24 },
+      { color: '#FF9900', label: '橙', pos: { x: 0.157, y: 0.662 }, terminal: 23 },
+      { color: '#e60000', label: '红', pos: { x: 0.2, y: 0.62 }, terminal: 22 },
+      { color: '#000000', label: '黑', pos: { x: 0.244, y: 0.613 }, terminal: 21 }
+    ]
+  }
+]
 
 // 背景按步骤切换
 function bgForStep(order) {
@@ -705,6 +800,8 @@ function onHoleClick(type, hole) {
     if (w && start.hole === w.boxHole && hole === w.terminalHole) {
       drawWirePath(start.hole, hole, w)
       connectedWires.value.push({ boxHole: start.hole, terminalHole: hole, spec: w.spec })
+      // 连线成功即时持久化（中途刷新/HMR 可恢复）
+      persistState()
       emit('operation')
       resetWiring()
       checkWires15()
@@ -755,6 +852,267 @@ function checkWires15() {
     terminalHoleRects.length = 0
     emit('stepCompleted', props.stepOrder)
   }
+}
+
+// ─── 步骤17：3 根信号线放置与芯点连线 ───
+
+/** 步骤17：构建共用的信号线放置热区（一整块；3 根线已全部放置则不重建） */
+function buildSignalDrops() {
+  if (props.stepOrder !== 17 || !leafer) return
+  if (cablePlaced.value.every(Boolean)) return
+  signalDropRects.forEach(r => r.remove())
+  signalDropRects.length = 0
+  const w = leafer.width
+  const h = leafer.height
+  const rect = new Rect({
+    x: w * SIGNAL_DROP_ZONE.x,
+    y: h * SIGNAL_DROP_ZONE.y,
+    width: w * SIGNAL_DROP_ZONE.w,
+    height: h * SIGNAL_DROP_ZONE.h,
+    fill: 'rgba(0, 150, 255, 0.25)',
+    stroke: 'rgba(0, 150, 255, 0.9)',
+    strokeWidth: 2,
+    zIndex: 3
+  })
+  rect.on(PointerEvent.CLICK, () => onSignalDropClick())
+  hitLayer.add(rect)
+  signalDropRects.push(rect)
+}
+
+/** 线材图片绝对坐标（与放置热区对齐，高按比例 auto） */
+function signalCablePos(ci) {
+  const cfg = SIGNAL_CABLES[ci]
+  const w = leafer.width
+  const h = leafer.height
+  const cw = w * cfg.rect.w
+  const ch = cw / cfg.aspect
+  return { x: w * cfg.rect.x, y: h * cfg.rect.y, w: cw, h: ch, cfg }
+}
+
+/** 点击放置热区（共用一块）：当前跟随的线放置到对应位置；未选线静默不提示不计错 */
+function onSignalDropClick() {
+  if (props.stepOrder !== 17) return
+  const ci = cableFollowing.value
+  if (ci == null || cablePlaced.value[ci]) return
+  cableFollowing.value = null
+  cablePlaced.value[ci] = true
+  const pos = signalCablePos(ci)
+  const img = new Image({
+    url: pos.cfg.img,
+    x: pos.x,
+    y: pos.y,
+    width: pos.w,
+    height: pos.h,
+    zIndex: 4, // 线材图片在放置热区（zIndex 3）之上
+    hittable: false // 不拦截点击，保证下方长方条/孔热区可命中
+  })
+  hitLayer.add(img)
+  signalCableImgs.push(img)
+  buildCableCores(ci)
+  // 3 根线全部放置完毕 → 销毁放置热区
+  if (cablePlaced.value.every(Boolean)) {
+    signalDropRects.forEach(r => r.remove())
+    signalDropRects.length = 0
+  }
+  // 图片比例加载后校正高度并重建芯点（不压缩比例）
+  const probe = new Image()
+  probe.onload = () => {
+    const aspect = probe.naturalWidth / probe.naturalHeight || pos.cfg.aspect
+    if (img) {
+      img.height = img.width / aspect
+      rebuildCableCores()
+    }
+  }
+  probe.src = pos.cfg.img
+}
+
+/** 芯点相对线材图片位置（占位：右侧右上角、左侧左下角，用户微调） */
+function corePos(ci, side, idx) {
+  const list = SIGNAL_CABLES[ci][side]
+  const p = list[idx]?.pos || { x: 0.5, y: 0.5 }
+  const img = signalCableImgs[ci]
+  if (!img) return { x: 0, y: 0 }
+  return { x: img.x + p.x * img.width, y: img.y + p.y * img.height }
+}
+
+/** 构建指定线的芯点热区（追加，不清除其他线的芯点——多根线热区共存） */
+function buildCableCores(ci) {
+  const cfg = SIGNAL_CABLES[ci]
+  ;['right', 'left'].forEach(side => {
+    cfg[side].forEach((_, idx) => {
+      const p = corePos(ci, side, idx)
+      const rect = new Rect({
+        x: p.x - CORE_SIZE / 2,
+        y: p.y - CORE_SIZE / 2,
+        width: CORE_SIZE,
+        height: CORE_SIZE,
+        fill: 'rgba(0, 150, 255, 0.3)',
+        stroke: 'rgba(0, 150, 255, 0.9)',
+        strokeWidth: 1,
+        zIndex: 5 // 芯点热区在线材图片与放置热区之上
+      })
+      rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
+      hitLayer.add(rect)
+      signalCoreRects.push(rect)
+    })
+  })
+}
+
+/** 重建全部已放置线的芯点热区（比例校正/画布重建后恢复） */
+function rebuildCableCores() {
+  signalCoreRects.forEach(r => r.remove())
+  signalCoreRects.length = 0
+  cablePlaced.value.forEach((placed, ci) => {
+    if (placed) buildCableCores(ci)
+  })
+}
+
+/** 点芯点：选芯并开始跟随（当前阶段只响应对应端） */
+function onCoreClick(ci, side, idx) {
+  if (props.stepOrder !== 17 || !cablePlaced.value[ci]) return
+  if (cableStep.value === 'core_following') return
+  const cfg = SIGNAL_CABLES[ci]
+  const list = side === 'right' ? cfg.right : cfg.left
+  const core = list[idx]
+  if (connectedCores.value.some(c => c.cableIdx === ci && c.side === side && c.idx === idx)) {
+    ElMessage.warning('该芯已连接')
+    emit('error')
+    return
+  }
+  // 每根线独立阶段：该线右侧完成后才允许连左侧（不影响其他线）
+  const ph = cablePhase.value[ci]
+  if (ph === 'right' && side !== 'right') {
+    ElMessage.warning('请先完成该线长方条端的接线')
+    emit('error')
+    return
+  }
+  if (ph === 'left' && side !== 'left') {
+    ElMessage.warning('请先完成该线终端孔端的接线')
+    emit('error')
+    return
+  }
+  selectedCore.value = { cableIdx: ci, side, idx, core }
+  cableStep.value = 'core_following'
+  const p = corePos(ci, side, idx)
+  coreFollowPaths = makeWirePaths(p, { x: p.x, y: p.y }, { spec: '2.5', pathColor: core.color })
+  coreFollowPaths.forEach(ph => hitLayer.add(ph))
+  leafer.on(PointerEvent.MOVE, onCoreMove)
+}
+
+function onCoreMove(e) {
+  if (coreFollowPaths.length === 0 || !selectedCore.value) return
+  const p = e.getLocalPoint()
+  const sel = selectedCore.value
+  const from = corePos(sel.cableIdx, sel.side, sel.idx)
+  const paths = makeWirePaths(from, { x: p.x, y: p.y }, { spec: '2.5', pathColor: sel.core.color })
+  coreFollowPaths.forEach((ph, i) => {
+    if (paths[i]) ph.path = paths[i].path
+  })
+}
+
+function stopCoreFollow() {
+  leafer.off(PointerEvent.MOVE, onCoreMove)
+  coreFollowPaths.forEach(ph => ph.remove())
+  coreFollowPaths = []
+}
+
+function resetCableStep() {
+  cableStep.value = 'idle'
+  selectedCore.value = null
+}
+
+/** 压板长方条连接点（左侧边中点） */
+function controlStripPos(idx) {
+  const rect = controlStripRects[idx]
+  if (!rect) return { x: 0, y: 0 }
+  return { x: rect.x, y: rect.y + rect.height / 2 }
+}
+
+/** 12 长方条连接点（左侧边中点） */
+function terminalStripPos(idx) {
+  const rect = stripRects[idx]
+  if (!rect) return { x: 0, y: 0 }
+  return { x: rect.x, y: rect.y + rect.height / 2 }
+}
+
+/** 终端 36 孔绝对坐标（编号 13-48，两行，按 TERMINAL_HOLES 间隔；返回热区中心） */
+function terminalHole36Pos(num) {
+  const w = leafer.width
+  const h = leafer.height
+  const sz = w * TERMINAL_HOLES.size
+  const row = num <= 38 ? TERMINAL_HOLES.row1 : TERMINAL_HOLES.row2
+  let x = w * row.x0
+  let cursor = row.groups[0].start
+  for (const g of row.groups) {
+    for (let k = 0; k < g.count; k++) {
+      if (cursor === num) return { x: x + sz / 2, y: h * row.y + sz / 2 }
+      x += w * (g.gap + TERMINAL_HOLES.size)
+      cursor++
+    }
+    x += w * row.gapBetween[Math.min(row.groups.indexOf(g), row.gapBetween.length - 1)]
+  }
+  return { x: w * row.x0 + sz / 2, y: h * row.y + sz / 2 }
+}
+
+/** 点连线终点（压板长方条/12 长方条/终端孔）：校验芯对应目标 */
+function onTargetClick(target) {
+  if (props.stepOrder !== 17 || cableStep.value !== 'core_following') return
+  const sel = selectedCore.value
+  stopCoreFollow()
+  const cfg = SIGNAL_CABLES[sel.cableIdx]
+  const core = sel.core
+  // 校验：右端芯必须匹配 target；左端芯必须匹配 terminal 孔号
+  let ok = false
+  let to = null
+  if (sel.side === 'right') {
+    ok = core.target.type === target.type && core.target.idx === target.idx
+    to = target.type === 'c' ? controlStripPos(target.idx) : terminalStripPos(target.idx)
+  } else {
+    ok = core.terminal === target.num
+    to = terminalHole36Pos(target.num)
+  }
+  if (!ok) {
+    ElMessage.warning('接线位置错误')
+    emit('error')
+    resetCableStep()
+    return
+  }
+  const from = corePos(sel.cableIdx, sel.side, sel.idx)
+  const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: core.color })
+  paths.forEach(p => hitLayer.add(p))
+  signalPaths.push(...paths)
+  connectedCores.value.push({
+    cableIdx: sel.cableIdx,
+    side: sel.side,
+    idx: sel.idx,
+    color: core.color
+  })
+  emit('operation')
+  resetCableStep()
+  // 连线成功即时持久化（中途刷新/HMR 可恢复）
+  persistState()
+  // 该线右侧（长方条）全部完成 → 该线进入左端（终端孔）阶段（各线独立）
+  const rightCount = cfg.right.length
+  const doneRight = connectedCores.value.filter(
+    c => c.cableIdx === sel.cableIdx && c.side === 'right'
+  ).length
+  if (cablePhase.value[sel.cableIdx] === 'right' && doneRight === rightCount) {
+    cablePhase.value[sel.cableIdx] = 'left'
+    // ElMessage.info(cfg.name + '长方条端接线完成，请开始连接终端孔端')
+  }
+  checkCablesDone()
+}
+
+/** 3 根线全部连接完成 → 销毁 36 孔热区 → 切 PendingCommModule 背景 → 提交 */
+function checkCablesDone() {
+  const total = SIGNAL_CABLES.reduce((s, c) => s + c.right.length + c.left.length, 0)
+  if (connectedCores.value.length !== total) return
+  holeRects.forEach(r => r.remove())
+  holeRects.length = 0
+  signalCoreRects.forEach(r => r.remove())
+  signalCoreRects.length = 0
+  switchBackground(Images.terminalRoomPendingCommModule)
+  emit('stepCompleted', props.stepOrder)
 }
 
 /** 步骤15 接线状态机（剥线钳→导线→螺丝刀→接线盒孔→终端孔）；剥线钳与当前导线持续高亮 */
@@ -833,7 +1191,7 @@ function buildControlBoard(w, h) {
 function buildControlStrips() {
   controlStripRects.forEach(r => r.remove())
   controlStripRects.length = 0
-  CONTROL_STRIPS.forEach(item => {
+  CONTROL_STRIPS.forEach((item, i) => {
     const sw = controlBoardRect.w * CONTROL_STRIP_SIZE.w
     const sh = controlBoardRect.h * CONTROL_STRIP_SIZE.h
     const rect = new Rect({
@@ -851,6 +1209,8 @@ function buildControlStrips() {
     rect.on(PointerEvent.LEAVE, () => {
       tooltipVisible.value = false
     })
+    // 步骤17 连线终点（左侧边中点；idx 用 forEach 索引捕获，不能用 length——点击时已构建完恒为总数）
+    rect.on(PointerEvent.CLICK, () => onTargetClick({ type: 'c', idx: i }))
     controlStripRects.push(rect)
   })
 }
@@ -868,7 +1228,8 @@ function buildControlSwitches() {
       y: 0,
       width: 0,
       height: 0,
-      zIndex: 2
+      zIndex: 2,
+      hittable: false // 不拦截点击，压板内长方条（连线终点）可命中
     })
     hitLayer.add(img)
     const rect = new Rect({
@@ -914,6 +1275,14 @@ function toggleControlSwitch(i) {
   const next = v === 'on' ? 'off' : 'on'
   controlSwitchStates.value[i] = next
   moveControlSwitch(controlSwitchRefs[i], next)
+  // 步骤16：压板 4 开关全部调为关 → 销毁压板开关热区并提交
+  if (props.stepOrder === 16 && controlSwitchStates.value.every(s => s === 'off')) {
+    controlSwitchRefs.forEach(s => {
+      s.rect?.remove()
+      s.rect = null
+    })
+    emit('stepCompleted', props.stepOrder)
+  }
 }
 
 function moveControlSwitch(ref, state) {
@@ -977,6 +1346,8 @@ function buildTerminalStrips(w, h) {
     rect.on(PointerEvent.LEAVE, () => {
       tooltipVisible.value = false
     })
+    // 步骤17 连线终点（左侧边中点；idx 用 forEach 索引捕获，不能用 length——点击时已构建完恒为总数）
+    rect.on(PointerEvent.CLICK, () => onTargetClick({ type: 's', idx: i }))
     stripRects.push(rect)
   })
 }
@@ -1033,10 +1404,13 @@ function buildTerminalHoles(w, h) {
           zIndex: 3
         })
         hitLayer.add(rect)
-        rect.on(PointerEvent.ENTER, () => showTooltip(String(g.start + k), rect))
+        const num = g.start + k
+        rect.on(PointerEvent.ENTER, () => showTooltip(String(num), rect))
         rect.on(PointerEvent.LEAVE, () => {
           tooltipVisible.value = false
         })
+        // 步骤17 连线终点（左端芯点连接终端孔）
+        rect.on(PointerEvent.CLICK, () => onTargetClick({ type: 'h', num }))
         holeRects.push(rect)
         x += sz + w * g.gap
       }
@@ -1069,6 +1443,22 @@ function onRightToolClick(idx, e) {
     onWiringToolClick(idx, e)
     return
   }
+  // 步骤17：选择信号线 → 跟随放置
+  if (props.stepOrder === 17) {
+    const ci = SIGNAL_CABLES.findIndex(c => c.toolIdx === idx)
+    if (ci === -1) {
+      ElMessage.info('该工具将在后续步骤中使用')
+      return
+    }
+    if (cablePlaced.value[ci]) {
+      ElMessage.warning(SIGNAL_CABLES[ci].name + '已放置')
+      emit('error')
+      return
+    }
+    cableFollowing.value = ci
+    cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+    return
+  }
   // 步骤13 挂表：第 2 个为三相三线专变终端
   if (idx !== 1) {
     ElMessage.info('该工具将在后续步骤中使用')
@@ -1095,6 +1485,9 @@ function onPageMouseMove(e) {
   if (screwdriverFollowing.value) {
     screwdriverStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (cableFollowing.value != null) {
+    cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 // ─── 存档 ───
@@ -1109,7 +1502,10 @@ function persistState() {
         meterPlaced: meterPlaced.value,
         switchStates: [...switchStates.value],
         controlSwitchStates: [...controlSwitchStates.value],
-        connectedWires: connectedWires.value.map(w => ({ ...w }))
+        connectedWires: connectedWires.value.map(w => ({ ...w })),
+        cablePlaced: [...cablePlaced.value],
+        cablePhase: [...cablePhase.value],
+        connectedCores: connectedCores.value.map(c => ({ ...c }))
       })
     )
   } catch (_) {}
@@ -1143,6 +1539,10 @@ function restoreDraft(d) {
     controlSwitchStates.value = [...merged.controlSwitchStates]
   if (merged.connectedWires?.length)
     connectedWires.value = merged.connectedWires.map(w => ({ ...w }))
+  if (merged.cablePlaced?.length) cablePlaced.value = [...merged.cablePlaced]
+  if (merged.cablePhase?.length) cablePhase.value = [...merged.cablePhase]
+  if (merged.connectedCores?.length)
+    connectedCores.value = merged.connectedCores.map(c => ({ ...c }))
   if (leafer) {
     applyDraft()
   } else {
@@ -1165,6 +1565,11 @@ function applyDraft() {
   terminalHoleRects.length = 0
   wirePaths.length = 0
   wireFollowPaths = []
+  signalDropRects.length = 0
+  signalCableImgs.length = 0
+  signalCoreRects.length = 0
+  signalPaths.length = 0
+  coreFollowPaths = []
   dropZoneRect = null
   junctionBoxImg = null
   controlBoardImg = null
@@ -1181,6 +1586,53 @@ function applyDraft() {
     ensureHoles15()
     redrawConnectedWires()
   }
+  // 步骤17：重建信号线放置热区 + 已放置线材/芯点/连线
+  if (props.stepOrder === 17) {
+    buildSignalDrops()
+    redrawSignalCables()
+  }
+}
+
+/** 步骤17 重建已放置线材、芯点与连线（画布重建后恢复视觉） */
+function redrawSignalCables() {
+  signalCableImgs.forEach(img => img.remove())
+  signalCableImgs.length = 0
+  signalCoreRects.forEach(r => r.remove())
+  signalCoreRects.length = 0
+  signalPaths.forEach(p => p.remove())
+  signalPaths.length = 0
+  cablePlaced.value.forEach((placed, ci) => {
+    if (!placed) return
+    const pos = signalCablePos(ci)
+    const img = new Image({
+      url: pos.cfg.img,
+      x: pos.x,
+      y: pos.y,
+      width: pos.w,
+      height: pos.h,
+      zIndex: 4, // 线材图片在放置热区（zIndex 3）之上
+      hittable: false // 不拦截点击，保证下方长方条/孔热区可命中
+    })
+    hitLayer.add(img)
+    signalCableImgs.push(img)
+    buildCableCores(ci)
+  })
+  // 重绘已连接芯点连线
+  connectedCores.value.forEach(c => {
+    const cfg = SIGNAL_CABLES[c.cableIdx]
+    const core = (c.side === 'right' ? cfg.right : cfg.left)[c.idx]
+    if (!core) return
+    const from = corePos(c.cableIdx, c.side, c.idx)
+    const to =
+      c.side === 'right'
+        ? core.target.type === 'c'
+          ? controlStripPos(core.target.idx)
+          : terminalStripPos(core.target.idx)
+        : terminalHole36Pos(core.terminal)
+    const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: core.color })
+    paths.forEach(p => hitLayer.add(p))
+    signalPaths.push(...paths)
+  })
 }
 
 // ─── 生命周期 ───
@@ -1223,6 +1675,18 @@ watch(
       ensureHoles15()
       redrawConnectedWires()
     }
+    // 步骤16：压板开关已全关（回档）→ 直接完成
+    if (order === 16 && controlSwitchStates.value.every(s => s === 'off')) {
+      emit('stepCompleted', props.stepOrder)
+    }
+    // 步骤17：销毁压板开关热区 + 构建信号线放置热区
+    if (order === 17 && leafer) {
+      controlSwitchRefs.forEach(s => {
+        s.rect?.remove()
+        s.rect = null
+      })
+      buildSignalDrops()
+    }
   }
 )
 
@@ -1260,6 +1724,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   if (resizeTimer) clearTimeout(resizeTimer)
   stopWireFollow()
+  stopCoreFollow()
   leafer?.destroy()
 })
 
