@@ -72,7 +72,8 @@ virtual-experiment/
 │   │   ├── 01_init_tables.sql               # 建表（8 张表）
 │   │   ├── 02_create_data.sql               # 初始数据（组织 / 角色 / 用户）
 │   │   ├── 03_high_experiment_templates.sql # 高压实验模板 + 步骤
-│   │   └── 04_low_experiment_templates.sql  # 低压实验模板 + 步骤
+│   │   ├── 04_low_experiment_templates.sql  # 低压实验模板 + 步骤
+│   │   └── 05_experiment_draft_columns.sql  # resultData 移到实验表（draft_data/ticket_data + 删步骤表列）
 │   └── pom.xml
 │
 ├── .github/
@@ -168,18 +169,30 @@ flowchart LR
 | 步骤 10 | `/HCL` | `HMeteringRoomCanvas` | 接线盒第二次调整 + 盖盖（Covered 背景） |
 | 步骤 11 | `/HCL` | `HMeteringRoomCanvas` | 加铅封（5 处独立坐标/旋转）+ 确认键 |
 | 步骤 12 | `/HCL` | `HCabinetLocalView` + `HMiddleArea` | 终端小室三步验电（第2步验电位置与步骤4 区分） |
-| 步骤 13 | `/HCL` | `HTerminalRoomCanvas` | 终端小室画布框架（挂表等交互后续开发） |
+| 步骤 13 | `/HCL` | `HTerminalRoomCanvas` | 挂表（专变终端）+ 36 孔热区（vue 浮窗） |
+| 步骤 14 | `/HCL` | `HTerminalRoomCanvas` | 接线盒处理（10 开关，目标 off,on,on,off,off,off,off,on,on,off） |
+| 步骤 15 | `/HCL` | `HTerminalRoomCanvas` | 接电压电流进出线（7 根，起点固定接线盒） |
+| 步骤 16 | `/HCL` | `HTerminalRoomCanvas` | 遥控压板调关（4 开关全 off 后热区销毁不再重建） |
+| 步骤 17 | `/HCL` | `HTerminalRoomCanvas` | 信号线连接（2芯遥控/2芯遥信/8芯，先右后左逐线独立） |
+| 步骤 18 | `/HCL` | `HTerminalRoomCanvas` | 安装通信模块/SIM/天线（天线后销毁线材/36孔/模块并切 Wired） |
+| 步骤 19 | `/HCL` | `HTerminalRoomCanvas` | 绑扎带指示牌（3 块热区，放置一块销毁一块） |
+| 步骤 20 | `/HCL` | `HTerminalRoomCanvas` | 接线盒第二次调整（开关恢复 14 结束状态）→ 盖盖 |
+| 步骤 21 | `/HCL` | `HTerminalRoomCanvas` → `HMiddleArea` | 上电合闸（销毁接线盒→双弹窗→柜体局部+合闸热区，动画待开发） |
 
 ### 已实现功能
 
 - ✅ 用户注册/登录（JWT + BCrypt）
-- ✅ 实验启动、步骤提交、进度存档、草稿恢复（含前序步骤数据补充）
+- ✅ 实验启动、步骤提交、进度存档、草稿恢复
 - ✅ 未完成实验检测与恢复/删除
 - ✅ 鼠标跟随物品拖放、命中检测（Vue HTML 层）
 - ✅ 三步验电流程（电压检测笔交互，步骤 4 / 12 复用）
 - ✅ 配电房全景图 + 梯形热区（CSS `clip-path`）
 - ✅ 计量小室 Leafer 画布全流程（步骤 5-11：挂表 / 开关 / 接线 / 信号线 / 扎带 / 盖盖 / 铅封）
-- ✅ 终端小室画布框架（`HTerminalRoomCanvas`，步骤 13+，尺寸与计量小室一致）
+- ✅ 终端小室 Leafer 画布全流程（步骤 13-21：挂表 / 开关 / 进出线 / 遥控压板 / 信号线 / 安装模块 / 扎带 / 二次接线盒 / 上电）
+- ✅ 步骤 21 上电流程（确认键 → 销毁画布 → 柜体局部 + 双弹窗 + 合闸热区）
+- ✅ 存档三层恢复机制：标准结果推断（前序常量）→ 后端草稿（当前步骤）→ localStorage 兜底（优先）
+- ✅ 跨步骤残留防护：草稿/local 带 stepOrder 标记，不匹配丢弃；前序结果字段强制按标准推断（`CURRENT_STEP_FIELDS`）
+- ✅ resultData 移到实验表（`draft_data` 草稿 + `ticket_data` 工作票数据），提交清空草稿防数据库冗余
 - ✅ 终端编号提示面板（16 列端子编号 + 485 接口连线，CSS 变量集中管理行尺寸、`cqw` 相对画布缩放）
 - ✅ 画布热区可视化（蓝色半透明，坐标常量集中微调）
 - ✅ 响应式布局（`vw`/`vh`/`%` 相对定位，画布 shrink-wrap 防缩放错位）
@@ -189,8 +202,9 @@ flowchart LR
 
 ### 待完善
 
-- 步骤 14-23（终端小室挂表、接线盒、信号线、通信模块等）
-- 终端小室图片资源替换（当前共用计量小室图）
+- 步骤 22-24（终端小室铅封、柜门铅封、清理现场）
+- 步骤 21 合闸动画（当前提示"动画待开发"）
+- wired 后接线盒线的中间段裁剪（模拟盖子盖上，方案已确认待实现）
 - 低压场景全部步骤
 - 考试模式（当前仅支持训练模式）
 - 教师管理后台功能
@@ -206,7 +220,7 @@ flowchart LR
 mysql -u root -p -e "CREATE DATABASE virtual_experiment DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-数据库为**手动管理**：依次执行 `backend/docs/sql/` 下的脚本（01 → 02 → 03 → 04）。
+数据库为**手动管理**：依次执行 `backend/docs/sql/` 下的脚本（01 → 02 → 03 → 04 → 05）。
 
 ### 2. 启动后端
 
@@ -337,8 +351,8 @@ npm run dev
 | `user_roles`            | 用户角色关联                               |
 | `experiment_templates`  | 实验模板                                   |
 | `experiment_steps`      | 实验步骤                                   |
-| `user_experiments`      | 用户实验记录                               |
-| `user_experiment_steps` | 用户实验步骤记录（含操作统计 / 结果 JSON） |
+| `user_experiments`      | 用户实验记录（`draft_data` 当前步骤草稿 / `ticket_data` 工作票提交数据） |
+| `user_experiment_steps` | 用户实验步骤记录（操作统计 / 评分，result_data 列已移除） |
 
 ---
 
@@ -349,7 +363,12 @@ npm run dev
 - **密码**：BCrypt 加密存储，`UUIDTypeHandler` 不会误拦截 BCrypt 哈希（通过 hex 模式 + 16 字节长度双重校验）
 - **UUID**：`BINARY(16)` 列通过全局 `UUIDTypeHandler` 自动与 Java `String`（32 位 hex）互转
 - **DTO 按域分包**：`dto/auth/` 存放认证相关，`dto/experiment/` 存放实验相关
-- **实验存档**：支持保存进度草稿（全量表单数据），下次进入时询问是否继续
+- **实验存档**：支持保存进度草稿（全量状态），下次进入时询问是否继续
+- **存档数据流**：画布/表单步骤 `saveDraft` 全量写 `user_experiments.draft_data`；`submitStep` 提交时**用空内容覆盖清空草稿**（防数据库冗余），恢复时前序成果按标准推断、当前步骤中途态从草稿恢复
+- **工作票数据**：ticketNo + member1 提交时写入 `ticket_data` 保留（唯一非标准流程数据）
+- **存档标记**：saveDraft 时当前步骤 status 置 0（未完成），防已提交步骤残留完成态
+- **恢复优先级**：标准结果推断（前序常量）→ 后端草稿（当前步骤）→ localStorage 全量兜底（优先，带 stepOrder 校验）
+- **跨步骤隔离**：草稿/local 记录 stepOrder，与当前步骤不匹配则丢弃；`CURRENT_STEP_FIELDS` 定义每步骤可交互字段，前序结果字段一律强制按标准推断
 - **级联删除**：重新开始时仅删除未完成实验（status=0），已完成实验受保护
 - **操作统计**：自动记录操作次数、错误次数、耗时，作为评分依据
 - **评分机制**：满分 100 分，每错误一次扣 10 分，最低 0 分
@@ -391,12 +410,16 @@ npm run dev
 
 ### 草稿恢复（回档）要点
 
-- `getDraftState()` 返回全部状态（数组需**归一化为定长**，稀疏数组 JSON 序列化后长度不一致会导致恢复条件失败）
+- `getFullState()` 返回全部状态（含 `stepOrder` 标记；数组需**归一化为定长**，稀疏数组 JSON 序列化后长度不一致会导致恢复条件失败）
 - `restoreDraft` 判断画布就绪用 `leafer` 是否存在即可，**不要依赖 `junctionBoxRect.w > 0`**（步骤 11 无接线盒时恒为 0）
 - pendingDraft 在 `createCanvas` 末尾统一应用（不要只挂在 ensureSwitches 上，步骤 11 不构建接线盒时会丢失）
 - 恢复已放置元素（铅封/导线）后需**重建未放置位置的热区**（buildXxx 内部跳过已放置）
-- 前序步骤结果（如步骤 7 导线）可能因 HMR 丢失 → 恢复时从**前序步骤记录补充**（getStepDraft 前一步 stepId）
-- 背景按步骤推断（`bgForStep`：6-8 WithMeter、9 Wired、10 WithCableTies、11+ Covered），不依赖草稿
+- 恢复合并顺序：`{ ...标准推断, ...后端草稿, ...localStorage }`（local 优先）；三者均带 `stepOrder` 校验，与当前步骤不匹配丢弃（防跨步骤残留）
+- `CURRENT_STEP_FIELDS` 定义每步骤可交互字段——**前序结果字段强制按标准推断覆盖**（如 17+ 压板固定全关、15+ 开关=步骤14 结束状态），草稿仅影响当前步骤交互字段（防旧草稿污染）
+- 回档到"已完成但未提交"状态（开关已调完/线已连完/铅封已放）→ `restoreDraft` 末尾调用各步骤完成检测**自动提交**（与正常完成一致）
+- 重绘函数（redrawSeals/redrawCableCores/redrawTies）**不能用完成态变量（sealsDone/cableDone）作守卫**：restoreDraft 双保险调用两次，第二次会"先移除再跳过重绘"导致元素消失；重绘本身幂等，无需守卫
+- 画布重建时**热区引用变量必须随 removeAll 置 null**（dropZoneRect/installZoneRect），否则 ensureXxx 误判已构建跳过重建
+- 背景按步骤推断（`bgForStep`），onMounted 时直接初始化 currentBg（避免刷新短暂显示初始背景）；步骤 18 分支依赖 installStep/cablesCleared，恢复后需补切背景
 
 ### 交互模式
 
