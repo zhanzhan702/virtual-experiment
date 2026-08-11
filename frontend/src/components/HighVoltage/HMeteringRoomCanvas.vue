@@ -23,7 +23,12 @@
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活；绝对定位按画布像素） -->
-      <div class="seal-confirm-btn" :class="{ active: sealsDone }" :style="confirmBtnStyle" @click="onConfirmClick" />
+      <div
+        class="seal-confirm-btn"
+        :class="{ active: sealsDone }"
+        :style="confirmBtnStyle"
+        @click="onConfirmClick"
+      />
       <!-- 终端编号提示面板（步骤5-11 常驻；CSS 百分比相对画布定位，画布上方、随画布缩放） -->
       <div v-if="showTerminalGuide" class="terminal-guide-overlay">
         <HMeteringRoomGuide />
@@ -428,9 +433,10 @@ function buildSwitches() {
       zIndex: 2
     })
     hitLayer.add(img)
-    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），蓝色半透明便于调整定位；仅步骤6/10 可交互
+    // 热区与开关图位置尺寸一致并同步旋转（zIndex 3），蓝色半透明便于调整定位
+    // 热区生命周期：步骤5（挂表）起可点击 → 步骤6 结束后移除 → 步骤10（第二次调整）再出现
     let rect = null
-    if (props.stepOrder === 6 || props.stepOrder === 10) {
+    if (props.stepOrder === 5 || props.stepOrder === 6 || props.stepOrder === 10) {
       rect = new Rect({
         x,
         y,
@@ -656,9 +662,15 @@ function holeAbsPos(type, hole) {
 }
 
 /** 点孔：screwdriver_active → 记录起点并开始跟随；wire_drawing → 起点终点一起校验 */
+// 起点固定为接线盒（box），终点为电表孔（meter）
 function onHoleClick(type, hole) {
   if (props.stepOrder !== 7) return
   if (wiringStep.value === 'screwdriver_active') {
+    if (type !== 'box') {
+      ElMessage.warning('请先点击接线盒孔作为起点')
+      emit('error')
+      return
+    }
     wireStart.value = { type, hole }
     wireStartPos.value = holeAbsPos(type, hole)
     wiringStep.value = 'wire_drawing'
@@ -671,8 +683,8 @@ function onHoleClick(type, hole) {
   }
   if (wiringStep.value === 'wire_drawing') {
     const start = wireStart.value
-    if (start.type === type) {
-      ElMessage.warning('请点击另一端的接线孔')
+    if (type === 'box') {
+      ElMessage.warning('请点击电表侧的接线孔作为终点')
       emit('error')
       return
     }
@@ -1111,8 +1123,7 @@ function onMeterTerminalClick(num) {
 /** 芯连接成功：落定细线 + 记录 + 阶段/完成检查 */
 function connectCore(sel, terminal) {
   const from = coreTipPos(sel.side, sel.idx)
-  const to =
-    sel.side === 'right' ? terminalAbsPos(terminal) : meterTerminalAbsPos(terminal)
+  const to = sel.side === 'right' ? terminalAbsPos(terminal) : meterTerminalAbsPos(terminal)
   const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: sel.core.color })
   paths.forEach(p => hitLayer.add(p))
   coreTipLinks.push(...paths)
@@ -1202,8 +1213,7 @@ function redrawCableCores() {
   connectedCores.value.forEach(c => {
     const core = (c.side === 'right' ? CORE_TIPS.right : CORE_TIPS.left)[c.idx]
     const from = coreTipPos(c.side, c.idx)
-    const to =
-      c.side === 'right' ? terminalAbsPos(c.terminal) : meterTerminalAbsPos(c.terminal)
+    const to = c.side === 'right' ? terminalAbsPos(c.terminal) : meterTerminalAbsPos(c.terminal)
     const paths = makeWirePaths(from, to, { spec: '2.5', pathColor: core.color })
     paths.forEach(p => hitLayer.add(p))
     coreTipLinks.push(...paths)
@@ -1292,7 +1302,7 @@ function loadJunctionBoxAspect() {
 }
 
 function toggleSwitch(i) {
-  if (props.stepOrder !== 6 && props.stepOrder !== 10) return
+  if (props.stepOrder !== 5 && props.stepOrder !== 6 && props.stepOrder !== 10) return
   emit('operation')
   const s = switchRefs[i]
   if (!s) return
@@ -1697,13 +1707,13 @@ onMounted(() => {
               try {
                 const prev = await getStepDraft(props.experimentId, prevId)
                 if (prev?.connectedWires?.length) d.connectedWires = prev.connectedWires
-              } catch (_) { }
+              } catch (_) {}
             }
           }
           restoreDraft(d)
         }
       })
-      .catch(() => { })
+      .catch(() => {})
   }
 })
 // 同组件导航时组件不重新挂载，需监听步骤变化构建开关/孔热区
