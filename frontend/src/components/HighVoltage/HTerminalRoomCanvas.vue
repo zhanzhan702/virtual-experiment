@@ -20,6 +20,10 @@
           draggable="false"
         />
       </div>
+      <!-- 步骤18 安装跟随（通信模块/SIM卡/天线） -->
+      <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
+        <img :src="INSTALL_TOOLS[installFollowing]" alt="安装件" draggable="false" />
+      </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（照搬计量小室：正方形常驻，hover 换图放大；绝对定位按画布像素） -->
@@ -69,6 +73,11 @@ const cableStep = ref('idle') // idle | core_following
 const cablePhase = ref(['right', 'right', 'right'])
 const selectedCore = ref(null) // { cableIdx, side, idx }
 const connectedCores = ref([]) // [{ cableIdx, side, idx, color }]
+// 步骤18 安装状态机
+const installStep = ref('idle') // idle | module（已装通信模块）| sim（已装SIM卡）| antenna（已装天线）
+const installFollowing = ref(null) // 跟随中的物品栏 idx（18 模块/19 SIM/20 天线）
+const installFollowStyle = ref({})
+const cablesCleared = ref(false) // 天线装完停 1 秒后线材/模块已销毁（切 Wired）
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -96,6 +105,9 @@ const signalCableImgs = [] // 已放置信号线图片
 const signalCoreRects = [] // 信号线芯点热区
 const signalPaths = [] // 信号线芯点连线 Path
 let coreFollowPaths = [] // 芯点跟随线 Path
+let installZoneRect = null // 安装热区（步骤18）
+let moduleImg = null // 已安装通信模块图片
+let simImg = null // 已安装 SIM 卡图片
 // 悬浮提示
 const tooltipVisible = ref(false)
 const tooltipStyle = ref({})
@@ -317,10 +329,29 @@ const SIGNAL_CABLES = [
   }
 ]
 
-// 背景按步骤切换
+// ─── 步骤18：安装通信模块/SIM卡/天线 ───
+// 安装热区（终端右上角，占位用户微调）；模块/SIM 图片在热区图层下（zIndex 2 < 热区 3）
+const INSTALL_ZONE = { x: 0.2, y: 0.28, w: 0.27, h: 0.13 }
+// 物品栏 idx → 跟随图片（18 通信模块/19 SIM卡/20 天线）
+const INSTALL_TOOLS = {
+  18: Images.barCommunicationModule,
+  19: Images.barSimCard,
+  20: Images.barAntenna
+}
+// 模块/SIM 图片位置（画布比率，高按比例 auto，占位用户微调）
+// 模块/SIM 图片位置与尺寸分开定义（画布比率，高按比例 auto；资源 500×500 宽高比 1）
+const INSTALL_MODULE_IMG = { x: 0.36, y: 0.297, w: 0.085 }
+const INSTALL_SIM_IMG = { x: 0.392, y: 0.317, w: 0.042 }
+
+// 背景按步骤切换（步骤18 按安装进度推断：待装模块→装天线→销毁线材后 Wired）
 function bgForStep(order) {
   if (order >= 21) return Images.terminalRoomCovered
-  if (order >= 18) return Images.terminalRoomWired
+  if (order >= 19) return Images.terminalRoomWired
+  if (order === 18) {
+    if (cablesCleared.value) return Images.terminalRoomWired
+    if (installStep.value === 'antenna') return Images.terminalRoomWithAntenna
+    return Images.terminalRoomPendingCommModule
+  }
   if (order >= 14) return Images.terminalRoomWithMeter
   return Images.terminalRoomNoMeter
 }
@@ -1115,6 +1146,159 @@ function checkCablesDone() {
   emit('stepCompleted', props.stepOrder)
 }
 
+// ─── 步骤18：安装通信模块/SIM卡/天线 ───
+
+/** 安装热区构建（步骤18；天线装完后销毁） */
+function ensureInstallZone() {
+  if (props.stepOrder !== 18 || !leafer) return
+  if (installStep.value === 'antenna' && cablesCleared.value) return
+  if (installZoneRect) return
+  const w = leafer.width
+  const h = leafer.height
+  installZoneRect = new Rect({
+    x: w * INSTALL_ZONE.x,
+    y: h * INSTALL_ZONE.y,
+    width: w * INSTALL_ZONE.w,
+    height: h * INSTALL_ZONE.h,
+    fill: 'rgba(0, 150, 255, 0.25)',
+    stroke: 'rgba(0, 150, 255, 0.9)',
+    strokeWidth: 2,
+    zIndex: 3
+  })
+  installZoneRect.on(PointerEvent.CLICK, () => onInstallZoneClick())
+  hitLayer.add(installZoneRect)
+}
+
+/** 物品栏选择（idx 18 模块/19 SIM/20 天线）→ 跟随 */
+function onInstallToolClick(idx, e) {
+  if (installStep.value === 'antenna') {
+    ElMessage.warning('安装已完成')
+    emit('error')
+    return
+  }
+  installFollowing.value = idx
+  installFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+}
+
+/** 点击安装热区：按顺序安装（模块→SIM→天线） */
+function onInstallZoneClick() {
+  if (props.stepOrder !== 18 || installStep.value === 'antenna') return
+  const idx = installFollowing.value
+  if (idx == null) return // 未选工具静默
+  const expected = installStep.value === 'idle' ? 18 : installStep.value === 'module' ? 19 : 20
+  if (idx !== expected) {
+    ElMessage.warning(
+      '安装顺序错误，请先安装' + (expected === 18 ? '通信模块' : expected === 19 ? 'SIM卡' : '天线')
+    )
+    emit('error')
+    return
+  }
+  installFollowing.value = null
+  if (idx === 18) {
+    // 通信模块：绘制在安装热区图层下（zIndex 2，不遮挡热区）
+    installStep.value = 'module'
+    moduleImg = new Image({
+      url: Images.barCommunicationModule,
+      x: leafer.width * INSTALL_MODULE_IMG.x,
+      y: leafer.height * INSTALL_MODULE_IMG.y,
+      width: leafer.width * INSTALL_MODULE_IMG.w,
+      height: leafer.width * INSTALL_MODULE_IMG.w,
+      zIndex: 2
+    })
+    hitLayer.add(moduleImg)
+    // 图片比例加载后校正高度（不压缩比例）
+    const probe = new Image()
+    probe.onload = () => {
+      const aspect = probe.naturalWidth / probe.naturalHeight || 1.5
+      if (moduleImg) moduleImg.height = moduleImg.width / aspect
+    }
+    probe.src = Images.barCommunicationModule
+    emit('operation')
+    persistState()
+  } else if (idx === 19) {
+    installStep.value = 'sim'
+    simImg = new Image({
+      url: Images.barSimCard,
+      x: leafer.width * INSTALL_SIM_IMG.x,
+      y: leafer.height * INSTALL_SIM_IMG.y,
+      width: leafer.width * INSTALL_SIM_IMG.w,
+      height: leafer.width * INSTALL_SIM_IMG.w,
+      zIndex: 2
+    })
+    hitLayer.add(simImg)
+    const probe = new Image()
+    probe.onload = () => {
+      const aspect = probe.naturalWidth / probe.naturalHeight || 1.5
+      if (simImg) simImg.height = simImg.width / aspect
+    }
+    probe.src = Images.barSimCard
+    emit('operation')
+    persistState()
+  } else if (idx === 20) {
+    // 天线：切 WithAntenna → 销毁安装热区 → 停 1 秒 → 销毁线材/模块/SIM → 切 Wired → 提交
+    installStep.value = 'antenna'
+    switchBackground(Images.terminalRoomWithAntenna)
+    installZoneRect?.remove()
+    installZoneRect = null
+    emit('operation')
+    persistState()
+    setTimeout(() => {
+      destroyInstalledItems()
+      cablesCleared.value = true
+      persistState()
+      switchBackground(Images.terminalRoomWired)
+      emit('stepCompleted', props.stepOrder)
+    }, 1000)
+  }
+}
+
+/** 销毁 3 根线材及其线条、终端孔热区、模块、SIM（天线装完停 1 秒后） */
+function destroyInstalledItems() {
+  signalCableImgs.forEach(img => img.remove())
+  signalCableImgs.length = 0
+  signalCoreRects.forEach(r => r.remove())
+  signalCoreRects.length = 0
+  signalPaths.forEach(p => p.remove())
+  signalPaths.length = 0
+  holeRects.forEach(r => r.remove())
+  holeRects.length = 0
+  moduleImg?.remove()
+  moduleImg = null
+  simImg?.remove()
+  simImg = null
+}
+
+/** 按安装状态重绘模块/SIM（画布重建后恢复视觉） */
+function buildInstalledImgs() {
+  moduleImg?.remove()
+  moduleImg = null
+  simImg?.remove()
+  simImg = null
+  if (cablesCleared.value) return
+  if (installStep.value === 'module' || installStep.value === 'sim') {
+    moduleImg = new Image({
+      url: Images.barCommunicationModule,
+      x: leafer.width * INSTALL_MODULE_IMG.x,
+      y: leafer.height * INSTALL_MODULE_IMG.y,
+      width: leafer.width * INSTALL_MODULE_IMG.w,
+      height: leafer.width * INSTALL_MODULE_IMG.w,
+      zIndex: 2
+    })
+    hitLayer.add(moduleImg)
+  }
+  if (installStep.value === 'sim') {
+    simImg = new Image({
+      url: Images.barSimCard,
+      x: leafer.width * INSTALL_SIM_IMG.x,
+      y: leafer.height * INSTALL_SIM_IMG.y,
+      width: leafer.width * INSTALL_SIM_IMG.w,
+      height: leafer.width * INSTALL_SIM_IMG.w,
+      zIndex: 2
+    })
+    hitLayer.add(simImg)
+  }
+}
+
 /** 步骤15 接线状态机（剥线钳→导线→螺丝刀→接线盒孔→终端孔）；剥线钳与当前导线持续高亮 */
 function onWiringToolClick(idx, e) {
   if (idx === 3) {
@@ -1459,6 +1643,15 @@ function onRightToolClick(idx, e) {
     cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
     return
   }
+  // 步骤18：选择通信模块/SIM卡/天线 → 跟随安装
+  if (props.stepOrder === 18) {
+    if (idx === 18 || idx === 19 || idx === 20) {
+      onInstallToolClick(idx, e)
+      return
+    }
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
   // 步骤13 挂表：第 2 个为三相三线专变终端
   if (idx !== 1) {
     ElMessage.info('该工具将在后续步骤中使用')
@@ -1488,6 +1681,9 @@ function onPageMouseMove(e) {
   if (cableFollowing.value != null) {
     cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (installFollowing.value != null) {
+    installFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 // ─── 存档 ───
@@ -1505,7 +1701,9 @@ function persistState() {
         connectedWires: connectedWires.value.map(w => ({ ...w })),
         cablePlaced: [...cablePlaced.value],
         cablePhase: [...cablePhase.value],
-        connectedCores: connectedCores.value.map(c => ({ ...c }))
+        connectedCores: connectedCores.value.map(c => ({ ...c })),
+        installStep: installStep.value,
+        cablesCleared: cablesCleared.value
       })
     )
   } catch (_) {}
@@ -1543,6 +1741,8 @@ function restoreDraft(d) {
   if (merged.cablePhase?.length) cablePhase.value = [...merged.cablePhase]
   if (merged.connectedCores?.length)
     connectedCores.value = merged.connectedCores.map(c => ({ ...c }))
+  if (merged.installStep) installStep.value = merged.installStep
+  if (merged.cablesCleared) cablesCleared.value = true
   if (leafer) {
     applyDraft()
   } else {
@@ -1590,6 +1790,12 @@ function applyDraft() {
   if (props.stepOrder === 17) {
     buildSignalDrops()
     redrawSignalCables()
+  }
+  // 步骤18：重建安装热区 + 已装模块/SIM；天线装完后线材不再重绘
+  if (props.stepOrder === 18) {
+    if (!cablesCleared.value) redrawSignalCables()
+    ensureInstallZone()
+    buildInstalledImgs()
   }
 }
 
@@ -1678,6 +1884,12 @@ watch(
     // 步骤16：压板开关已全关（回档）→ 直接完成
     if (order === 16 && controlSwitchStates.value.every(s => s === 'off')) {
       emit('stepCompleted', props.stepOrder)
+    }
+    // 步骤18：构建安装热区 + 按安装状态重绘模块/SIM（回档/直跳）
+    if (order === 18 && leafer) {
+      if (!cablesCleared.value) redrawSignalCables()
+      ensureInstallZone()
+      buildInstalledImgs()
     }
     // 步骤17：销毁压板开关热区 + 构建信号线放置热区
     if (order === 17 && leafer) {
