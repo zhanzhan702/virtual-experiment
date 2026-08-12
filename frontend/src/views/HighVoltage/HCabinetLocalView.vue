@@ -38,7 +38,7 @@
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
-    <!-- 验电完成提示弹窗（提交后展示，确认后进入下一步） -->
+    <!-- 计量小室验电完成提示弹窗（提交后展示，确认后进入下一步） -->
     <PromptModal :visible="showElectrifyNotice" @close="onElectrifyNoticeClose" :button-bottom="'18%'">
       <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
@@ -46,6 +46,12 @@
     <!-- 计量小室操作完成弹窗（步骤11 确认键触发，确认后进入终端小室验电） -->
     <PromptModal :visible="showMeterRoomSuccess" @close="onMeterRoomSuccessClose" :button-bottom="'22%'">
       <img :src="Images.meterRoomOperationSuccess" alt="计量小室操作完成" class="work-bg-img" />
+    </PromptModal>
+
+    <!-- 终端小室验电完成提示弹窗（提交后展示，确认后进入下一步） -->
+    <PromptModal :visible="showTerminalElectrifyNotice" @close="onTerminalElectrifyNoticeClose"
+      :button-bottom="'18%'">
+      <img :src="Images.terminalElectrifyCompleteNotice" alt="终端小室验电完成提示" class="work-bg-img" />
     </PromptModal>
 
     <!-- 终端小室上电完成弹窗（步骤21 确认键触发 → 终端小室完成 → 送电完成提示 → 回柜体局部） -->
@@ -86,6 +92,7 @@ const startedAt = ref(formatLocalTime(new Date()))
 const showWorkBg = ref(false)
 const showVideo = ref(false)
 const showElectrifyNotice = ref(false)
+const showTerminalElectrifyNotice = ref(false)
 const showMeterRoomSuccess = ref(false)
 const showTerminalComplete = ref(false)
 const showReadyForPowerOn = ref(false)
@@ -295,8 +302,12 @@ async function submitVoltageCheck() {
   try {
     await submitStep(payload)
     ElMessage.success('验电操作完成！')
-    // 步骤4/12 均弹窗确认后进入下一步（步骤12 的弹窗后期更换）
-    showElectrifyNotice.value = true
+    // 步骤4（计量）与步骤12（终端）验电完成提示图不同
+    if (currentStepOrder.value === 12) {
+      showTerminalElectrifyNotice.value = true
+    } else {
+      showElectrifyNotice.value = true
+    }
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
@@ -340,18 +351,33 @@ function onMeterRoomSuccessClose() {
   }, 500)
 }
 
-// 验电完成弹窗确认 → 步骤4 进入挂表（5），步骤12 进入终端小室挂表（13）
+// 计量验电完成弹窗确认（步骤4）→ 进入挂表（5）
 function onElectrifyNoticeClose() {
   showElectrifyNotice.value = false
   setTimeout(() => {
-    const nextOrder = currentStepOrder.value === 12 ? 13 : 5
-    const next = getStepsFromStore().find(s => s.stepOrder === nextOrder)
+    const next = getStepsFromStore().find(s => s.stepOrder === 5)
     router.replace({
       path: '/HCL',
       query: {
         experimentId: experimentId.value,
         stepId: next?.stepId || stepId.value,
-        stepOrder: nextOrder
+        stepOrder: 5
+      }
+    })
+  }, 500)
+}
+
+// 终端验电完成弹窗确认（步骤12）→ 进入终端小室挂表（13）
+function onTerminalElectrifyNoticeClose() {
+  showTerminalElectrifyNotice.value = false
+  setTimeout(() => {
+    const next = getStepsFromStore().find(s => s.stepOrder === 13)
+    router.replace({
+      path: '/HCL',
+      query: {
+        experimentId: experimentId.value,
+        stepId: next?.stepId || stepId.value,
+        stepOrder: 13
       }
     })
   }, 500)

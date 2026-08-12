@@ -121,7 +121,6 @@ import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
 import barWireYellow from '@/assets/images/cabinet/toolbar/WireYellow.png'
 import barWireGreen from '@/assets/images/cabinet/toolbar/WireGreen.png'
 import barWireRed from '@/assets/images/cabinet/toolbar/WireRed.png'
-import barWire25mmBlack from '@/assets/images/tool-selection/wire/Wire25mmBlack.png' //todo： 该元素不需要，安全删去
 import barWire2Core from '@/assets/images/cabinet/toolbar/Wire2Core.png'
 import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
 import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
@@ -149,6 +148,7 @@ import terminalRoomWired from '@/assets/images/cabinet/room/terminal-room/Termin
 import terminalRoomCovered from '@/assets/images/cabinet/room/terminal-room/TerminalRoomCovered.png'
 import terminalRoomPendingCommModule from '@/assets/images/cabinet/room/terminal-room/TerminalRoomPendingCommModule.png'
 import terminalRoomWithAntenna from '@/assets/images/cabinet/room/terminal-room/TerminalRoomWithAntenna.png'
+import terminalElectrifyCompleteNotice from '@/assets/images/cabinet/room/terminal-room/TerminalElectrifyCompleteNotice.png'
 import remoteControlBoard from '@/assets/images/cabinet/room/terminal-room/RemoteControlBoard.png'
 import remoteControlSwitch from '@/assets/images/cabinet/room/terminal-room/RemoteControlSwitch.png'
 import terminalSignalCable8Core from '@/assets/images/cabinet/room/terminal-room/SignalCable8Core.png'
@@ -236,6 +236,7 @@ export default {
   electrifyCompleteNotice,
   meterRoomOperationSuccess,
   terminalRoomCompleteNotice,
+  terminalElectrifyCompleteNotice,
   readyForPowerOnNotice,
   checkMeterReading,
   verifyMeterDataConsistency,
@@ -261,7 +262,6 @@ export default {
   barWireYellow,
   barWireGreen,
   barWireRed,
-  barWire25mmBlack,
   barWire2Core,
   barWire4mm2YellowBlack,
   barWire4mm2RedBlack,
