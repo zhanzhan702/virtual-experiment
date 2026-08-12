@@ -320,6 +320,9 @@ function handleDrop() {
   dropZoneRect?.remove()
   dropZoneRect = null
   switchBackground(Images.meteringRoomWithMeter)
+  // 挂表后：右侧长方体 8 格 + 电表下方 6 芯连接热区（16 孔）出现
+  buildTerminalBlocks()
+  buildMeterTerminals()
   // 挂表后显示电表下方芯孔热区（接线完成后销毁）
   ensureHoles()
   persistState()
@@ -775,13 +778,11 @@ function coreTipPos(side, idx) {
   }
 }
 
-/** 步骤8 热区构建（接线盒就绪后即可） */
+/** 步骤8 热区构建（接线盒就绪后即可；长方体8格/电表16孔生命周期不在此——全流程/挂表后构建） */
 function ensureCable() {
   if (props.stepOrder !== 8 || !leafer || junctionBoxRect.w <= 0) return
   if (cableDone) return
   buildCableDropZone()
-  buildTerminalBlocks()
-  buildMeterTerminals()
   if (cablePlaced.value) buildCoreTips()
 }
 
@@ -1213,6 +1214,7 @@ function onCoreMove(e) {
 }
 
 /** 6 芯两端全接完：停顿（让用户看到接线效果）→ 切 Wired 背景 → 销毁热区 → 提交 */
+// （接线完成销毁电表 16 孔热区：destroyCableHoles 内清理 meterTerminalRects；长方体 8 格全流程保留）
 function finishSignalCable() {
   if (cableDone) return
   cableDone = true
@@ -1249,9 +1251,9 @@ function destroyBoxHoles() {
   meterHoleRects.length = 0
 }
 
-/** 画布级移动：悬浮显示孔位信息（步骤8，显示在热区上方） */
+/** 画布级移动：悬浮显示孔位信息（热区上方）
+ *  8 格长方体：全流程浮窗（5-11）；16 孔：挂表后-接线完成前浮窗（5-8） */
 function onCanvasMove(e) {
-  if (props.stepOrder !== 8) return
   const p = e.getLocalPoint()
   for (const t of terminalRects) {
     if (isPointInRect(p, t.rect)) {
@@ -1259,10 +1261,12 @@ function onCanvasMove(e) {
       return
     }
   }
-  for (const t of meterTerminalRects) {
-    if (isPointInRect(p, t.rect)) {
-      showTooltip(`孔 ${t.num}`, t.rect)
-      return
+  if (meterPlaced.value && props.stepOrder <= 8) {
+    for (const t of meterTerminalRects) {
+      if (isPointInRect(p, t.rect)) {
+        showTooltip(`孔 ${t.num}`, t.rect)
+        return
+      }
     }
   }
   tooltipVisible.value = false
@@ -1366,6 +1370,12 @@ function checkSwitches() {
 
 /** 恢复开关状态（位置/视觉）与已接导线 */
 function applyDraft(d) {
+  // 右侧长方体 8 格：画布全流程存在（5-11）
+  buildTerminalBlocks()
+  // 电表下方 6 芯连接热区（16 孔）：挂表后出现，接线完成（12 根全连）销毁
+  if (meterPlaced.value && props.stepOrder <= 8 && connectedCores.value.length < 12) {
+    buildMeterTerminals()
+  }
   // 回档到挂表后状态时补构建芯孔热区（挂表后-接线完成前显示）
   ensureHoles()
   if (Array.isArray(d?.switchStates)) {
@@ -1756,6 +1766,11 @@ function onResize() {
       sealImgs.length = 0
       buildDropZone(w, h)
       buildJunctionBox(w, h)
+      // 右侧长方体 8 格：画布全流程存在；电表 16 孔：挂表后出现，接线完成（12 根全连）销毁
+      buildTerminalBlocks()
+      if (meterPlaced.value && props.stepOrder <= 8 && connectedCores.value.length < 12) {
+        buildMeterTerminals()
+      }
       ensureCable()
       buildTieDropZone()
       buildSealHotspots()

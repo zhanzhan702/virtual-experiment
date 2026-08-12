@@ -973,7 +973,8 @@ function onSignalDropClick() {
     hittable: false // 不拦截点击，保证下方长方条/孔热区可命中
   })
   hitLayer.add(img)
-  signalCableImgs.push(img)
+  // 按 cableIdx 索引存（corePos 用 signalCableImgs[ci] 取图，push 会导致非顺序放置时错位）
+  signalCableImgs[ci] = img
   buildCableCores(ci)
   // 3 根线全部放置完毕 → 销毁放置热区
   if (cablePlaced.value.every(Boolean)) {
@@ -2113,7 +2114,8 @@ function redrawSignalCables() {
       hittable: false // 不拦截点击，保证下方长方条/孔热区可命中
     })
     hitLayer.add(img)
-    signalCableImgs.push(img)
+    // 按 cableIdx 索引存（corePos 用 signalCableImgs[ci] 取图，push 会导致非顺序放置时错位）
+    signalCableImgs[ci] = img
     buildCableCores(ci)
   })
   // 重绘已连接芯点连线
