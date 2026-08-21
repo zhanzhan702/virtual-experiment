@@ -99,3 +99,8 @@ reasonix.toml
 .claude/*
 !.claude/skills/
 !.claude/skills/**
+.workbuddy/memory/2026-08-19.md
+backend/src/main/resources/application.yml
+.workbuddy/memory/2026-08-20.md
+backend/src/main/resources/application.yml
+backend/src/main/resources/application.yml
