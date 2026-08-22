@@ -240,48 +240,53 @@ export const categories = [
     correctIds: [51, 53, 54, 57, 58, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69],
 
     tools: [
-      { id: 51, name: '2.5MM²黄色导线', slot: 'wire', icon: '🟡' },
+      { id: 51, name: '2.5MM²黄色导线', slot: 'wire', icon: '🟡', image: 'wireYellow' },
       {
         id: 52,
         name: '2.5MM²黄黑色导线',
         slot: 'wire',
-        icon: '🟡⚫'
+        icon: '🟡⚫',
+        image: 'wireYellowBlack'
       },
-      { id: 53, name: '2.5MM²绿色导线', slot: 'wire', icon: '🟢' },
-      { id: 54, name: '2.5MM²红色导线', slot: 'wire', icon: '🔴' },
+      { id: 53, name: '2.5MM²绿色导线', slot: 'wire', icon: '🟢', image: 'wireGreen' },
+      { id: 54, name: '2.5MM²红色导线', slot: 'wire', icon: '🔴', image: 'wireRed' },
       {
         id: 55,
         name: '2.5MM²红黑色导线',
         slot: 'wire',
-        icon: '🔴⚫'
+        icon: '🔴⚫',
+        image: 'wireRedBlack'
       },
-      { id: 56, name: '2.5MM²黑色导线', slot: 'wire', icon: '⚫' },
+      { id: 56, name: '2.5MM²黑色导线', slot: 'wire', icon: '⚫', image: 'wire25mmBlack' },
 
-      { id: 57, name: '4.0MM²黄色导线', slot: 'wire', icon: '🟡' },
+      // 4.0mm² 暂无独立素材，复用 2.5mm² 图（与柜体工具栏"4.0mm² 由 2.5mm² 图放大模拟"惯例一致）
+      { id: 57, name: '4.0MM²黄色导线', slot: 'wire', icon: '🟡', image: 'wireYellow' },
       {
         id: 58,
         name: '4.0MM²黄黑色导线',
         slot: 'wire',
-        icon: '🟡⚫'
+        icon: '🟡⚫',
+        image: 'wireYellowBlack'
       },
-      { id: 59, name: '4.0MM²绿色导线', slot: 'wire', icon: '🟢' },
-      { id: 60, name: '4.0MM²红色导线', slot: 'wire', icon: '🔴' },
+      { id: 59, name: '4.0MM²绿色导线', slot: 'wire', icon: '🟢', image: 'wireGreen' },
+      { id: 60, name: '4.0MM²红色导线', slot: 'wire', icon: '🔴', image: 'wireRed' },
       {
         id: 61,
         name: '4.0MM²红黑色导线',
         slot: 'wire',
-        icon: '🔴⚫'
+        icon: '🔴⚫',
+        image: 'wireRedBlack'
       },
 
-      { id: 62, name: '扎带标示牌', slot: 'wire', icon: '🏷️' },
-      { id: 63, name: '2芯遥控线', slot: 'wire', icon: '🔌' },
-      { id: 64, name: '2芯遥信线', slot: 'wire', icon: '🔌' },
-      { id: 65, name: '6芯信号线', slot: 'wire', icon: '🔌' },
-      { id: 66, name: '8芯信号线', slot: 'wire', icon: '🔌' },
+      { id: 62, name: '扎带标示牌', slot: 'wire', icon: '🏷️', image: 'cableTieLabel' },
+      { id: 63, name: '2芯遥控线', slot: 'wire', icon: '🔌', image: 'wire2Core' },
+      { id: 64, name: '2芯遥信线', slot: 'wire', icon: '🔌', image: 'wire2Core' },
+      { id: 65, name: '6芯信号线', slot: 'wire', icon: '🔌', image: 'signalCable6Core' },
+      { id: 66, name: '8芯信号线', slot: 'wire', icon: '🔌', image: 'signalCable8Core' },
 
-      { id: 67, name: '通信模块', slot: 'wire', icon: '📶' },
-      { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳' },
-      { id: 69, name: '天线', slot: 'wire', icon: '📡' }
+      { id: 67, name: '通信模块', slot: 'wire', icon: '📶', image: 'communicationModule' },
+      { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳', image: 'simCard' },
+      { id: 69, name: '天线', slot: 'wire', icon: '📡', image: 'antenna' }
     ]
   }
 ]

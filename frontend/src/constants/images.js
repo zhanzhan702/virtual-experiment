@@ -73,12 +73,13 @@ import wireStripper from '@/assets/images/tool-selection/tools-and-equipment/Wir
 import voltageTester from '@/assets/images/tool-selection/tools-and-equipment/VoltageTester.png'
 import seal from '@/assets/images/tool-selection/tools-and-equipment/Seal.png'
 
-// ─── 工器具选择 — 线材（选择页 3:5 版；黑色线仅 25mm 规格，Wire25mmBlack 待补充） ───
+// ─── 工器具选择 — 线材（选择页 3:5 版；黑色线仅 25mm 规格） ───
 import wireGreen from '@/assets/images/tool-selection/wire/WireGreen.png'
 import wireRed from '@/assets/images/tool-selection/wire/WireRed.png'
 import wireRedBlack from '@/assets/images/tool-selection/wire/WireRedBlack.png'
 import wireYellow from '@/assets/images/tool-selection/wire/WireYellow.png'
 import wireYellowBlack from '@/assets/images/tool-selection/wire/WireYellowBlack.png'
+import wire25mmBlack from '@/assets/images/tool-selection/wire/Wire25mmBlack.png'
 import wire2Core from '@/assets/images/tool-selection/wire/Wire2Core.png'
 import signalCable6Core from '@/assets/images/tool-selection/wire/SignalCable6Core.png'
 import signalCable8Core from '@/assets/images/tool-selection/wire/SignalCable8Core.png'
@@ -217,12 +218,13 @@ export default {
   wireStripper,
   voltageTester,
   seal,
-  // 4.线材（3:5 选择页版，黑色线 Wire25mmBlack 待补充）
+  // 4.线材（3:5 选择页版；4.0mm² 复用 2.5mm² 图，与柜体工具栏惯例一致）
   wireGreen,
   wireRed,
   wireRedBlack,
   wireYellow,
   wireYellowBlack,
+  wire25mmBlack,
   wire2Core,
   signalCable6Core,
   signalCable8Core,
