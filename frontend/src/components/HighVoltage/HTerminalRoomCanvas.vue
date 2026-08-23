@@ -26,6 +26,10 @@
       </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
+      <!-- 接线指导面板（挂表后到结束常驻）：CSS 百分比相对画布，画布上方、随画布缩放 -->
+      <div v-if="showTerminalGuide" class="terminal-guide-overlay">
+        <HTerminalRoomGuide />
+      </div>
       <!-- 确认键（照搬计量小室：正方形常驻，hover 换图放大；绝对定位按画布像素） -->
       <div class="seal-confirm-btn" :style="confirmBtnStyle" @click="onConfirmClick" />
     </div>
@@ -33,10 +37,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Leafer, Group, Image, Rect, Path, PointerEvent } from 'leafer-ui'
 import Images from '@/constants/images'
+import HTerminalRoomGuide from '@/components/HighVoltage/HTerminalRoomGuide.vue'
 import { getStepDraft } from '@/api/experiment'
 
 const props = defineProps({
@@ -49,6 +54,8 @@ const emit = defineEmits(['operation', 'error', 'stepCompleted', 'confirm'])
 // ─── 状态 ───
 const currentBg = ref(Images.terminalRoomNoMeter)
 const meterPlaced = ref(false)
+// 接线指导面板：挂表后到结束常驻（进入画布即显示；21 确认后画布销毁自然隐藏）
+const showTerminalGuide = computed(() => meterPlaced.value)
 const isMeterFollowing = ref(false)
 const followStyle = ref({})
 const canvasStyle = ref({})
@@ -2314,6 +2321,16 @@ defineExpose({
   pointer-events: none;
   z-index: 101;
   white-space: nowrap;
+}
+
+/* 接线指导面板：CSS 百分比相对画布定位（贴画布顶边上方，避开左侧竖排标牌），随画布缩放 */
+.terminal-guide-overlay {
+  position: absolute;
+  left: 12%;
+  bottom: 100%;
+  width: 86%;
+  z-index: 6;
+  pointer-events: none;
 }
 
 /* 确认键：与 Leafer 画布绝对定位（left/top/宽高由 updateConfirmBtn 按画布像素计算），绿色版 */
