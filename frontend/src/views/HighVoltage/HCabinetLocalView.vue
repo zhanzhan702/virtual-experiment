@@ -49,8 +49,7 @@
     </PromptModal>
 
     <!-- 终端小室验电完成提示弹窗（提交后展示，确认后进入下一步） -->
-    <PromptModal :visible="showTerminalElectrifyNotice" @close="onTerminalElectrifyNoticeClose"
-      :button-bottom="'18%'">
+    <PromptModal :visible="showTerminalElectrifyNotice" @close="onTerminalElectrifyNoticeClose" :button-bottom="'18%'">
       <img :src="Images.terminalElectrifyCompleteNotice" alt="终端小室验电完成提示" class="work-bg-img" />
     </PromptModal>
 
@@ -153,9 +152,9 @@ const rightTools = [
   { name: '2.5MM²绿色导线', img: Images.barWireGreen },
   { name: '2.5MM²红色导线', img: Images.barWireRed },
   // ── 4.0MM² 导线（黄/红共用 2.5MM² 通用图，显示放大模拟） ──
-  { name: '4.0MM²黄色导线', img: Images.barWireYellow, imgWidth: '100%' },
+  { name: '4.0MM²黄色导线', img: Images.barWireYellow, imgWidth: '95%' },
   { name: '4.0MM²黄黑色导线', img: Images.barWire4mm2YellowBlack },
-  { name: '4.0MM²红色导线', img: Images.barWireRed, imgWidth: '100%' },
+  { name: '4.0MM²红色导线', img: Images.barWireRed, imgWidth: '95%' },
   { name: '4.0MM²红黑色导线', img: Images.barWire4mm2RedBlack },
   { name: '扎带标识牌', img: Images.barCableTieLabel },
   { name: '2芯遥控线', img: Images.barWire2Core },
