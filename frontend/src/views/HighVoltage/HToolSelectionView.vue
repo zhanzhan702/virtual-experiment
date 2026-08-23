@@ -18,6 +18,9 @@
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
+
+    <!-- 视频2：工器具选择完（播放完毕自动进入下一步） -->
+    <HVideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </div>
 </template>
 
@@ -28,8 +31,10 @@ import { ElMessage } from 'element-plus'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
+import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
 import { categories } from '@/constants/tool-selection-config'
 import Images from '@/constants/images'
+import Videos from '@/constants/videos'
 import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 
@@ -38,6 +43,8 @@ const router = useRouter()
 
 const wizardRef = ref(null)
 const showWorkBg = ref(false)
+// 视频2：工器具选择完播放（播毕进入下一步）
+const showVideo = ref(false)
 
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
@@ -130,16 +137,21 @@ const handleToolSelectionSubmit = async selectedMap => {
 
   try {
     await submitStep(payload)
-    ElMessage.success('工器具选择已完成，即将进入下一步...')
-    setTimeout(() => {
-      router.push({
-        path: '/HSO',
-        query: { experimentId: experimentId.value }
-      })
-    }, 1000)
+    ElMessage.success('工器具选择已完成，即将播放教学视频...')
+    // 视频2：工器具选择完播放，播毕进入下一步
+    showVideo.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
+}
+
+/** 视频2 播放完毕 → 进入配电室总览/下一步 */
+function onVideoEnded() {
+  showVideo.value = false
+  router.push({
+    path: '/HSO',
+    query: { experimentId: experimentId.value }
+  })
 }
 </script>
 

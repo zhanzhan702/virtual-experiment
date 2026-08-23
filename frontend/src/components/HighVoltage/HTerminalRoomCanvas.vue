@@ -24,6 +24,10 @@
       <div v-if="tieFollowing" class="meter-following" :style="tieFollowStyle">
         <img :src="Images.barCableTieLabel" alt="扎带标识牌" draggable="false" />
       </div>
+      <!-- 步骤22 铅封跟随 -->
+      <div v-if="sealFollowing" class="meter-following" :style="sealFollowStyle">
+        <img :src="Images.barSeal" alt="铅封" draggable="false" />
+      </div>
       <!-- 孔位信息悬浮层 -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 接线指导面板（挂表后到结束常驻）：CSS 百分比相对画布，画布上方、随画布缩放 -->
@@ -91,6 +95,13 @@ const tieFollowing = ref(false)
 const tieFollowStyle = ref({})
 const tieZoneRects = [] // 3 块指示牌热区引用（放置后销毁）
 let tieImgs = [] // 已绘制指示牌图片引用（redrawTies 清理重绘，防叠图）
+// 步骤22 铅封
+const sealPlaced = ref([]) // 各位置是否已放置铅封
+const sealFollowing = ref(false)
+const sealFollowStyle = ref({})
+const sealRects = [] // 铅封热区引用（放置后销毁）
+const sealImgs = [] // 已放置铅封图片引用（redrawSeals 清理重绘，防叠图）
+let sealsDone = false
 const bgImgRef = ref(null)
 const leaferViewRef = ref(null)
 
@@ -372,6 +383,19 @@ const TIE_IMG = [
   { x: 0.52, y: 0.579, w: 0.1, img: Images.signToMeteringRoom, aspect: 0.932 } // 1116×1197
 ]
 
+// ─── 步骤22 铅封（复用计量小室步骤11 模式） ───
+// 5 个铅封：独立位置（相对画布比率）+ 旋转角度（占位，用户微调）；
+// 覆盖在终端小室 Covered 封盖/设备上的密封点，用户按背景图微调
+const SEALS = [
+  { x: 0.212, y: 0.523, rotation: 0 },
+  { x: 0.467, y: 0.343, rotation: 0 },
+  { x: 0.467, y: 0.52, rotation: 0 },
+  { x: 0.213, y: 0.81, rotation: 0 },
+  { x: 0.458, y: 0.845, rotation: 0 }
+]
+// 铅封大小一致（相对画布宽）
+const SEAL_SIZE = 0.03
+
 // 背景按步骤切换（步骤18 按安装进度推断：待装模块→装天线→销毁线材后 Wired）
 function bgForStep(order) {
   if (order >= 21) return Images.terminalRoomCovered
@@ -428,6 +452,11 @@ function buildAll(w, h) {
   // 挂表后构建 36 孔热区（含回档恢复场景）；18 天线装完销毁（cablesCleared）后 19+ 不重建
   if (meterPlaced.value && props.stepOrder <= 18 && !cablesCleared.value) {
     buildTerminalHoles(w, h)
+  }
+  // 步骤22：构建铅封热区 + 已放置铅封
+  if (props.stepOrder === 22) {
+    buildSealHotspots()
+    redrawSeals()
   }
 }
 
@@ -1397,6 +1426,108 @@ function redrawTies() {
   })
 }
 
+// ─── 步骤22：铅封（复用计量小室步骤11 模式） ───
+
+/** 步骤22 铅封热区（5 处，蓝色半透明可视化；已放置位置跳过） */
+function buildSealHotspots() {
+  if (props.stepOrder !== 22 || sealsDone || sealRects.length > 0) return
+  const w = leafer.width
+  const h = leafer.height
+  const sz = Math.max(w * SEAL_SIZE * 2, 20)
+  SEALS.forEach((cfg, i) => {
+    if (sealPlaced.value[i]) return
+    const rect = new Rect({
+      x: w * cfg.x - sz / 2,
+      y: h * cfg.y - sz / 2,
+      width: sz,
+      height: sz,
+      fill: 'rgba(0, 150, 255, 0.25)',
+      stroke: 'rgba(0, 150, 255, 0.9)',
+      strokeWidth: 1,
+      zIndex: 3
+    })
+    rect.on(PointerEvent.CLICK, () => onSealClick(i))
+    hitLayer.add(rect)
+    sealRects.push(rect)
+  })
+}
+
+/** 点铅封热区：放置铅封小图（大小一致、独立旋转） */
+function onSealClick(i) {
+  if (props.stepOrder !== 22 || sealsDone) return
+  if (!sealFollowing.value) {
+    ElMessage.warning('请先在右侧工具栏选择铅封')
+    emit('error')
+    return
+  }
+  if (sealPlaced.value[i]) {
+    ElMessage.warning('该位置已放置铅封')
+    emit('error')
+    return
+  }
+  const w = leafer.width
+  const h = leafer.height
+  const cfg = SEALS[i]
+  const sz = w * SEAL_SIZE
+  const img = new Image({
+    url: Images.barSeal,
+    x: w * cfg.x - sz / 2,
+    y: h * cfg.y - sz / 2,
+    width: sz,
+    height: sz,
+    rotation: cfg.rotation,
+    zIndex: 4
+  })
+  hitLayer.add(img)
+  sealImgs.push(img)
+  sealPlaced.value[i] = true
+  persistState()
+  emit('operation')
+  if (sealPlaced.value.filter(Boolean).length === SEALS.length) {
+    sealsDone = true
+    sealFollowing.value = false
+    sealRects.forEach(r => r.remove())
+    sealRects.length = 0
+    emit('stepCompleted', props.stepOrder)
+  }
+}
+
+/** 重绘已放置铅封（画布重建后恢复视觉；幂等，无需 sealsDone 守卫——restoreDraft 双保险会多次调用） */
+function redrawSeals() {
+  sealImgs.forEach(img => img.remove())
+  sealImgs.length = 0
+  if (!leafer) return
+  const w = leafer.width
+  const h = leafer.height
+  const sz = w * SEAL_SIZE
+  sealPlaced.value.forEach((placed, i) => {
+    if (!placed) return
+    const cfg = SEALS[i]
+    const img = new Image({
+      url: Images.barSeal,
+      x: w * cfg.x - sz / 2,
+      y: h * cfg.y - sz / 2,
+      width: sz,
+      height: sz,
+      rotation: cfg.rotation,
+      zIndex: 4
+    })
+    hitLayer.add(img)
+    sealImgs.push(img)
+  })
+}
+
+/** 步骤22：铅封选择（idx 5）→ 跟随放置 */
+function onSealToolClick(idx, e) {
+  if (idx !== 5) {
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
+  if (sealsDone) return
+  sealFollowing.value = true
+  sealFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+}
+
 /** 按安装状态重绘模块/SIM（画布重建后恢复视觉） */
 function buildInstalledImgs() {
   moduleImg?.remove()
@@ -1773,6 +1904,11 @@ function onConfirmClick() {
     emit('confirm')
     return
   }
+  // 步骤22 铅封完成：确认键 → HCL 进入步骤23（柜门门把铅封）
+  if (props.stepOrder === 22 && sealsDone) {
+    emit('confirm')
+    return
+  }
   ElMessage.warning('请先完成当前步骤')
   emit('error')
 }
@@ -1833,6 +1969,11 @@ function onRightToolClick(idx, e) {
     ElMessage.info('该工具将在后续步骤中使用')
     return
   }
+  // 步骤22：铅封（idx 5）→ 跟随放置
+  if (props.stepOrder === 22) {
+    onSealToolClick(idx, e)
+    return
+  }
   // 步骤13 挂表：第 2 个为三相三线专变终端
   if (idx !== 1) {
     ElMessage.info('该工具将在后续步骤中使用')
@@ -1868,6 +2009,9 @@ function onPageMouseMove(e) {
   if (tieFollowing.value) {
     tieFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
+  if (sealFollowing.value) {
+    sealFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+  }
 }
 
 // ─── 存档 ───
@@ -1888,7 +2032,8 @@ function persistState() {
         connectedCores: connectedCores.value.map(c => ({ ...c })),
         installStep: installStep.value,
         cablesCleared: cablesCleared.value,
-        tiePlaced: [...tiePlaced.value]
+        tiePlaced: [...tiePlaced.value],
+        sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
       })
     )
   } catch (_) { }
@@ -1907,7 +2052,8 @@ function getFullState() {
     connectedCores: connectedCores.value.map(c => ({ ...c })),
     installStep: installStep.value,
     cablesCleared: cablesCleared.value,
-    tiePlaced: [...tiePlaced.value]
+    tiePlaced: [...tiePlaced.value],
+    sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
   }
 }
 
@@ -1964,7 +2110,8 @@ const CURRENT_STEP_FIELDS = {
   18: ['installStep', 'cablesCleared'],
   19: ['tiePlaced'],
   20: ['switchStates'],
-  21: []
+  21: [],
+  22: ['sealPlaced']
 }
 function restoreDraft(d) {
   // 恢复优先级：标准结果推断（前序）→ 后端草稿（当前步骤中途态）→ localStorage（最新全量，优先）
@@ -2005,6 +2152,7 @@ function restoreDraft(d) {
     switchBackground(bgForStep(props.stepOrder))
   }
   if (merged.tiePlaced?.length) tiePlaced.value = [...merged.tiePlaced]
+  if (merged.sealPlaced?.length) sealPlaced.value = [...merged.sealPlaced]
   if (leafer) {
     applyDraft()
     // applyDraft 内 buildAll → buildSwitches/buildControlSwitches 会把状态重置为步骤初始值，
@@ -2036,6 +2184,10 @@ function restoreDraft(d) {
       // 3 块扎带全放（回档完成态）→ 自动提交
       emit('stepCompleted', props.stepOrder)
     }
+    if (props.stepOrder === 22 && sealPlaced.value.filter(Boolean).length === SEALS.length) {
+      // 5 个铅封全放（回档完成态）→ 自动提交
+      emit('stepCompleted', props.stepOrder)
+    }
   } else {
     pendingDraft = merged
   }
@@ -2062,6 +2214,8 @@ function applyDraft() {
   signalCoreRects.length = 0
   signalPaths.length = 0
   coreFollowPaths = []
+  sealRects.length = 0
+  sealImgs.length = 0
   dropZoneRect = null
   junctionBoxImg = null
   controlBoardImg = null

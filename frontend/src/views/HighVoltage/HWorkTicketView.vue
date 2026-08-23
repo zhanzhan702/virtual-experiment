@@ -13,6 +13,9 @@
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
+
+    <!-- 视频1：工作票填写完（播放完毕自动进入工器具选择） -->
+    <HVideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </div>
 </template>
 
@@ -25,13 +28,18 @@ import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
+import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
 import Images from '@/constants/images'
+import Videos from '@/constants/videos'
 
 const route = useRoute()
 const router = useRouter()
 
 const formRef = ref(null)
 const showWorkBg = ref(false)
+// 视频1：工作票填写完播放（播毕进工器具选择）
+const showVideo = ref(false)
+const nextStepId = ref('')
 
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
@@ -103,24 +111,29 @@ const handleTicketSubmit = async result => {
   }
 
   try {
-    const submitRes = await submitStep(payload)
-    ElMessage.success('提交成功！即将进入工器具选择...')
+    await submitStep(payload)
     // 从 localStorage 获取下一步 stepId（按实验 ID 区分，避免步骤映射错位）
     const steps = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
     const nextStep = steps.find(s => s.stepOrder === 2)
-    // 跳转到下一步（工器具选择），传递 experimentId + stepId
-    setTimeout(() => {
-      router.push({
-        path: '/HTS',
-        query: {
-          experimentId: experimentId.value,
-          stepId: nextStep ? nextStep.stepId : ''
-        }
-      })
-    }, 1000)
+    nextStepId.value = nextStep ? nextStep.stepId : ''
+    ElMessage.success('提交成功，即将播放工作票教学视频...')
+    // 视频1：工作票填写完播放，播毕进入工器具选择
+    showVideo.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   }
+}
+
+/** 视频1 播放完毕 → 进入工器具选择（步骤2） */
+function onVideoEnded() {
+  showVideo.value = false
+  router.push({
+    path: '/HTS',
+    query: {
+      experimentId: experimentId.value,
+      stepId: nextStepId.value
+    }
+  })
 }
 </script>
 

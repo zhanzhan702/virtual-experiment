@@ -9,7 +9,7 @@
     <!-- 中间交互区域（步骤3/4/12 围栏/告示牌+三步验电；步骤21 上电后回柜体局部+合闸热区） -->
     <HMiddleArea v-if="!isMeteringStep && (!isTerminalStep || showCabinetAfterPowerOn)" ref="middleRef"
       :step-order="currentStepOrder" @operation="onOperation" @error="onError" @fences-done="handleFencesDone"
-      @voltage-check-done="submitVoltageCheck" />
+      @voltage-check-done="submitVoltageCheck" @power-on="startPowerSequence" />
 
     <!-- 计量小室操作画布（步骤5+：挂电表 / 接线盒） -->
     <HMeteringRoomCanvas v-if="isMeteringStep" ref="meteringRef" :step-order="currentStepOrder"
@@ -25,13 +25,11 @@
     <HRightToolBar :items="rightTools" :vt-active="middleRef?.vtActive || false" :vt-done="middleRef?.vtDone || false"
       :active-idxs="rightToolActiveIdxs" @click="onRightToolClick" />
 
-    <!-- 视频占位 -->
-    <div v-if="showVideo" class="video-overlay">
-      <div class="video-placeholder">
-        <span>教学视频（待制作）</span>
-        <el-button type="primary" size="large" @click="closeVideo">关闭，进入下一步</el-button>
-      </div>
-    </div>
+    <!-- 视频3：告示牌悬挂完成（播放完毕自动进入步骤4验电） -->
+    <HVideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
+
+    <!-- 合闸三段教学视频（播放完毕自动弹提示图，确认后进入下一段/铅封） -->
+    <HVideoOverlay :key="videoSeq" :visible="showPowerVideo" :src="Videos.testVideo" @ended="onPowerVideoEnded" />
 
     <!-- 按钮 -->
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="stats.duration_seconds" />
@@ -65,6 +63,20 @@
     <PromptModal :visible="showWorkBg" @close="showWorkBg = false">
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
+
+    <!-- 合闸三段视频的提示图（绿色确认键）：VerifyTerminalWiring → CheckMeterReading → VerifyMeterDataConsistency -->
+    <PromptModal :visible="showVerifyWiring" @close="onVerifyWiringClose" :button-bottom="'15%'" :green="true"
+      :width="'50vw'" :btn-width="'24%'">
+      <img :src="Images.verifyTerminalWiring" alt="核验终端接线提示" class="work-bg-img" />
+    </PromptModal>
+    <PromptModal :visible="showCheckMeter" @close="onCheckMeterClose" :button-bottom="'14%'" :green="true"
+      :width="'50vw'" :btn-width="'28%'">
+      <img :src="Images.checkMeterReading" alt="核对电表读数提示" class="work-bg-img" />
+    </PromptModal>
+    <PromptModal :visible="showVerifyData" @close="onVerifyDataClose" :button-bottom="'6%'" :green="true"
+      :width="'60vw'" :btn-width="'27%'">
+      <img :src="Images.verifyMeterDataConsistency" alt="核验电表数据一致性提示" class="work-bg-img" />
+    </PromptModal>
   </div>
 </template>
 
@@ -80,8 +92,10 @@ import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
 import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
 import HTerminalRoomCanvas from '@/components/HighVoltage/HTerminalRoomCanvas.vue'
+import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
+import Videos from '@/constants/videos'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,12 +103,20 @@ const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
 const startedAt = ref(formatLocalTime(new Date()))
 const showWorkBg = ref(false)
-const showVideo = ref(false)
 const showElectrifyNotice = ref(false)
 const showTerminalElectrifyNotice = ref(false)
 const showMeterRoomSuccess = ref(false)
 const showTerminalComplete = ref(false)
 const showReadyForPowerOn = ref(false)
+// 视频3：告示牌悬挂完成（播毕进步骤4验电）
+const showFenceVideo = ref(false)
+// 合闸三段视频：0=视频4 1=视频5 2=视频6
+const showPowerVideo = ref(false)
+const videoSeq = ref(0)
+// 合闸三段提示图（绿色确认键）
+const showVerifyWiring = ref(false)
+const showCheckMeter = ref(false)
+const showVerifyData = ref(false)
 // 步骤21 上电完成后回柜体局部页面（HMiddleArea + 合闸热区）
 const showCabinetAfterPowerOn = ref(false)
 const hasSubmitted = ref(false)
@@ -250,30 +272,64 @@ async function handleFencesDone() {
       resultData: '{}',
       startedAt: startedAt.value
     })
-    ElMessage.success('围栏与标示牌放置完成')
-    showVideo.value = true
+    ElMessage.success('围栏与标示牌放置完成，即将播放教学视频...')
+    // 视频3：告示牌悬挂完成播放，播毕进步骤4验电
+    showFenceVideo.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
     hasSubmitted.value = false
   }
 }
 
-function closeVideo() {
-  showVideo.value = false
+/** 视频3 播放完毕 → 进入步骤4 验电 */
+function onFenceVideoEnded() {
+  showFenceVideo.value = false
   const next = getStepsFromStore().find(s => s.stepOrder === 4)
-  if (next) {
-    sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
-    router.push({
-      path: '/HCL',
-      query: { experimentId: experimentId.value, stepId: next.stepId, stepOrder: 4 }
-    })
-  } else {
-    sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
-    router.push({
-      path: '/HCL',
-      query: { experimentId: experimentId.value, stepId: stepId.value, stepOrder: 4 }
-    })
-  }
+  sessionStorage.setItem('_hcl_step4_skip_placement', 'true')
+  router.push({
+    path: '/HCL',
+    query: { experimentId: experimentId.value, stepId: next?.stepId || stepId.value, stepOrder: 4 }
+  })
+}
+
+/** 步骤21 点击合闸热区 → 播放合闸第一段视频 */
+function startPowerSequence() {
+  showPowerVideo.value = true
+  videoSeq.value = 0
+}
+
+/** 合闸视频播放完毕 → 自动弹出对应提示图 */
+function onPowerVideoEnded() {
+  showPowerVideo.value = false
+  if (videoSeq.value === 0) showVerifyWiring.value = true
+  else if (videoSeq.value === 1) showCheckMeter.value = true
+  else if (videoSeq.value === 2) showVerifyData.value = true
+}
+
+/** 提示图确认 → 下一段合闸视频 / 进入终端小室铅封(步骤22) */
+function onVerifyWiringClose() {
+  showVerifyWiring.value = false
+  videoSeq.value = 1
+  showPowerVideo.value = true
+}
+function onCheckMeterClose() {
+  showCheckMeter.value = false
+  videoSeq.value = 2
+  showPowerVideo.value = true
+}
+function onVerifyDataClose() {
+  showVerifyData.value = false
+  // 合闸完成：销毁柜体局部，回到终端小室（步骤22）准备铅封
+  showCabinetAfterPowerOn.value = false
+  const next = getStepsFromStore().find(s => s.stepOrder === 22)
+  router.replace({
+    path: '/HCL',
+    query: {
+      experimentId: experimentId.value,
+      stepId: next?.stepId || stepId.value,
+      stepOrder: 22
+    }
+  })
 }
 
 // ─── 验电笔交互（转发给中间栏） ───
@@ -312,12 +368,25 @@ async function submitVoltageCheck() {
   }
 }
 
-/** 画布确认键点击（步骤11 铅封完成后）→ 显示计量小室完成弹窗 */
+/** 画布确认键点击（步骤11/22 铅封完成后） */
 function onConfirmClick() {
   // 终端小室步骤21 确认键 → 销毁画布回柜体局部 → 双确认弹窗
   if (isTerminalStep.value && currentStepOrder.value === 21) {
     showCabinetAfterPowerOn.value = true
     showTerminalComplete.value = true
+    return
+  }
+  // 终端小室步骤22 铅封完成 → 进入步骤23（柜门门把铅封，待开发）
+  if (isTerminalStep.value && currentStepOrder.value === 22) {
+    const next = getStepsFromStore().find(s => s.stepOrder === 23)
+    router.replace({
+      path: '/HCL',
+      query: {
+        experimentId: experimentId.value,
+        stepId: next?.stepId || stepId.value,
+        stepOrder: 23
+      }
+    })
     return
   }
   showMeterRoomSuccess.value = true
@@ -536,9 +605,13 @@ async function handleTerminalStepCompleted(stepOrder) {
           stepOrder: nextOrder
         }
       })
-    } else {
+    } else if (stepOrder === 21) {
       // 步骤21 上电：提交后等待用户点击确认键（画布内）弹窗进入合闸
       ElMessage.success('上电完成')
+      hasSubmitted.value = false
+    } else if (stepOrder === 22) {
+      // 步骤22 铅封：提交后等待用户点击确认键（画布内）进入步骤23
+      ElMessage.success('铅封完成')
       hasSubmitted.value = false
     }
   } catch (err) {
@@ -629,26 +702,6 @@ watch(currentStepOrder, order => {
   background: #fff;
   position: relative;
   overflow: hidden;
-}
-
-/* 视频占位 */
-.video-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-placeholder {
-  color: #fff;
-  font-size: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
 }
 
 /* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
