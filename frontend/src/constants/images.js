@@ -90,6 +90,12 @@ import cableTieLabel from '@/assets/images/tool-selection/wire/CableTieLabel.png
 
 // ─── 柜体局部操作 — 背景图 / prompt 提示窗 ───
 import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.png'
+// 铅封图：Sealed 计量/终端小室画布放置（1.54:1 横向）；CabinetLeadSeal 柜门门把铅封（1:1）
+import sealed from '@/assets/images/cabinet/Sealed.png'
+import cabinetLeadSeal from '@/assets/images/cabinet/CabinetLeadSeal.png'
+// 步骤24 按钮图：清理现场 / 办理工作终结
+import cleanButton from '@/assets/images/cabinet/CleanButton.png'
+import endButton from '@/assets/images/cabinet/EndButton.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
 import meterRoomOperationSuccess from '@/assets/images/cabinet/MeterRoomOperationSuccess.png'
@@ -234,6 +240,10 @@ export default {
   cableTieLabel,
   // 柜体操作 — 背景图 / prompt 提示窗
   cabinetGroupOverview,
+  sealed,
+  cabinetLeadSeal,
+  cleanButton,
+  endButton,
   powerSocket,
   electrifyCompleteNotice,
   meterRoomOperationSuccess,

@@ -14,7 +14,11 @@
       </div>
       <!-- 步骤17 信号线跟随 -->
       <div v-if="cableFollowing != null" class="meter-following" :style="cableFollowStyle">
-        <img :src="SIGNAL_CABLES[cableFollowing].img" :alt="SIGNAL_CABLES[cableFollowing].name" draggable="false" />
+        <img
+          :src="SIGNAL_CABLES[cableFollowing].img"
+          :alt="SIGNAL_CABLES[cableFollowing].name"
+          draggable="false"
+        />
       </div>
       <!-- 步骤18 安装跟随（通信模块/SIM卡/天线） -->
       <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
@@ -387,14 +391,15 @@ const TIE_IMG = [
 // 5 个铅封：独立位置（相对画布比率）+ 旋转角度（占位，用户微调）；
 // 覆盖在终端小室 Covered 封盖/设备上的密封点，用户按背景图微调
 const SEALS = [
-  { x: 0.212, y: 0.523, rotation: 0 },
-  { x: 0.467, y: 0.343, rotation: 0 },
-  { x: 0.467, y: 0.52, rotation: 0 },
-  { x: 0.213, y: 0.81, rotation: 0 },
-  { x: 0.458, y: 0.845, rotation: 0 }
+  { x: 0.223, y: 0.529, rotation: 0 },
+  { x: 0.475, y: 0.349, rotation: 0 },
+  { x: 0.476, y: 0.527, rotation: 0 },
+  { x: 0.221, y: 0.818, rotation: 0 },
+  { x: 0.467, y: 0.85, rotation: 0 }
 ]
-// 铅封大小一致（相对画布宽）
-const SEAL_SIZE = 0.03
+// 铅封大小一致（相对画布宽）；Sealed.png 为 1.54:1 横向，高度按比例
+const SEAL_SIZE = 0.04
+const SEAL_ASPECT = 1.5417
 
 // 背景按步骤切换（步骤18 按安装进度推断：待装模块→装天线→销毁线材后 Wired）
 function bgForStep(order) {
@@ -1041,24 +1046,24 @@ function corePos(ci, side, idx) {
 /** 构建指定线的芯点热区（追加，不清除其他线的芯点——多根线热区共存） */
 function buildCableCores(ci) {
   const cfg = SIGNAL_CABLES[ci]
-    ;['right', 'left'].forEach(side => {
-      cfg[side].forEach((_, idx) => {
-        const p = corePos(ci, side, idx)
-        const rect = new Rect({
-          x: p.x - CORE_SIZE / 2,
-          y: p.y - CORE_SIZE / 2,
-          width: CORE_SIZE,
-          height: CORE_SIZE,
-          fill: 'rgba(0, 150, 255, 0.3)',
-          stroke: 'rgba(0, 150, 255, 0.9)',
-          strokeWidth: 1,
-          zIndex: 5 // 芯点热区在线材图片与放置热区之上
-        })
-        rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
-        hitLayer.add(rect)
-        signalCoreRects.push(rect)
+  ;['right', 'left'].forEach(side => {
+    cfg[side].forEach((_, idx) => {
+      const p = corePos(ci, side, idx)
+      const rect = new Rect({
+        x: p.x - CORE_SIZE / 2,
+        y: p.y - CORE_SIZE / 2,
+        width: CORE_SIZE,
+        height: CORE_SIZE,
+        fill: 'rgba(0, 150, 255, 0.3)',
+        stroke: 'rgba(0, 150, 255, 0.9)',
+        strokeWidth: 1,
+        zIndex: 5 // 芯点热区在线材图片与放置热区之上
       })
+      rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
+      hitLayer.add(rect)
+      signalCoreRects.push(rect)
     })
+  })
 }
 
 /** 重建全部已放置线的芯点热区（比例校正/画布重建后恢复） */
@@ -1470,11 +1475,11 @@ function onSealClick(i) {
   const cfg = SEALS[i]
   const sz = w * SEAL_SIZE
   const img = new Image({
-    url: Images.barSeal,
+    url: Images.sealed,
     x: w * cfg.x - sz / 2,
-    y: h * cfg.y - sz / 2,
+    y: h * cfg.y - sz / SEAL_ASPECT / 2,
     width: sz,
-    height: sz,
+    height: sz / SEAL_ASPECT,
     rotation: cfg.rotation,
     zIndex: 4
   })
@@ -1504,11 +1509,11 @@ function redrawSeals() {
     if (!placed) return
     const cfg = SEALS[i]
     const img = new Image({
-      url: Images.barSeal,
+      url: Images.sealed,
       x: w * cfg.x - sz / 2,
-      y: h * cfg.y - sz / 2,
+      y: h * cfg.y - sz / SEAL_ASPECT / 2,
       width: sz,
-      height: sz,
+      height: sz / SEAL_ASPECT,
       rotation: cfg.rotation,
       zIndex: 4
     })
@@ -2036,7 +2041,7 @@ function persistState() {
         sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
       })
     )
-  } catch (_) { }
+  } catch (_) {}
 }
 
 /** 全量状态（存档用）：画布所有状态字段（与 localStorage 兜底内容一致） */
@@ -2119,7 +2124,7 @@ function restoreDraft(d) {
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
-  } catch (_) { }
+  } catch (_) {}
   if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
   if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
   const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
@@ -2393,7 +2398,7 @@ onMounted(() => {
         // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
         restoreDraft(d || {})
       })
-      .catch(() => { })
+      .catch(() => {})
   }
 })
 onUnmounted(() => {

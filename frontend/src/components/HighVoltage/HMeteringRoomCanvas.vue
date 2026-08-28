@@ -246,14 +246,15 @@ const CABLE_TIE_SIZE = 0.3
 // ─── 步骤11：铅封 ───
 // 5 个铅封：独立位置（相对画布比率）+ 旋转角度（占位，用户微调）；电表 3 处 + 接线盒两端 2 处
 const SEALS = [
-  { x: 0.212, y: 0.458, rotation: 0 },
-  { x: 0.453, y: 0.345, rotation: 0 },
-  { x: 0.463, y: 0.456, rotation: 0 },
-  { x: 0.213, y: 0.81, rotation: 0 },
-  { x: 0.46, y: 0.84, rotation: 0 }
+  { x: 0.222, y: 0.46, rotation: 0 },
+  { x: 0.462, y: 0.35, rotation: 0 },
+  { x: 0.472, y: 0.46, rotation: 0 },
+  { x: 0.224, y: 0.818, rotation: 0 },
+  { x: 0.468, y: 0.85, rotation: 0 }
 ]
-// 铅封大小一致（相对画布宽）
-const SEAL_SIZE = 0.03
+// 铅封大小一致（相对画布宽）；Sealed.png 为 1.54:1 横向，高度按比例
+const SEAL_SIZE = 0.04
+const SEAL_ASPECT = 1.5417
 
 const switchRefs = []
 let junctionBoxImg = null
@@ -852,11 +853,11 @@ function onSealClick(i) {
   const cfg = SEALS[i]
   const sz = w * SEAL_SIZE
   const img = new Image({
-    url: Images.barSeal,
+    url: Images.sealed,
     x: w * cfg.x - sz / 2,
-    y: h * cfg.y - sz / 2,
+    y: h * cfg.y - sz / SEAL_ASPECT / 2,
     width: sz,
-    height: sz,
+    height: sz / SEAL_ASPECT,
     rotation: cfg.rotation,
     zIndex: 4
   })
@@ -888,11 +889,11 @@ function redrawSeals() {
     if (!placed) return
     const cfg = SEALS[i]
     const img = new Image({
-      url: Images.barSeal,
+      url: Images.sealed,
       x: w * cfg.x - sz / 2,
-      y: h * cfg.y - sz / 2,
+      y: h * cfg.y - sz / SEAL_ASPECT / 2,
       width: sz,
-      height: sz,
+      height: sz / SEAL_ASPECT,
       rotation: cfg.rotation,
       zIndex: 4
     })
