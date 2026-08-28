@@ -1,7 +1,7 @@
 <template>
   <div class="experiment-scene">
     <div class="scroll-wrapper">
-      <WorkTicketForm ref="formRef" @submit-ticket="handleTicketSubmit" />
+      <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
     </div>
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
@@ -23,7 +23,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { submitStep, saveDraft, getStepDraft } from '@/api/experiment'
+import { submitStep, saveDraft, getStepDraft, completeExperiment } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
@@ -44,6 +44,8 @@ const nextStepId = ref('')
 // 从路由 query 获取实验元数据
 const experimentId = ref(route.query.experimentId || '')
 const stepId = ref(route.query.stepId || '')
+// 步骤24 办理工作终结模式：跳转后补全终结内容并结束实验
+const isFinalize = computed(() => route.query.finalize === '1')
 
 // 当前步骤实时秒数（来自子组件 WorkTicketForm 的 stats）
 const currentStepSeconds = computed(() => formRef.value?.stats?.duration_seconds ?? 0)
@@ -112,6 +114,22 @@ const handleTicketSubmit = async result => {
 
   try {
     await submitStep(payload)
+    // 步骤24 办理工作终结：补全并提交后更新后端并结束实验
+    if (isFinalize.value) {
+      try {
+        await completeExperiment(experimentId.value)
+      } catch (_) {
+        /* 完成标记失败不阻断流程 */
+      }
+      ElMessage.success('工作票终结办理完成，实验结束！')
+      setTimeout(() => {
+        router.push({
+          path: '/experiment',
+          query: { experimentId: experimentId.value }
+        })
+      }, 1000)
+      return
+    }
     // 从 localStorage 获取下一步 stepId（按实验 ID 区分，避免步骤映射错位）
     const steps = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
     const nextStep = steps.find(s => s.stepOrder === 2)

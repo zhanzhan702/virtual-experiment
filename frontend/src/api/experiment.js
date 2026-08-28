@@ -39,3 +39,8 @@ export function getTotalDuration(experimentId) {
 export function getExperimentSteps(experimentId) {
   return request.get(`/experiment/${experimentId}/steps`)
 }
+
+/** 完成实验：工作票终结后更新 status/结束时间/总时长/总分 */
+export function completeExperiment(experimentId) {
+  return request.post('/experiment/complete', { experimentId })
+}
