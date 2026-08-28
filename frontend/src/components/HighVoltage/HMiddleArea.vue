@@ -19,85 +19,122 @@
       <img :src="Images.powerSocket" alt="电源插座" class="power-socket-img" draggable="false" />
       <!-- 步骤21 回柜体局部：围栏/告示牌/垃圾强制显示（模拟实验完成状态） -->
       <img
-        v-if="itemPlaced[0] || props.stepOrder === 21"
+        v-if="itemPlaced[0] || props.stepOrder >= 21"
         :src="Images.barLeftFence"
         class="placed-img"
         :style="LEFT_FENCE_STYLE"
         draggable="false"
       />
       <img
-        v-if="itemPlaced[0] || props.stepOrder === 21"
+        v-if="itemPlaced[0] || props.stepOrder >= 21"
         :src="Images.barRightFence"
         class="placed-img"
         :style="RIGHT_FENCE_STYLE"
         draggable="false"
       />
       <img
-        v-if="itemPlaced[1] || props.stepOrder === 21"
+        v-if="itemPlaced[1] || props.stepOrder >= 21"
         :src="Images.barSignStopHighVoltage"
         class="placed-img"
         :style="LEFT_SIGN_HV_STYLE"
         draggable="false"
       />
       <img
-        v-if="itemPlaced[1] || props.stepOrder === 21"
+        v-if="itemPlaced[1] || props.stepOrder >= 21"
         :src="Images.barSignStopHighVoltage"
         class="placed-img"
         :style="RIGHT_SIGN_HV_STYLE"
         draggable="false"
       />
       <img
-        v-if="itemPlaced[2] || props.stepOrder === 21"
+        v-if="itemPlaced[2] || props.stepOrder >= 21"
         :src="Images.barSignPersonWorking"
         class="placed-img"
         :style="SIGN_WORKING_STYLE"
         draggable="false"
       />
       <img
-        v-if="itemPlaced[3] || props.stepOrder === 21"
+        v-if="itemPlaced[3] || props.stepOrder >= 21"
         :src="Images.barSafetyNotice"
         class="placed-img"
         :style="SAFETY_NOTICE_STYLE"
         draggable="false"
       />
-      <!-- 步骤12/21：地板 3 张线材垃圾 -->
+      <!-- 步骤12/21/24：地板 3 张线材垃圾（步骤24 清理现场后消失） -->
       <img
-        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        v-if="isTrashStep && (props.stepOrder !== 24 || !cleaned)"
         :src="Images.wireTrash1"
         class="trash-img"
         :style="TRASH_STYLES[0]"
         draggable="false"
       />
       <img
-        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        v-if="isTrashStep && (props.stepOrder !== 24 || !cleaned)"
         :src="Images.wireTrash2"
         class="trash-img"
         :style="TRASH_STYLES[1]"
         draggable="false"
       />
       <img
-        v-if="props.stepOrder === 12 || props.stepOrder === 21"
+        v-if="isTrashStep && (props.stepOrder !== 24 || !cleaned)"
         :src="Images.wireTrash3"
         class="trash-img"
         :style="TRASH_STYLES[2]"
         draggable="false"
       />
-      <!-- 步骤21：天线（位置大小可调） -->
+      <!-- 步骤21/23：天线（回柜体局部显示；24 清理现场后消失） -->
       <img
-        v-if="props.stepOrder === 21"
+        v-if="isShowAntenna"
         :src="Images.terminalAntenna"
         class="placed-img"
         :style="ANTENNA_STYLE"
         draggable="false"
       />
-      <!-- 步骤21 上电完成：合闸热区（动画待开发） -->
+      <!-- 步骤21 上电完成：合闸热区（触发合闸教学视频） -->
       <div
         v-if="props.stepOrder === 21"
         class="power-zone"
         :style="POWER_ZONE_STYLE"
         @click="onPowerZoneClick"
       />
+      <!-- 步骤23 柜门门把铅封热区（2 个：计量/终端小室各 1，复用三步验电第2步热区位置） -->
+      <div
+        v-for="(z, i) in SEAL_ZONES"
+        v-if="isSealCabinet"
+        :key="'z' + i"
+        class="cabinet-seal-zone"
+        :style="sealZoneStyle(z)"
+        @click.stop="onSealZoneClick(i)"
+      />
+      <!-- 已放置门把铅封（CabinetLeadSeal；步骤23 放置后到 24 清理终结常驻） -->
+      <template v-for="(s, i) in sealPlaced" :key="'s' + i">
+        <img
+          v-if="(isSealCabinet || isFinalize) && s"
+          :src="Images.cabinetLeadSeal"
+          class="placed-img cabinet-seal-img"
+          :style="SEAL_IMG_STYLE[i]"
+          draggable="false"
+        />
+      </template>
     </div>
+  </div>
+
+  <!-- 步骤24 下部两个按钮（清理现场 / 办理工作终结；图片按钮：默认+悬浮放大） -->
+  <div v-if="isFinalize" class="finalize-btns">
+    <img
+      :src="Images.cleanButton"
+      class="finalize-btn-img"
+      alt="清理现场"
+      draggable="false"
+      @click="onCleanClick"
+    />
+    <img
+      :src="Images.endButton"
+      class="finalize-btn-img"
+      alt="办理工作终结"
+      draggable="false"
+      @click="onFinalizeClick"
+    />
   </div>
 
   <!-- 鼠标跟随 -->
@@ -114,9 +151,40 @@ import Images from '@/constants/images'
 const props = defineProps({
   stepOrder: { type: Number, required: true }
 })
-const emit = defineEmits(['operation', 'error', 'fencesDone', 'voltageCheckDone', 'powerOn'])
+const emit = defineEmits([
+  'operation',
+  'error',
+  'fencesDone',
+  'voltageCheckDone',
+  'powerOn',
+  'sealDone',
+  'finalize'
+])
 
 const isStep4 = computed(() => props.stepOrder === 4 || props.stepOrder === 12)
+// 步骤23 柜门门把铅封
+const isSealCabinet = computed(() => props.stepOrder === 23)
+// 步骤24 清理现场并办理工作票终结
+const isFinalize = computed(() => props.stepOrder === 24)
+// 地板垃圾显示步骤（步骤12 与 步骤21+ 回柜体局部均显示；24 清理现场后消失）
+const isTrashStep = computed(() => props.stepOrder === 12 || props.stepOrder >= 21)
+// 天线显示步骤（步骤21+ 回柜体局部到 24 终结均显示，铅封后不消失）
+const isShowAntenna = computed(() => props.stepOrder >= 21)
+const cleaned = ref(false)
+
+// 步骤23 门把铅封热区（2 个：计量/终端小室各 1），位置复用三步验电第2步柜体热区
+// 计量=步骤4 位置(59,65)，终端=步骤12 位置(59,23.5)
+const SEAL_ZONES = [
+  { left: 59, top: 65, width: 5, height: 7 },
+  { left: 59, top: 23.5, width: 5, height: 7 }
+]
+// 已放置铅封图片位置（热区中心对齐，CabinetLeadSeal 1:1 方形，宽度 7% 占位用户微调）
+const SEAL_IMG_STYLE = [
+  { left: '58%', top: '71.1%', width: '7%' },
+  { left: '58%', top: '28.5%', width: '6%' }
+]
+const sealPlaced = ref([false, false])
+const sealFollowing = ref(false)
 
 // 步骤21 合闸热区（相对柜体背景 %，占位用户微调；触发三段教学视频）
 const POWER_ZONE_STYLE = { left: '19.8%', top: '27.5%', width: '8.3%', height: '6%' }
@@ -161,8 +229,13 @@ const leftToolImgs = [
 const followingImg = computed(() =>
   followingToolIdx.value != null ? leftToolImgs[followingToolIdx.value] : Images.barLeftFence
 )
-const showFollowing = computed(() => isFollowing.value || vtActive.value)
-const followImg = computed(() => (vtActive.value ? vtImg.value : followingImg.value))
+const showFollowing = computed(() => isFollowing.value || vtActive.value || sealFollowing.value)
+const followImg = computed(() => {
+  // 铅封跟随图统一使用工具栏 Seal（barSeal）
+  if (sealFollowing.value) return Images.barSeal
+  if (vtActive.value) return vtImg.value
+  return followingImg.value
+})
 function moveCursorTo(e) {
   if (e) cursorFollowingStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
 }
@@ -267,7 +340,7 @@ function toggleVoltageTester(e) {
 }
 
 function onPageMouseMove(e) {
-  if (isFollowing.value || vtActive.value) moveCursorTo(e)
+  if (isFollowing.value || vtActive.value || sealFollowing.value) moveCursorTo(e)
 }
 
 /** 验电笔按住插座（mousedown）时切换验电状态图，松开（mouseup）恢复正常图 */
@@ -325,6 +398,61 @@ function finishPlacement() {
   if (allItemsPlaced.value) emit('fencesDone')
 }
 
+// ─── 步骤23：柜门门把铅封 ───
+
+/** 右栏选铅封（idx 5）→ 跟随放置 */
+function selectSeal(e) {
+  if (props.stepOrder !== 23) {
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
+  sealFollowing.value = true
+  moveCursorTo(e)
+}
+
+/** 热区定位样式 */
+function sealZoneStyle(z) {
+  return { left: z.left + '%', top: z.top + '%', width: z.width + '%', height: z.height + '%' }
+}
+
+/** 点门把铅封热区：需铅封跟随中 → 放置 CabinetLeadSeal */
+function onSealZoneClick(i) {
+  if (props.stepOrder !== 23 || sealPlaced.value[i]) return
+  if (!sealFollowing.value) {
+    ElMessage.warning('请先在右侧工具栏选择铅封')
+    emit('error')
+    return
+  }
+  sealFollowing.value = false
+  sealPlaced.value[i] = true
+  emit('operation')
+  if (sealPlaced.value.every(Boolean)) {
+    emit('sealDone')
+  }
+}
+
+// ─── 步骤24：清理现场并办理工作票终结 ───
+
+/** 清理现场：垃圾全部消失，按钮高亮完成 */
+function onCleanClick() {
+  if (cleaned.value) {
+    ElMessage.info('现场已清理')
+    return
+  }
+  emit('operation')
+  cleaned.value = true
+}
+
+/** 办理工作终结：需先清理现场 → 通知父组件提交并跳工作票补全 */
+function onFinalizeClick() {
+  if (!cleaned.value) {
+    ElMessage.warning('请先清理现场')
+    emit('error')
+    return
+  }
+  emit('finalize')
+}
+
 // ─── 验电笔交互 ───
 function hitTest(e, el) {
   if (!el) return false
@@ -361,6 +489,11 @@ function restoreDraft(d) {
     })
   if (d?.vtDone) vtDone.value = true
   if (d?.vtStep != null) vtStep.value = d.vtStep
+  if (d?.sealPlaced?.length)
+    d.sealPlaced.forEach((v, i) => {
+      sealPlaced.value[i] = v
+    })
+  if (typeof d?.cleaned === 'boolean') cleaned.value = d.cleaned
 }
 
 // 同组件导航（步骤3→4）时，onMounted 不会重跑，需 watch 监听
@@ -416,7 +549,10 @@ defineExpose({
   onPageMouseUp,
   onPageClick,
   markPlacedForStep4,
-  restoreDraft
+  restoreDraft,
+  selectSeal,
+  sealPlaced,
+  cleaned
 })
 </script>
 
@@ -520,5 +656,45 @@ defineExpose({
   border: 1px dashed rgba(0, 150, 255, 0.9);
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* 步骤23 门把铅封热区（复用三步验电第2步柜体热区位置） */
+.cabinet-seal-zone {
+  position: absolute;
+  border: 2px dashed rgba(0, 150, 255, 0.9);
+  background: rgba(0, 150, 255, 0.12);
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 4;
+}
+
+/* 步骤23 已放置门把铅封（1:1 方形，随柜体缩放） */
+.cabinet-seal-img {
+  z-index: 2;
+}
+
+/* 步骤24 下部两个按钮（图片按钮：默认样式 + 悬浮放大，无浮动） */
+.finalize-btns {
+  position: fixed;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 3vw;
+  z-index: 20;
+}
+
+.finalize-btn-img {
+  height: 9vh;
+  width: auto;
+  cursor: pointer;
+  transition: transform 0.2s;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+/* 悬浮放大（与其他固定按钮一致） */
+.finalize-btn-img:hover {
+  transform: scale(1.05);
 }
 </style>

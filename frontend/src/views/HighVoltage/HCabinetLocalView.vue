@@ -1,35 +1,79 @@
 <!-- 柜体局部操作：设围栏 + 挂告示牌(步骤3) + 三步验电(步骤4) -->
 <template>
-  <div class="cabinet-local-page" @mousemove="onPageMouseMove" @mousedown="onPageMouseDown" @mouseup="onPageMouseUp"
-    @click="onPageClick">
+  <div
+    class="cabinet-local-page"
+    @mousemove="onPageMouseMove"
+    @mousedown="onPageMouseDown"
+    @mouseup="onPageMouseUp"
+    @click="onPageClick"
+  >
     <!-- 左侧物品栏 -->
-    <HLeftToolBar :items="leftTools" :placed-mask="middleRef?.itemPlaced || []"
-      :active-idx="middleRef?.followingToolIdx" @select="onLeftToolSelect" />
+    <HLeftToolBar
+      :items="leftTools"
+      :placed-mask="middleRef?.itemPlaced || []"
+      :active-idx="middleRef?.followingToolIdx"
+      @select="onLeftToolSelect"
+    />
 
-    <!-- 中间交互区域（步骤3/4/12 围栏/告示牌+三步验电；步骤21 上电后回柜体局部+合闸热区） -->
-    <HMiddleArea v-if="!isMeteringStep && (!isTerminalStep || showCabinetAfterPowerOn)" ref="middleRef"
-      :step-order="currentStepOrder" @operation="onOperation" @error="onError" @fences-done="handleFencesDone"
-      @voltage-check-done="submitVoltageCheck" @power-on="startPowerSequence" />
+    <!-- 中间交互区域（步骤3/4/12 围栏/告示牌+三步验电；步骤21 上电后回柜体局部+合闸热区；步骤23/24 柜门铅封/清理终结） -->
+    <HMiddleArea
+      v-if="showMiddleArea"
+      ref="middleRef"
+      :step-order="currentStepOrder"
+      @operation="onOperation"
+      @error="onError"
+      @fences-done="handleFencesDone"
+      @voltage-check-done="submitVoltageCheck"
+      @power-on="startPowerSequence"
+      @seal-done="handleSealDone"
+      @finalize="handleFinalize"
+    />
 
     <!-- 计量小室操作画布（步骤5+：挂电表 / 接线盒） -->
-    <HMeteringRoomCanvas v-if="isMeteringStep" ref="meteringRef" :step-order="currentStepOrder"
-      :experiment-id="experimentId" :step-id="stepId" @operation="onOperation" @error="onError"
-      @step-completed="handleMeteringStepCompleted" @confirm="onConfirmClick" />
+    <HMeteringRoomCanvas
+      v-if="isMeteringStep"
+      ref="meteringRef"
+      :step-order="currentStepOrder"
+      :experiment-id="experimentId"
+      :step-id="stepId"
+      @operation="onOperation"
+      @error="onError"
+      @step-completed="handleMeteringStepCompleted"
+      @confirm="onConfirmClick"
+    />
 
-    <!-- 终端小室操作画布（步骤13+，流程与计量小室一致；步骤21 确认后销毁回柜体局部） -->
-    <HTerminalRoomCanvas v-if="isTerminalStep && !showCabinetAfterPowerOn" ref="terminalRef"
-      :step-order="currentStepOrder" :experiment-id="experimentId" :step-id="stepId" @operation="onOperation"
-      @error="onError" @step-completed="handleTerminalStepCompleted" @confirm="onConfirmClick" />
+    <!-- 终端小室操作画布（步骤13-22，流程与计量小室一致；步骤21 确认后销毁回柜体局部） -->
+    <HTerminalRoomCanvas
+      v-if="showTerminalCanvas"
+      ref="terminalRef"
+      :step-order="currentStepOrder"
+      :experiment-id="experimentId"
+      :step-id="stepId"
+      @operation="onOperation"
+      @error="onError"
+      @step-completed="handleTerminalStepCompleted"
+      @confirm="onConfirmClick"
+    />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
-    <HRightToolBar :items="rightTools" :vt-active="middleRef?.vtActive || false" :vt-done="middleRef?.vtDone || false"
-      :active-idxs="rightToolActiveIdxs" @click="onRightToolClick" />
+    <HRightToolBar
+      :items="rightTools"
+      :vt-active="middleRef?.vtActive || false"
+      :vt-done="middleRef?.vtDone || false"
+      :active-idxs="rightToolActiveIdxs"
+      @click="onRightToolClick"
+    />
 
     <!-- 视频3：告示牌悬挂完成（播放完毕自动进入步骤4验电） -->
     <HVideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
 
     <!-- 合闸三段教学视频（播放完毕自动弹提示图，确认后进入下一段/铅封） -->
-    <HVideoOverlay :key="videoSeq" :visible="showPowerVideo" :src="Videos.testVideo" @ended="onPowerVideoEnded" />
+    <HVideoOverlay
+      :key="videoSeq"
+      :visible="showPowerVideo"
+      :src="Videos.testVideo"
+      @ended="onPowerVideoEnded"
+    />
 
     <!-- 按钮 -->
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="stats.duration_seconds" />
@@ -37,26 +81,50 @@
     <div class="work-task-btn" @click="showWorkBg = true" title="查看工作任务" />
 
     <!-- 计量小室验电完成提示弹窗（提交后展示，确认后进入下一步） -->
-    <PromptModal :visible="showElectrifyNotice" @close="onElectrifyNoticeClose" :button-bottom="'18%'">
+    <PromptModal
+      :visible="showElectrifyNotice"
+      @close="onElectrifyNoticeClose"
+      :button-bottom="'18%'"
+    >
       <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
 
     <!-- 计量小室操作完成弹窗（步骤11 确认键触发，确认后进入终端小室验电） -->
-    <PromptModal :visible="showMeterRoomSuccess" @close="onMeterRoomSuccessClose" :button-bottom="'22%'">
+    <PromptModal
+      :visible="showMeterRoomSuccess"
+      @close="onMeterRoomSuccessClose"
+      :button-bottom="'22%'"
+    >
       <img :src="Images.meterRoomOperationSuccess" alt="计量小室操作完成" class="work-bg-img" />
     </PromptModal>
 
     <!-- 终端小室验电完成提示弹窗（提交后展示，确认后进入下一步） -->
-    <PromptModal :visible="showTerminalElectrifyNotice" @close="onTerminalElectrifyNoticeClose" :button-bottom="'18%'">
-      <img :src="Images.terminalElectrifyCompleteNotice" alt="终端小室验电完成提示" class="work-bg-img" />
+    <PromptModal
+      :visible="showTerminalElectrifyNotice"
+      @close="onTerminalElectrifyNoticeClose"
+      :button-bottom="'18%'"
+    >
+      <img
+        :src="Images.terminalElectrifyCompleteNotice"
+        alt="终端小室验电完成提示"
+        class="work-bg-img"
+      />
     </PromptModal>
 
     <!-- 终端小室上电完成弹窗（步骤21 确认键触发 → 终端小室完成 → 送电完成提示 → 回柜体局部） -->
-    <PromptModal :visible="showTerminalComplete" @close="onTerminalCompleteClose" :button-bottom="'22%'">
+    <PromptModal
+      :visible="showTerminalComplete"
+      @close="onTerminalCompleteClose"
+      :button-bottom="'22%'"
+    >
       <img :src="Images.terminalRoomCompleteNotice" alt="终端小室操作完成" class="work-bg-img" />
     </PromptModal>
 
-    <PromptModal :visible="showReadyForPowerOn" @close="onReadyForPowerOnClose" :button-bottom="'24%'">
+    <PromptModal
+      :visible="showReadyForPowerOn"
+      @close="onReadyForPowerOnClose"
+      :button-bottom="'24%'"
+    >
       <img :src="Images.readyForPowerOnNotice" alt="送电完成提示" class="work-bg-img" />
     </PromptModal>
 
@@ -65,17 +133,39 @@
     </PromptModal>
 
     <!-- 合闸三段视频的提示图（绿色确认键）：VerifyTerminalWiring → CheckMeterReading → VerifyMeterDataConsistency -->
-    <PromptModal :visible="showVerifyWiring" @close="onVerifyWiringClose" :button-bottom="'15%'" :green="true"
-      :width="'50vw'" :btn-width="'24%'">
+    <PromptModal
+      :visible="showVerifyWiring"
+      @close="onVerifyWiringClose"
+      :button-bottom="'15%'"
+      :green="true"
+      :width="'50vw'"
+      :btn-width="'24%'"
+    >
       <img :src="Images.verifyTerminalWiring" alt="核验终端接线提示" class="work-bg-img" />
     </PromptModal>
-    <PromptModal :visible="showCheckMeter" @close="onCheckMeterClose" :button-bottom="'14%'" :green="true"
-      :width="'50vw'" :btn-width="'28%'">
+    <PromptModal
+      :visible="showCheckMeter"
+      @close="onCheckMeterClose"
+      :button-bottom="'14%'"
+      :green="true"
+      :width="'50vw'"
+      :btn-width="'28%'"
+    >
       <img :src="Images.checkMeterReading" alt="核对电表读数提示" class="work-bg-img" />
     </PromptModal>
-    <PromptModal :visible="showVerifyData" @close="onVerifyDataClose" :button-bottom="'6%'" :green="true"
-      :width="'60vw'" :btn-width="'27%'">
-      <img :src="Images.verifyMeterDataConsistency" alt="核验电表数据一致性提示" class="work-bg-img" />
+    <PromptModal
+      :visible="showVerifyData"
+      @close="onVerifyDataClose"
+      :button-bottom="'6%'"
+      :green="true"
+      :width="'60vw'"
+      :btn-width="'27%'"
+    >
+      <img
+        :src="Images.verifyMeterDataConsistency"
+        alt="核验电表数据一致性提示"
+        class="work-bg-img"
+      />
     </PromptModal>
   </div>
 </template>
@@ -136,6 +226,16 @@ const currentStepOrder = computed(() => {
 const isStep4 = computed(() => currentStepOrder.value === 4 || currentStepOrder.value === 12)
 const isMeteringStep = computed(() => currentStepOrder.value >= 5 && currentStepOrder.value <= 11)
 const isTerminalStep = computed(() => currentStepOrder.value >= 13)
+// 终端画布：步骤13-22（步骤21 上电后销毁回柜体局部；23+ 柜门铅封/清理走柜体局部）
+const showTerminalCanvas = computed(
+  () => isTerminalStep.value && currentStepOrder.value <= 22 && !showCabinetAfterPowerOn.value
+)
+// 柜体局部（HMiddleArea）：步骤3/4/12 + 21(上电后) + 23/24
+const showMiddleArea = computed(
+  () =>
+    !isMeteringStep.value &&
+    (currentStepOrder.value < 13 || currentStepOrder.value >= 23 || showCabinetAfterPowerOn.value)
+)
 
 // stepId 跟随路由 query 同步：router.replace 跳步后原 stepId ref 不会自动更新，
 // 会导致后续 submitStep/saveDraft/getStepDraft 一直写到旧步骤、刷新才正确
@@ -227,6 +327,16 @@ function onRightToolClick(idx, e) {
     meteringRef.value?.onRightToolClick?.(idx, e)
     return
   }
+  // 步骤23/24：柜体局部（HMiddleArea）——步骤23 铅封选择
+  if (currentStepOrder.value >= 23) {
+    stats.operation_count++
+    if (idx === 5) {
+      middleRef.value?.selectSeal?.(e)
+    } else {
+      ElMessage.info('该工具将在后续步骤中使用')
+    }
+    return
+  }
   if (isTerminalStep.value) {
     terminalRef.value?.onRightToolClick?.(idx, e)
     return
@@ -296,6 +406,71 @@ function onFenceVideoEnded() {
 function startPowerSequence() {
   showPowerVideo.value = true
   videoSeq.value = 0
+}
+
+/** 步骤23 柜门门把铅封完成 → 提交并进入步骤24 */
+async function handleSealDone() {
+  if (hasSubmitted.value) return
+  hasSubmitted.value = true
+  try {
+    await submitStep({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 1,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      score: Math.max(0, 100 - stats.error_count * 10),
+      resultData: '{}',
+      startedAt: startedAt.value
+    })
+    ElMessage.success('柜门门把铅封完成')
+    hasSubmitted.value = false
+    const next = getStepsFromStore().find(s => s.stepOrder === 24)
+    router.replace({
+      path: '/HCL',
+      query: {
+        experimentId: experimentId.value,
+        stepId: next?.stepId || stepId.value,
+        stepOrder: 24
+      }
+    })
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    hasSubmitted.value = false
+  }
+}
+
+/** 步骤24 办理工作终结：提交当前步骤 → 跳填写工作票页面补全终结内容 */
+async function handleFinalize() {
+  if (hasSubmitted.value) return
+  hasSubmitted.value = true
+  try {
+    await submitStep({
+      experimentId: experimentId.value,
+      stepId: stepId.value,
+      status: 1,
+      durationSeconds: stats.duration_seconds,
+      operationCount: stats.operation_count,
+      errorCount: stats.error_count,
+      score: Math.max(0, 100 - stats.error_count * 10),
+      resultData: '{}',
+      startedAt: startedAt.value
+    })
+    ElMessage.success('办理工作终结完成，正在完善工作票...')
+    hasSubmitted.value = false
+    router.push({
+      path: '/HWT',
+      query: {
+        experimentId: experimentId.value,
+        stepId: stepId.value,
+        finalize: '1'
+      }
+    })
+  } catch (err) {
+    ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+    hasSubmitted.value = false
+  }
 }
 
 /** 合闸视频播放完毕 → 自动弹出对应提示图 */
@@ -369,9 +544,31 @@ async function submitVoltageCheck() {
 }
 
 /** 画布确认键点击（步骤11/22 铅封完成后） */
-function onConfirmClick() {
-  // 终端小室步骤21 确认键 → 销毁画布回柜体局部 → 双确认弹窗
+async function onConfirmClick() {
+  // 终端小室步骤21 上电完成确认键 → 提交步骤21 → 销毁画布回柜体局部 → 双确认弹窗
   if (isTerminalStep.value && currentStepOrder.value === 21) {
+    if (!hasSubmitted.value) {
+      hasSubmitted.value = true
+      try {
+        await submitStep({
+          experimentId: experimentId.value,
+          stepId: stepId.value,
+          status: 1,
+          durationSeconds: stats.duration_seconds,
+          operationCount: stats.operation_count,
+          errorCount: stats.error_count,
+          score: Math.max(0, 100 - stats.error_count * 10),
+          resultData: '{}',
+          startedAt: startedAt.value
+        })
+        localStorage.removeItem('terminalRoom_' + experimentId.value)
+        hasSubmitted.value = false
+      } catch (err) {
+        ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
+        hasSubmitted.value = false
+        return
+      }
+    }
     showCabinetAfterPowerOn.value = true
     showTerminalComplete.value = true
     return
@@ -629,13 +826,21 @@ const saveProgress = async () => {
     // 存档时该步骤全量传入后端（getFullState），提交时清空（见 handleMetering/TerminalStepCompleted）
     const base = isMeteringStep.value
       ? { ...(metering?.getFullState?.() || {}) }
-      : isTerminalStep.value
-        ? { ...(terminalRef.value?.getFullState?.() || {}) }
-        : {
-          itemPlaced: [...(m?.itemPlaced || [])],
-          vtDone: m?.vtDone || false,
-          vtStep: m?.vtStep ?? 0
-        }
+      : currentStepOrder.value >= 23
+        ? {
+            itemPlaced: [...(m?.itemPlaced || [])],
+            vtDone: m?.vtDone || false,
+            vtStep: m?.vtStep ?? 0,
+            sealPlaced: [...(m?.sealPlaced || [false, false])],
+            cleaned: m?.cleaned || false
+          }
+        : isTerminalStep.value
+          ? { ...(terminalRef.value?.getFullState?.() || {}) }
+          : {
+              itemPlaced: [...(m?.itemPlaced || [])],
+              vtDone: m?.vtDone || false,
+              vtStep: m?.vtStep ?? 0
+            }
     await saveDraft({
       experimentId: experimentId.value,
       stepId: stepId.value,
@@ -664,19 +869,19 @@ onMounted(async () => {
         if (steps?.length) {
           localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(steps))
         }
-      } catch (_) { }
+      } catch (_) {}
     }
     try {
       // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
       const d = (await getStepDraft(experimentId.value, stepId.value)) || {}
       if (isMeteringStep.value) {
         meteringRef.value?.restoreDraft?.(d)
-      } else if (isTerminalStep.value) {
+      } else if (isTerminalStep.value && currentStepOrder.value < 23) {
         terminalRef.value?.restoreDraft?.(d)
       } else {
         middleRef.value?.restoreDraft?.(d)
       }
-    } catch (_) { }
+    } catch (_) {}
   }
   // 步骤4/12（验电）：物品必为已放置（步骤3 完成条件=4 个全放），无条件标记，防止草稿残留旧值干扰
   if (isStep4.value) {
