@@ -98,7 +98,7 @@ virtual-experiment/
 │   │   │   │   ├── HWizardInventorySelection.vue # 工器具选择向导
 │   │   │   │   ├── HLeftToolBar.vue         # 左侧工具栏（围栏/告示牌）
 │   │   │   │   ├── HRightToolBar.vue        # 右侧工具栏（终端/工器具/线材）
-│   │   │   │   ├── HMiddleArea.vue          # 中间栏（步骤3/4/12 围栏+验电）
+│   │   │   │   ├── HMiddleArea.vue          # 中间栏（步骤3/4/12 围栏+验电；21/23/24 合闸/铅封/清理终结）
 │   │   │   │   ├── HMeteringRoomCanvas.vue  # 计量小室 Leafer 画布（步骤5-11）
 │   │   │   │   ├── HTerminalRoomCanvas.vue  # 终端小室 Leafer 画布（步骤13+）
 │   │   │   │   └── HMeteringRoomGuide.vue     # 计量小室终端编号提示面板（画布上方悬浮）
@@ -113,7 +113,7 @@ virtual-experiment/
 │   │   │   │   ├── HWorkTicketView.vue      # 工作票填写步骤页
 │   │   │   │   ├── HToolSelectionView.vue   # 工器具选择步骤页
 │   │   │   │   ├── HSceneOverviewView.vue   # 配电房全景图页
-│   │   │   │   ├── HCabinetLocalView.vue    # 柜体局部操作页（步骤3-23 编排层）
+│   │   │   │   ├── HCabinetLocalView.vue    # 柜体局部操作页（步骤3-24 编排层）
 │   │   │   └── LowVoltage/
 │   │   │       └── LWorkTicketView.vue      # 低压工作票步骤页
 │   │   ├── stores/
@@ -148,7 +148,9 @@ flowchart LR
     F --> G[步骤 4<br/>三步验电]
     G --> H[步骤 5-11<br/>计量小室<br/>Leafer 画布]
     H --> I[步骤 12<br/>终端小室<br/>三步验电]
-    I --> J[后续步骤<br/>终端小室操作]
+    I --> J[步骤 13-22<br/>终端小室<br/>Leafer 画布]
+    J --> K[步骤 21<br/>上电合闸]
+    K --> L[步骤 22-24<br/>铅封 / 清理 /<br/>工作终结]
 ```
 
 ### 已实现
@@ -177,7 +179,10 @@ flowchart LR
 | 步骤 18  | `/HCL`        | `HTerminalRoomCanvas`                 | 安装通信模块/SIM/天线（天线后销毁线材/36孔/模块并切 Wired）     |
 | 步骤 19  | `/HCL`        | `HTerminalRoomCanvas`                 | 绑扎带指示牌（3 块热区，放置一块销毁一块）                      |
 | 步骤 20  | `/HCL`        | `HTerminalRoomCanvas`                 | 接线盒第二次调整（开关恢复 14 结束状态）→ 盖盖                  |
-| 步骤 21  | `/HCL`        | `HTerminalRoomCanvas` → `HMiddleArea` | 上电合闸（销毁接线盒→双弹窗→柜体局部+合闸热区，动画待开发）     |
+| 步骤 21  | `/HCL`        | `HTerminalRoomCanvas` → `HMiddleArea` | 上电合闸（销毁接线盒→双弹窗→柜体局部+合闸热区→三段教学视频→提示图） |
+| 步骤 22  | `/HCL`        | `HTerminalRoomCanvas`                 | 终端小室加铅封（Sealed 图，复用计量步骤11 模式）                 |
+| 步骤 23  | `/HCL`        | `HCabinetLocalView` + `HMiddleArea`   | 柜门门把铅封（CabinetLeadSeal，计量/终端各1，复用验电热区）      |
+| 步骤 24  | `/HCL`        | `HMiddleArea`                         | 清理现场 + 办理工作终结（两按钮 → 工作票）                       |
 
 ### 已实现功能
 
@@ -188,8 +193,12 @@ flowchart LR
 - ✅ 三步验电流程（电压检测笔交互，步骤 4 / 12 复用）
 - ✅ 配电房全景图 + 梯形热区（CSS `clip-path`）
 - ✅ 计量小室 Leafer 画布全流程（步骤 5-11：挂表 / 开关 / 接线 / 信号线 / 扎带 / 盖盖 / 铅封）
-- ✅ 终端小室 Leafer 画布全流程（步骤 13-21：挂表 / 开关 / 进出线 / 遥控压板 / 信号线 / 安装模块 / 扎带 / 二次接线盒 / 上电）
-- ✅ 步骤 21 上电流程（确认键 → 销毁画布 → 柜体局部 + 双弹窗 + 合闸热区）
+- ✅ 终端小室 Leafer 画布全流程（步骤 13-22：挂表 / 开关 / 进出线 / 遥控压板 / 信号线 / 安装模块 / 扎带 / 二次接线盒 / 上电 / 铅封）
+- ✅ 步骤 21 上电合闸流程（确认键 → 销毁画布 → 柜体局部 + 双弹窗 + 合闸热区 + 三段教学视频 + 提示图）
+- ✅ 步骤 22-24（终端小室铅封、柜门门把铅封、清理现场 + 办理工作终结，含物品生存周期与回档）
+- ✅ 铅封图：步骤 11/22 画布用 `Sealed`、步骤 23 门把用 `CabinetLeadSeal`，跟随图统一 `toolbar/Seal`
+- ✅ 工作票终结补全：finalize 模式整票预填（编号/姓名保存档）+ 第 7 点签发日期 + 第 9/11/12/13 点填写；提交后完成实验
+- ✅ 完成实验接口 `POST /api/experiment/complete`（更新 status/结束时间/总时长/总分）
 - ✅ 存档三层恢复机制：标准结果推断（前序常量）→ 后端草稿（当前步骤）→ localStorage 兜底（优先）
 - ✅ 跨步骤残留防护：草稿/local 带 stepOrder 标记，不匹配丢弃；前序结果字段强制按标准推断（`CURRENT_STEP_FIELDS`）
 - ✅ resultData 移到实验表（`draft_data` 草稿 + `ticket_data` 工作票数据），提交清空草稿防数据库冗余
@@ -202,8 +211,8 @@ flowchart LR
 
 ### 待完善
 
-- 步骤 22-24（终端小室铅封、柜门铅封、清理现场）
-- 步骤 21 合闸动画（当前提示"动画待开发"）
+- 步骤 21 合闸动画（当前用教学视频占位，正式动画/视频待录制）
+- 步骤 23/24 按钮图、清理现场动画为 CSS 占位（正式图片待替换）
 - wired 后接线盒线的中间段裁剪（模拟盖子盖上，方案已确认待实现）
 - 低压场景全部步骤
 - 考试模式（当前仅支持训练模式）
@@ -281,6 +290,7 @@ npm run dev
 | ------ | ----------------------------- | -------------------------------------- | ---------- |
 | POST   | `/api/experiment/start`       | 启动实验                               | Bearer JWT |
 | POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）                   | Bearer JWT |
+| POST   | `/api/experiment/complete`    | 完成实验（更新 status/结束时间/总时长/总分） | Bearer JWT |
 | POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分）                 | Bearer JWT |
 | GET    | `/api/experiment/unfinished`  | 查询未完成实验                         | Bearer JWT |
 | GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据                       | Bearer JWT |
@@ -334,7 +344,7 @@ npm run dev
 | `/HSO`        | 高压配电房全景图 | 登录即可                |
 | `/HWT`        | 高压工作票填写   | 登录即可                |
 | `/HTS`        | 高压工器具选择   | 登录即可                |
-| `/HCL`        | 柜体局部操作     | 登录即可（步骤3/4共用） |
+| `/HCL`        | 柜体局部操作     | 登录即可（步骤3/4/12/21/23/24） |
 | `/LWT`        | 低压工作票填写   | 登录即可                |
 
 ---
