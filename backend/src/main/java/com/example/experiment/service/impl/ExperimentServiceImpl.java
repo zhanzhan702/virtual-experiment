@@ -302,4 +302,28 @@ public class ExperimentServiceImpl implements ExperimentService {
                     "stepName", s.getStepName()))
         .collect(Collectors.toList());
   }
+
+  @Override
+  public void completeExperiment(String experimentId) {
+    var exp = userExperimentsMapper.selectById(experimentId);
+    if (exp == null) throw new RuntimeException("实验不存在");
+
+    // 汇总各步骤总时长、总分（累加现有值，支持存档恢复后继续计时）
+    var steps =
+        userExperimentStepsMapper.selectList(
+            new LambdaQueryWrapper<UserExperimentSteps>()
+                .eq(UserExperimentSteps::getExperimentId, experimentId));
+    int totalDuration = 0;
+    java.math.BigDecimal totalScore = java.math.BigDecimal.ZERO;
+    for (var s : steps) {
+      if (s.getDurationSeconds() != null) totalDuration += s.getDurationSeconds();
+      if (s.getScore() != null) totalScore = totalScore.add(s.getScore());
+    }
+
+    exp.setStatus(1);
+    exp.setEndTime(LocalDateTime.now());
+    exp.setTotalDuration(totalDuration);
+    exp.setScore(totalScore);
+    userExperimentsMapper.updateById(exp);
+  }
 }

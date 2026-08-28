@@ -32,4 +32,7 @@ public interface ExperimentService {
 
   /** 获取实验的步骤列表（含 stepId/stepOrder/stepName，恢复时重建前端步骤映射） */
   List<Map<String, Object>> getExperimentSteps(String experimentId);
+
+  /** 完成实验：更新 status=1、结束时间、总时长与总分（工作票终结后调用） */
+  void completeExperiment(String experimentId);
 }

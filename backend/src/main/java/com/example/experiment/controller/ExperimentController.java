@@ -123,6 +123,24 @@ public class ExperimentController {
     return ResponseEntity.ok(experimentService.getExperimentSteps(experimentId));
   }
 
+  /** 完成实验：工作票终结后更新 status/结束时间/总时长/总分 */
+  @PostMapping("/complete")
+  public ResponseEntity<?> complete(
+      @RequestBody Map<String, String> body,
+      @RequestHeader(value = "Authorization", required = false) String auth) {
+    String userId = getUserIdFromAuth(auth);
+    if (userId == null) return ResponseEntity.status(401).body(Map.of("message", "未登录或 token 无效"));
+    String experimentId = body.get("experimentId");
+    if (experimentId == null || experimentId.isBlank())
+      return ResponseEntity.badRequest().body(Map.of("message", "experimentId 不能为空"));
+    try {
+      experimentService.completeExperiment(experimentId);
+      return ResponseEntity.ok(Map.of("message", "实验已完成"));
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+  }
+
   /** 获取实验总耗时（已用秒数，含草稿） */
   @GetMapping("/{experimentId}/duration")
   public ResponseEntity<?> getTotalDuration(
