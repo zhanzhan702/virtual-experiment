@@ -263,13 +263,23 @@ public class ExperimentServiceImpl implements ExperimentService {
   @Override
   public Map<String, Object> getStepDraftData(String experimentId, String stepId) {
     // result_data 已移到实验表：草稿按实验 ID 查（stepId 参数保留兼容，不再按步骤区分）
+    // 合并 draft_data（当前步骤草稿）与 ticket_data（工作票提交数据：编号/姓名/时间），前者可被后者覆盖
     var exp = userExperimentsMapper.selectById(experimentId);
-    if (exp == null || exp.getDraftData() == null) return Map.of();
+    if (exp == null) return Map.of();
+    Map<String, Object> merged = new HashMap<>();
     try {
-      return new ObjectMapper().readValue(exp.getDraftData(), Map.class);
-    } catch (Exception e) {
-      return Map.of();
+      if (exp.getDraftData() != null)
+        merged.putAll(new ObjectMapper().readValue(exp.getDraftData(), Map.class));
+    } catch (Exception ignored) {
+      /* ignore */
     }
+    try {
+      if (exp.getTicketData() != null)
+        merged.putAll(new ObjectMapper().readValue(exp.getTicketData(), Map.class));
+    } catch (Exception ignored) {
+      /* ignore */
+    }
+    return merged;
   }
 
   @Override
@@ -308,7 +318,7 @@ public class ExperimentServiceImpl implements ExperimentService {
     var exp = userExperimentsMapper.selectById(experimentId);
     if (exp == null) throw new RuntimeException("实验不存在");
 
-    // 汇总各步骤总时长、总分（累加现有值，支持存档恢复后继续计时）
+    // 加权总分 = Σ 步骤模板score × (用户步骤score/100)；用户步骤score 为 0-100 得分
     var steps =
         userExperimentStepsMapper.selectList(
             new LambdaQueryWrapper<UserExperimentSteps>()
@@ -317,7 +327,19 @@ public class ExperimentServiceImpl implements ExperimentService {
     java.math.BigDecimal totalScore = java.math.BigDecimal.ZERO;
     for (var s : steps) {
       if (s.getDurationSeconds() != null) totalDuration += s.getDurationSeconds();
-      if (s.getScore() != null) totalScore = totalScore.add(s.getScore());
+      var stepDef = stepsMapper.selectById(s.getStepId());
+      java.math.BigDecimal tmplScore =
+          stepDef != null && stepDef.getScore() != null
+              ? stepDef.getScore()
+              : java.math.BigDecimal.ZERO;
+      java.math.BigDecimal userScore =
+          s.getScore() != null ? s.getScore() : java.math.BigDecimal.ZERO;
+      // 用户得分率 = userScore/100（0~1）；贡献 = 模板分值 × 得分率
+      totalScore =
+          totalScore.add(
+              tmplScore
+                  .multiply(userScore)
+                  .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP));
     }
 
     exp.setStatus(1);
