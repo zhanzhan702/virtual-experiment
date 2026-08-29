@@ -93,9 +93,11 @@ import cabinetGroupOverview from '@/assets/images/cabinet/CabinetGroupOverview.p
 // 铅封图：Sealed 计量/终端小室画布放置（1.54:1 横向）；CabinetLeadSeal 柜门门把铅封（1:1）
 import sealed from '@/assets/images/cabinet/Sealed.png'
 import cabinetLeadSeal from '@/assets/images/cabinet/CabinetLeadSeal.png'
-// 步骤24 按钮图：清理现场 / 办理工作终结
+// 步骤24 按钮图：清理现场 / 办理工作终结（含悬浮图）
 import cleanButton from '@/assets/images/cabinet/CleanButton.png'
+import cleanButtonHover from '@/assets/images/cabinet/CleanButtonHover.png'
 import endButton from '@/assets/images/cabinet/EndButton.png'
+import endButtonHover from '@/assets/images/cabinet/EndButtonHover.png'
 import powerSocket from '@/assets/images/cabinet/PowerSocket.png'
 import electrifyCompleteNotice from '@/assets/images/cabinet/ElectrifyCompleteNotice.png'
 import meterRoomOperationSuccess from '@/assets/images/cabinet/MeterRoomOperationSuccess.png'
@@ -243,7 +245,9 @@ export default {
   sealed,
   cabinetLeadSeal,
   cleanButton,
+  cleanButtonHover,
   endButton,
+  endButtonHover,
   powerSocket,
   electrifyCompleteNotice,
   meterRoomOperationSuccess,
@@ -319,6 +323,11 @@ export const cssVars = {
   // 绿色确认键（计量小室画布专用，其他按钮保持黄色）
   '--img-confirm-btn-green': confirmButtonGreen,
   '--img-confirm-btn-green-hover': confirmButtonGreenHover,
+  // 步骤24 清理现场 / 办理工作终结（背景图 + hover 图）
+  '--img-clean-btn': cleanButton,
+  '--img-clean-btn-hover': cleanButtonHover,
+  '--img-end-btn': endButton,
+  '--img-end-btn-hover': endButtonHover,
   '--img-high-voltage-btn': highVoltageButton,
   '--img-high-voltage-btn-hover': highVoltageButtonHover,
   '--img-low-voltage-btn': lowVoltageButton,

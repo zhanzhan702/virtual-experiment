@@ -155,7 +155,7 @@
 
       <div class="form-line">
         <span class="line-label">许可工作时间：</span>
-        <span v-if="finalize" class="static-val">{{ endTimeText }}</span>
+        <span v-if="finalize" class="static-val">{{ permitTime }}</span>
         <span v-else class="blank" />
       </div>
 
@@ -325,11 +325,12 @@ const FINAL_DEFAULTS = {
   dangerShortCircuit: ['A', 'B', 'C', 'D']
 }
 
-// ─── 第7点 签发日期（当前日期 12时0分，贴近工作票样式） ───
-const signDate = computed(() => {
+// ─── 第7点 签发日期（进入页面快照，可被存档覆盖，与第一次一致） ───
+function fmtSignDate() {
   const d = new Date()
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日 12时0分`
-})
+}
+const signDate = ref(fmtSignDate())
 
 // ─── 步骤24 终结工作票补全（时间用当前真实时间） ───
 const endTimeText = computed(() => {
@@ -346,12 +347,11 @@ const finalizeMembersSign = '李四、张三'
 function fmtDT(d) {
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日 ${String(d.getHours()).padStart(2, '0')}时${String(d.getMinutes()).padStart(2, '0')}分`
 }
-const planStart = computed(() => fmtDT(new Date()))
-const planEnd = computed(() => {
-  const d = new Date()
-  d.setHours(d.getHours() + 3)
-  return fmtDT(d)
-})
+// 计划工作时间：进入页面快照，可被存档（第一次填票/终结）覆盖，保证与第一次一致
+const planStart = ref(fmtDT(new Date()))
+const planEnd = ref(fmtDT(new Date(Date.now() + 3 * 3600 * 1000)))
+// 许可工作时间：首次填票提交时快照，终结时复用（保持与第一次一致）
+const permitTime = ref(fmtDT(new Date()))
 
 const stats = reactive({
   duration_seconds: 0,
@@ -375,6 +375,11 @@ onMounted(() => {
         formData[k] = v
       }
     })
+    // 时间与第一次填票一致：若存档（首次填票提交）已有，则复用而非重新取当前时间
+    if (formData.planStart) planStart.value = formData.planStart
+    if (formData.planEnd) planEnd.value = formData.planEnd
+    if (formData.signDate) signDate.value = formData.signDate
+    if (formData.permitTime) permitTime.value = formData.permitTime
   }
 })
 onUnmounted(() => {
@@ -388,6 +393,17 @@ watch(
     stats.operation_count++
   },
   { deep: true }
+)
+
+// 存档回填后同步时间（父组件 getStepDraft 异步覆盖 formData 后生效，保证与第一次填票一致）
+watch(
+  () => [formData.planStart, formData.planEnd, formData.signDate, formData.permitTime],
+  ([ps, pe, sd, pt]) => {
+    if (ps) planStart.value = ps
+    if (pe) planEnd.value = pe
+    if (sd) signDate.value = sd
+    if (pt) permitTime.value = pt
+  }
 )
 
 /** 手动校验 — 只在提交时调用，不在填表过程中显示任何错误 */
@@ -426,7 +442,14 @@ const validateAndSubmit = async () => {
   }
   emit('submit-ticket', {
     success: true,
-    data: { ticketNo: formData.ticketNo, member1: formData.member1 },
+    data: {
+      ticketNo: formData.ticketNo,
+      member1: formData.member1,
+      planStart: planStart.value,
+      planEnd: planEnd.value,
+      signDate: signDate.value,
+      permitTime: permitTime.value
+    },
     stats: { ...stats }
   })
 }

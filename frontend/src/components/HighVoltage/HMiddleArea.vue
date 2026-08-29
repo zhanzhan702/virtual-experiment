@@ -119,22 +119,10 @@
     </div>
   </div>
 
-  <!-- 步骤24 下部两个按钮（清理现场 / 办理工作终结；图片按钮：默认+悬浮放大） -->
+  <!-- 步骤24 下部两个按钮（清理现场 / 办理工作终结；背景图 + CSS hover 切换 hover 图） -->
   <div v-if="isFinalize" class="finalize-btns">
-    <img
-      :src="Images.cleanButton"
-      class="finalize-btn-img"
-      alt="清理现场"
-      draggable="false"
-      @click="onCleanClick"
-    />
-    <img
-      :src="Images.endButton"
-      class="finalize-btn-img"
-      alt="办理工作终结"
-      draggable="false"
-      @click="onFinalizeClick"
-    />
+    <div class="finalize-btn-img finalize-btn-clean" @click="onCleanClick"></div>
+    <div class="finalize-btn-img finalize-btn-end" @click="onFinalizeClick"></div>
   </div>
 
   <!-- 鼠标跟随 -->
@@ -685,15 +673,37 @@ defineExpose({
   z-index: 20;
 }
 
+/* 背景图按钮：默认图，悬浮切换 hover 图 */
 .finalize-btn-img {
   height: 9vh;
-  width: auto;
+  aspect-ratio: var(--btn-ratio);
   cursor: pointer;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   transition: transform 0.2s;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
 }
 
-/* 悬浮放大（与其他固定按钮一致） */
+.finalize-btn-clean {
+  --btn-ratio: 2.344; /* CleanButton 2215×945 */
+  background-image: var(--img-clean-btn);
+}
+
+.finalize-btn-clean:hover {
+  background-image: var(--img-clean-btn-hover);
+}
+
+.finalize-btn-end {
+  --btn-ratio: 3.367; /* EndButton 1798×534 */
+  background-image: var(--img-end-btn);
+}
+
+.finalize-btn-end:hover {
+  background-image: var(--img-end-btn-hover);
+}
+
+/* 悬浮放大（与其他固定按钮一致） + hover 图 */
 .finalize-btn-img:hover {
   transform: scale(1.05);
 }
