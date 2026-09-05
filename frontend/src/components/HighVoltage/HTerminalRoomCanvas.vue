@@ -14,11 +14,7 @@
       </div>
       <!-- 步骤17 信号线跟随 -->
       <div v-if="cableFollowing != null" class="meter-following" :style="cableFollowStyle">
-        <img
-          :src="SIGNAL_CABLES[cableFollowing].img"
-          :alt="SIGNAL_CABLES[cableFollowing].name"
-          draggable="false"
-        />
+        <img :src="SIGNAL_CABLES[cableFollowing].img" :alt="SIGNAL_CABLES[cableFollowing].name" draggable="false" />
       </div>
       <!-- 步骤18 安装跟随（通信模块/SIM卡/天线） -->
       <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
@@ -266,14 +262,30 @@ const TERMINAL_HOLES_12 = { cx: 0.311, spanW: 0.18, triW: 33, y0: 0.576, triH: 4
 const EXTRA_HOLES = { cx: 0.427, y0: 0.57, spanW: 33, triH: 4, size: 13 }
 
 // ★ 7 根导线固定配对（与计量小室一致：接线盒孔 → 终端孔）；双色线用两条半宽线并排模拟
+//   elbowOffset：同色组（pathColor）内直角拐弯的高度增量，叠加在基准 bendRatio 上
+//   （如基准 0.82，组内可设 0 / 0.02 / 0.04 错开，防止同色组相邻线水平段重叠；越大拐弯越靠终端孔）
 const WIRE_CONNECTIONS = [
-  { spec: '4.0红黑', boxHole: 3, terminalHole: 3, pathColor: '#e60000', secondColor: '#000000' },
-  { spec: '4.0红', boxHole: 4, terminalHole: 1, pathColor: '#e60000' },
-  { spec: '2.5红', boxHole: 5, terminalHole: 2, pathColor: '#e60000' },
-  { spec: '2.5绿', boxHole: 9, terminalHole: 5, pathColor: '#00a650' },
-  { spec: '4.0黄黑', boxHole: 11, terminalHole: 9, pathColor: '#FFFF00', secondColor: '#000000' },
-  { spec: '4.0黄', boxHole: 12, terminalHole: 7, pathColor: '#FFFF00' },
-  { spec: '2.5黄', boxHole: 13, terminalHole: 8, pathColor: '#FFFF00' }
+  {
+    spec: '4.0红黑',
+    boxHole: 3,
+    terminalHole: 3,
+    pathColor: '#e60000',
+    secondColor: '#000000',
+    elbowOffset: 0.05
+  },
+  { spec: '4.0红', boxHole: 4, terminalHole: 1, pathColor: '#e60000', elbowOffset: 0.0 },
+  { spec: '2.5红', boxHole: 5, terminalHole: 2, pathColor: '#e60000', elbowOffset: 0.03 },
+  { spec: '2.5绿', boxHole: 9, terminalHole: 5, pathColor: '#00a650', elbowOffset: 0 },
+  {
+    spec: '4.0黄黑',
+    boxHole: 11,
+    terminalHole: 9,
+    pathColor: '#FFFF00',
+    secondColor: '#000000',
+    elbowOffset: 0
+  },
+  { spec: '4.0黄', boxHole: 12, terminalHole: 7, pathColor: '#FFFF00', elbowOffset: -0.03 },
+  { spec: '2.5黄', boxHole: 13, terminalHole: 8, pathColor: '#FFFF00', elbowOffset: 0.02 }
 ]
 // 右栏工具索引 → 导线配对（rightTools 顺序：6=2.5黄 7=2.5绿 8=2.5红 9=4.0黄 10=4.0黄黑 11=4.0红 12=4.0红黑）
 const TOOL_IDX_TO_WIRE = {
@@ -285,6 +297,14 @@ const TOOL_IDX_TO_WIRE = {
   11: WIRE_CONNECTIONS[1],
   12: WIRE_CONNECTIONS[0]
 }
+
+// ─── 接线盒→终端 7 根进出线：直角折线（非斜直线）与盖盖遮挡 ───
+// 原网页接线为「竖直-水平-竖直」直角折线，拐弯靠近终端孔；bendRatio 为水平段高度占
+// from(接线盒,下)→to(终端,上) 竖直间距的比例（0~1，越大水平段越贴近终端孔），可按背景图微调
+const WIRE_ELBOW = { bendRatio: 0.45 }
+// 盖盖（Covered 背景）后被盖板下缘截断的遮挡线 y（相对画布比率，占位，用户按背景图微调）
+// 导线最高只画到此处，隐藏被终端盖板盖住的部分；未盖盖时不生效
+const WIRE_COVER_Y = 0.6
 
 // ─── 步骤16-17：3 根信号线（放置 + 芯点连线） ───
 // 3 根线共用一个放置热区（一整块）；线材图片绘制在各自 rect 位置（占位用户微调）
@@ -414,6 +434,11 @@ function bgForStep(order) {
   return Images.terminalRoomNoMeter
 }
 
+/** 是否盖盖（已接线/封闭）背景：此时导线需按被遮挡形态绘制（截断于盖板下缘） */
+function isCoveredBg(url = currentBg.value) {
+  return url === Images.terminalRoomWired || url === Images.terminalRoomCovered
+}
+
 function switchBackground(url) {
   currentBg.value = url
   if (leafer) {
@@ -421,6 +446,8 @@ function switchBackground(url) {
     const h = leafer.height
     bgLayer.removeAll()
     bgLayer.add(new Image({ url, x: 0, y: 0, width: w, height: h }))
+    // 背景切换后按盖盖与否重绘导线（Wired 起已盖盖→被遮挡）
+    redrawConnectedWires(isCoveredBg(url))
   }
 }
 
@@ -680,12 +707,26 @@ function checkSwitches() {
 // ─── 步骤15：接电压、电流进出线（7 根导线） ───
 
 /** 接线盒孔 i（1~13，右起）绝对坐标 */
+/** 当前接线盒矩形：盖盖（步骤21）后接线盒图已销毁，盒孔按 JUNCTION_BOX 常量推算兜底 */
+function activeBoxRect() {
+  if (junctionBoxRect && junctionBoxRect.w > 0) return junctionBoxRect
+  const w = leafer.width
+  const bw = w * JUNCTION_BOX.w
+  return {
+    x: w * JUNCTION_BOX.x,
+    y: leafer.height * JUNCTION_BOX.y,
+    w: bw,
+    h: bw / JUNCTION_BOX_ASPECT
+  }
+}
+
 function boxHolePos(i) {
+  const jb = activeBoxRect()
   const rx =
     BOX_HOLES.x0 + ((BOX_HOLES.count - i) / (BOX_HOLES.count - 1)) * (BOX_HOLES.x1 - BOX_HOLES.x0)
   return {
-    x: junctionBoxRect.x + rx * junctionBoxRect.w,
-    y: junctionBoxRect.y + BOX_HOLES.y * junctionBoxRect.h
+    x: jb.x + rx * jb.w,
+    y: jb.y + BOX_HOLES.y * jb.h
   }
 }
 
@@ -795,7 +836,42 @@ function rebuildHoles15() {
 
 /** 2.5 细线基准宽 */
 function thinWireWidth() {
-  return junctionBoxRect.w * 0.006
+  return activeBoxRect().w * 0.006
+}
+
+/** 接线盒→终端导线：生成「竖直-水平-竖直」直角折线 Path（非斜直线）。
+ *  双色线为两条细线沿水平方向并排（dx 偏移）；covered=true 时按盖盖遮挡形态：
+ *  线被盖板下缘截断（最高只到 WIRE_COVER_Y），隐藏被盖住部分。 */
+function makeElbowPaths(from, to, wire, covered = false) {
+  const thin = thinWireWidth()
+  const w = wire.spec.startsWith('4.0') ? thin * 2 : thin
+  // Z 形拐弯点：与未盖盖一致（基准 bendRatio + 同色组增量 elbowOffset），保证盖盖样式连续
+  const bendRatio = WIRE_ELBOW.bendRatio + (wire.elbowOffset || 0)
+  const bendY = to.y + (from.y - to.y) * (1 - bendRatio)
+  // 盖盖：顶部被盖住的竖段截断到盖板下缘（WIRE_COVER_Y），隐藏伸入盖板的部分
+  const coverY = WIRE_COVER_Y * leafer.height
+  const pts = (dx, dy) => {
+    const arr = [
+      { x: from.x + dx, y: from.y + dy },
+      { x: from.x + dx, y: bendY + dy },
+      { x: to.x + dx, y: bendY + dy }
+    ]
+    arr.push({ x: to.x + dx, y: covered ? coverY : to.y + dy }) // 末段：盖盖截到盖板下缘 / 未盖盖入孔
+    return arr
+  }
+  const mk = (list, color, width) =>
+    new Path({
+      path: 'M ' + list.map(p => `${p.x} ${p.y}`).join(' L '),
+      stroke: color,
+      strokeWidth: width,
+      lineCap: 'round',
+      lineJoin: 'round',
+      zIndex: 4,
+      hittable: false
+    })
+  if (!wire.secondColor) return [mk(pts(0, 0), wire.pathColor, w)]
+  const off = thin / 2
+  return [mk(pts(-off, 0), wire.pathColor, thin), mk(pts(off, 0), wire.secondColor, thin)]
 }
 
 /** 生成导线 Path 列表（单色 1 条；4.0=2 倍细线宽，双色线=两条细线并排拼接，法向统一屏幕左侧） */
@@ -844,25 +920,25 @@ function makeWirePaths(from, to, wire) {
   ]
 }
 
-/** 绘制一根导线（持久，zIndex 4 在孔热区之上） */
-function drawWirePath(boxHole, terminalHole, wire) {
+/** 绘制一根导线（持久，zIndex 4 在孔热区之上；covered=true 为盖盖遮挡形态） */
+function drawWirePath(boxHole, terminalHole, wire, covered = false) {
   const from = boxHolePos(boxHole)
   const to = terminalHolePos(terminalHole)
-  const paths = makeWirePaths(from, to, wire)
+  const paths = makeElbowPaths(from, to, wire, covered)
   paths.forEach(p => hitLayer.add(p))
   wirePaths.push(...paths)
 }
 
-/** 按已接导线重绘（画布重建/比例校正后恢复视觉） */
-function redrawConnectedWires() {
+/** 按已接导线重绘（画布重建/比例校正/盖盖后恢复视觉）；covered=true 画被遮挡形态 */
+function redrawConnectedWires(covered = false) {
   wirePaths.forEach(p => p.remove())
   wirePaths.length = 0
-  if (junctionBoxRect.w <= 0) return
+  if (!leafer || activeBoxRect().w <= 0) return
   connectedWires.value.forEach(w => {
     const conn = WIRE_CONNECTIONS.find(
       c => c.boxHole === w.boxHole && c.terminalHole === w.terminalHole
     )
-    if (conn) drawWirePath(w.boxHole, w.terminalHole, conn)
+    if (conn) drawWirePath(w.boxHole, w.terminalHole, conn, covered)
   })
 }
 
@@ -886,7 +962,7 @@ function onHoleClick(type, hole) {
     wiringStep.value = 'wire_drawing'
     const p = wireStartPos.value
     // 跟随线不拦截点击，保证终点孔热区可命中
-    wireFollowPaths = makeWirePaths(p, { x: p.x, y: p.y }, selectedWire.value)
+    wireFollowPaths = makeElbowPaths(p, { x: p.x, y: p.y }, selectedWire.value)
     wireFollowPaths.forEach(ph => hitLayer.add(ph))
     leafer.on(PointerEvent.MOVE, onWireMove)
     return
@@ -924,7 +1000,7 @@ function onWireMove(e) {
   if (wireFollowPaths.length === 0 || !wireStartPos.value) return
   const p = e.getLocalPoint()
   const s = wireStartPos.value
-  const paths = makeWirePaths(s, { x: p.x, y: p.y }, selectedWire.value)
+  const paths = makeElbowPaths(s, { x: p.x, y: p.y }, selectedWire.value)
   wireFollowPaths.forEach((ph, i) => {
     if (paths[i]) ph.path = paths[i].path
   })
@@ -1046,24 +1122,24 @@ function corePos(ci, side, idx) {
 /** 构建指定线的芯点热区（追加，不清除其他线的芯点——多根线热区共存） */
 function buildCableCores(ci) {
   const cfg = SIGNAL_CABLES[ci]
-  ;['right', 'left'].forEach(side => {
-    cfg[side].forEach((_, idx) => {
-      const p = corePos(ci, side, idx)
-      const rect = new Rect({
-        x: p.x - CORE_SIZE / 2,
-        y: p.y - CORE_SIZE / 2,
-        width: CORE_SIZE,
-        height: CORE_SIZE,
-        fill: 'rgba(0, 150, 255, 0.3)',
-        stroke: 'rgba(0, 150, 255, 0.9)',
-        strokeWidth: 1,
-        zIndex: 5 // 芯点热区在线材图片与放置热区之上
+    ;['right', 'left'].forEach(side => {
+      cfg[side].forEach((_, idx) => {
+        const p = corePos(ci, side, idx)
+        const rect = new Rect({
+          x: p.x - CORE_SIZE / 2,
+          y: p.y - CORE_SIZE / 2,
+          width: CORE_SIZE,
+          height: CORE_SIZE,
+          fill: 'rgba(0, 150, 255, 0.3)',
+          stroke: 'rgba(0, 150, 255, 0.9)',
+          strokeWidth: 1,
+          zIndex: 5 // 芯点热区在线材图片与放置热区之上
+        })
+        rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
+        hitLayer.add(rect)
+        signalCoreRects.push(rect)
       })
-      rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
-      hitLayer.add(rect)
-      signalCoreRects.push(rect)
     })
-  })
 }
 
 /** 重建全部已放置线的芯点热区（比例校正/画布重建后恢复） */
@@ -2041,7 +2117,7 @@ function persistState() {
         sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
       })
     )
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /** 全量状态（存档用）：画布所有状态字段（与 localStorage 兜底内容一致） */
@@ -2124,7 +2200,7 @@ function restoreDraft(d) {
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
-  } catch (_) {}
+  } catch (_) { }
   if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
   if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
   const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
@@ -2257,6 +2333,10 @@ function applyDraft() {
   if (props.stepOrder >= 19) {
     redrawTies()
   }
+  // 步骤16+：重建接线盒→终端导线（存档/重建恢复；covered 由当前背景判定：16-20 未盖盖、21+ 盖盖）
+  if (props.stepOrder >= 16 && connectedWires.value.length > 0) {
+    redrawConnectedWires(isCoveredBg())
+  }
 }
 
 /** 步骤17 重建已放置线材、芯点与连线（画布重建后恢复视觉） */
@@ -2374,7 +2454,7 @@ watch(
       }
       checkSwitches()
     }
-    // 步骤21：销毁接线盒及开关（线已销毁）→ 切 Covered 背景
+    // 步骤21：销毁接线盒及开关（线已销毁）→ 切 Covered 背景（switchBackground 内部按盖盖重绘被遮挡导线）
     if (order === 21 && leafer) {
       destroyJunctionBox()
       switchBackground(Images.terminalRoomCovered)
@@ -2398,7 +2478,7 @@ onMounted(() => {
         // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
         restoreDraft(d || {})
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 })
 onUnmounted(() => {
