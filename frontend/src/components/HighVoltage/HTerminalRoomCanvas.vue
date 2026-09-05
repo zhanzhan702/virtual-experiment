@@ -75,6 +75,8 @@ const connectedWires = ref([]) // [{ boxHole, terminalHole, spec }]
 const activeToolIdxs = ref([]) // 剥线钳+当前导线持续高亮，螺丝刀不高亮（仅跟随）
 const screwdriverFollowing = ref(false)
 const screwdriverStyle = ref({})
+// 螺丝刀跟随：跟随图尖端对准鼠标（尖端相对图片中心的偏移 px，正=右/下，负=左/上；用户按素材微调））
+const SCREWDRIVER_TIP = { x: -39, y: 37 }
 // 步骤16-17 信号线状态机
 const cablePlaced = ref([false, false, false]) // 3 根线是否已放置
 const cableFollowing = ref(null) // 跟随中的线索引（null 无）
@@ -1674,7 +1676,12 @@ function onWiringToolClick(idx, e) {
     }
     wiringStep.value = 'screwdriver_active'
     screwdriverFollowing.value = true
-    screwdriverStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+    screwdriverStyle.value = {
+      left: e.clientX + 'px',
+      top: e.clientY + 'px',
+      '--follow-ox': -SCREWDRIVER_TIP.x + 'px',
+      '--follow-oy': -SCREWDRIVER_TIP.y + 'px'
+    }
     return
   }
   ElMessage.info('该工具将在后续步骤中使用')
@@ -2079,7 +2086,12 @@ function onPageMouseMove(e) {
     followStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
   }
   if (screwdriverFollowing.value) {
-    screwdriverStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
+    screwdriverStyle.value = {
+      left: e.clientX + 'px',
+      top: e.clientY + 'px',
+      '--follow-ox': -SCREWDRIVER_TIP.x + 'px',
+      '--follow-oy': -SCREWDRIVER_TIP.y + 'px'
+    }
   }
   if (cableFollowing.value != null) {
     cableFollowStyle.value = { left: e.clientX + 'px', top: e.clientY + 'px' }
@@ -2536,7 +2548,7 @@ defineExpose({
 /* 鼠标跟随（HTML 层） */
 .meter-following {
   position: fixed;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% + var(--follow-ox, 0px)), calc(-50% + var(--follow-oy, 0px)));
   z-index: 100;
   pointer-events: none;
   width: 90px;
