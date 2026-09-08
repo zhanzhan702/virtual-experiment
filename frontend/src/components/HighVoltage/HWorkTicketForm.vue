@@ -288,9 +288,6 @@
         <span>无</span>
       </div>
 
-      <div class="submit-zone">
-        <el-button type="warning" size="large" @click="validateAndSubmit">提交</el-button>
-      </div>
     </el-form>
   </div>
 </template>
@@ -458,7 +455,7 @@ const validateAndSubmit = async () => {
   })
 }
 
-defineExpose({ formData, stats })
+defineExpose({ formData, stats, validateAndSubmit })
 </script>
 
 <style scoped>
@@ -480,11 +477,6 @@ defineExpose({ formData, stats })
   font-weight: bold;
   font-size: 16px;
   text-align: left;
-}
-
-.submit-zone {
-  margin-top: 24px;
-  text-align: right;
 }
 
 .paper-header {

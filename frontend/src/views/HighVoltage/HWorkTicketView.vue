@@ -1,11 +1,31 @@
 <template>
   <div class="experiment-scene">
     <div class="scene-frame" :style="sceneFrameStyle">
-      <div class="scroll-wrapper">
+      <div ref="scrollEl" class="scroll-wrapper">
         <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
       </div>
       <img class="work-ticket-sign" :src="Images.workTicketSign" alt="填写工作票" />
-      <img class="work-ticket-commit" :src="Images.workTicketCommit" alt="提交" />
+      <div class="work-ticket-commit">
+        <img :src="Images.workTicketCommit" alt="提交" />
+        <button
+          class="commit-hit-area"
+          type="button"
+          aria-label="提交"
+          title="提交"
+          @click.stop="handleCommitClick"
+        />
+        <img
+          ref="focusEl"
+          class="scroll-focus"
+          :class="{ 'is-dragging': focusDragging, 'is-ready': focusReady }"
+          :style="{ top: focusTop + 'px' }"
+          :src="Images.scrollFocus"
+          alt=""
+          draggable="false"
+          @mousedown="onFocusMouseDown"
+          @click.stop
+        />
+      </div>
     </div>
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
@@ -40,6 +60,8 @@ const route = useRoute()
 const router = useRouter()
 
 const formRef = ref(null)
+const scrollEl = ref(null)
+const focusEl = ref(null)
 const showWorkBg = ref(false)
 // 视频1：工作票填写完播放（播毕进工器具选择）
 const showVideo = ref(false)
@@ -57,6 +79,59 @@ const currentStepSeconds = computed(() => formRef.value?.stats?.duration_seconds
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)
 
+// ===== 绳子滚动条：焦点沿绳子移动，与滚动位置按比例联动 =====
+// 几何（基于 WorkTicketCommit 130x586，图片显示高 550）
+const FOCUS_KNOT_Y = 120    // 容器内绳顶/交点 y（scrollTop=0 时焦点位置）
+// 焦点最底端不贴图片底：按行程向上收 11%（行程=549-120≈429，新底端≈502）
+const FOCUS_TAIL_Y = 502
+const focusTop = ref(FOCUS_KNOT_Y)
+const focusDragging = ref(false)
+const focusReady = ref(false)
+const RANGE = FOCUS_TAIL_Y - FOCUS_KNOT_Y
+
+// 焦点容器元素（绝对定位基准是 .work-ticket-commit）
+function setFocusTop(y) {
+  focusTop.value = Math.min(FOCUS_TAIL_Y, Math.max(FOCUS_KNOT_Y, y))
+}
+
+// scrollTop -> 焦点 top
+function syncFocusFromScroll() {
+  if (focusDragging.value || !scrollEl.value) return
+  const el = scrollEl.value
+  const max = el.scrollHeight - el.clientHeight
+  const ratio = max > 0 ? el.scrollTop / max : 0
+  setFocusTop(FOCUS_KNOT_Y + ratio * RANGE)
+}
+
+// 焦点 top -> scrollTop
+function syncScrollFromFocus(top) {
+  if (!scrollEl.value) return
+  const el = scrollEl.value
+  const max = el.scrollHeight - el.clientHeight
+  const ratio = (top - FOCUS_KNOT_Y) / RANGE
+  el.scrollTop = ratio * max
+}
+
+// 拖动焦点：仅当鼠标按下在焦点图上才触发
+function onFocusMouseDown(e) {
+  e.preventDefault()
+  focusDragging.value = true
+  const startY = e.clientY
+  const startTop = focusTop.value
+  const onMove = ev => {
+    const next = startTop + (ev.clientY - startY)
+    setFocusTop(next)
+    syncScrollFromFocus(next)
+  }
+  const onUp = () => {
+    focusDragging.value = false
+    window.removeEventListener('mousemove', onMove)
+    window.removeEventListener('mouseup', onUp)
+  }
+  window.addEventListener('mousemove', onMove)
+  window.addEventListener('mouseup', onUp)
+}
+
 // 随视口缩放整个工作票外框，让标题横幅与边框等比例缩放、不扭曲
 const sceneScale = ref(1)
 const sceneFrameStyle = computed(() => ({ transform: `scale(${sceneScale.value})` }))
@@ -68,9 +143,17 @@ function updateSceneScale() {
 onMounted(() => {
   updateSceneScale()
   window.addEventListener('resize', updateSceneScale)
+  // 绑定滚动同步：滚轮/触控板滚动时焦点跟随
+  scrollEl.value?.addEventListener('scroll', syncFocusFromScroll, { passive: true })
+  // 初始对齐焦点与滚动条，完成后显示焦点
+  requestAnimationFrame(() => {
+    syncFocusFromScroll()
+    focusReady.value = true
+  })
 })
 onUnmounted(() => {
   window.removeEventListener('resize', updateSceneScale)
+  scrollEl.value?.removeEventListener('scroll', syncFocusFromScroll)
 })
 
 // 恢复草稿数据到表单
@@ -105,6 +188,11 @@ const saveProgress = async () => {
   } finally {
     saving.value = false
   }
+}
+
+// 点击顶部“提交”标牌上的标签 → 触发表单校验并提交
+function handleCommitClick() {
+  formRef.value?.validateAndSubmit?.()
 }
 
 // 接收子组件抛出的提交事件
@@ -212,7 +300,53 @@ function onVideoEnded() {
   /* 高度 550px => 绳尾约在 650px 高度的 2/3 处、不触底 */
   height: 550px;
   width: auto;
+}
+
+.work-ticket-commit img:not(.scroll-focus) {
+  width: auto;
+  height: 100%;
+  display: block;
+  /* 图片本身不拦截点击，点击交给热区 */
   pointer-events: none;
+  user-select: none;
+}
+
+/* 绳上焦点（jiaodian）：绝对定位，沿绳子移动，可拖动 */
+.scroll-focus {
+  position: absolute;
+  /* 绳子中心显示 x≈49px，焦点宽 34px => 左移半宽 17px 对齐中心 */
+  left: 32px;
+  top: 120px;
+  width: 34px;
+  height: auto;
+  z-index: 12;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+  /* 初始隐藏到拿到滚动状态后再定位，避免闪跳 */
+  visibility: hidden;
+}
+
+.scroll-focus.is-dragging {
+  cursor: grabbing;
+}
+
+.scroll-focus.is-ready {
+  visibility: visible;
+}
+
+/* 点击热区：仅黄色“提交”牌子本体，不含金属柄/挂钩与绳子 */
+.commit-hit-area {
+  position: absolute;
+  /* 相对图片左上：黄色牌子约在 x15–120 / y13–96（550 高展示坐标） */
+  left: 15px;
+  top: 13px;
+  width: 105px;
+  height: 83px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 /* 核心要求：限制区域大小，其他内容通过滚动显示 */
@@ -226,20 +360,12 @@ function onVideoEnded() {
   border: 14px solid #73bcbb;
   border-radius: 16px;
   box-sizing: border-box;
+  /* 隐藏原生竖向滚动条，保留滚动能力 */
+  scrollbar-width: none;
 }
 
-/* 自定义滚动条，使其风格契合仿真平台 */
 .scroll-wrapper::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #a0a5aa;
-  border-radius: 4px;
-}
-
-.scroll-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #7a8085;
+  display: none;
 }
 
 /* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
