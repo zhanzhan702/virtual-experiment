@@ -5,6 +5,7 @@
         <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
       </div>
       <img class="work-ticket-sign" :src="Images.workTicketSign" alt="填写工作票" />
+      <img class="work-ticket-commit" :src="Images.workTicketCommit" alt="提交" />
     </div>
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
@@ -200,6 +201,19 @@ function onVideoEnded() {
   left: 22px;
   z-index: 10;
   width: clamp(200px, 28%, 320px);
+}
+
+/* 提交标牌：金属挂环卡在边框右上角，绳子垂坠到约 2/3 高度、不触底 */
+.work-ticket-commit {
+  position: absolute;
+  /* 右上角：挂环中心(原图 x≈52)缩放后约 49px，勾住右边框；顶部挂点对齐顶边框 */
+  top: -58px;
+  right: -33px;
+  z-index: 11;
+  /* 高度 550px => 绳尾约在 650px 高度的 2/3 处、不触底 */
+  height: 550px;
+  width: auto;
+  pointer-events: none;
 }
 
 /* 核心要求：限制区域大小，其他内容通过滚动显示 */
