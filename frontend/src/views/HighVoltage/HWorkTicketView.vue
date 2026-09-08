@@ -206,9 +206,8 @@ function onVideoEnded() {
 /* 提交标牌：金属挂环卡在边框右上角，绳子垂坠到约 2/3 高度、不触底 */
 .work-ticket-commit {
   position: absolute;
-  /* 右上角：挂环中心(原图 x≈52)缩放后约 49px，勾住右边框；顶部挂点对齐顶边框 */
-  top: -58px;
-  right: -33px;
+  top: -53px;
+  right: -28px;
   z-index: 11;
   /* 高度 550px => 绳尾约在 650px 高度的 2/3 处、不触底 */
   height: 550px;
@@ -221,14 +220,12 @@ function onVideoEnded() {
   width: 900px;
   height: 650px;
   overflow-y: auto;
-  background-color: rgba(255, 255, 255, 0.9);
-  /* 半透明背景增加景深感 */
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  /* 边框：使用 outline 不占据盒模型空间，避免出现滚动条 */
-  outline: 10px solid #73bcbb;
-  outline-offset: -4px;
+  /* 内部背景统一为工作票纸的米白 #fffef8，撑满整个表单 */
+  background-color: #fffef8;
+  /* 加粗 + 圆角；box-sizing: border-box 让边框占据盒内空间，整体大小不变 */
+  border: 14px solid #73bcbb;
+  border-radius: 16px;
+  box-sizing: border-box;
 }
 
 /* 自定义滚动条，使其风格契合仿真平台 */

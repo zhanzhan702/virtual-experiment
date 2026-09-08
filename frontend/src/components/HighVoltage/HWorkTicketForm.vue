@@ -463,12 +463,11 @@ defineExpose({ formData, stats })
 
 <style scoped>
 .ticket-paper {
-  width: 850px;
+  /* 撑满整个滚动区域 (scroll-wrapper)，去掉圆角与阴影过渡 */
+  width: 100%;
   background-color: #fffef8;
-  border: 2px solid #333;
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 30px 36px;
+  /* 左右内边距都加大，保持文字略偏左；边框与提交组件不动 */
+  padding: 30px 40px 30px 24px;
   box-sizing: border-box;
   font-family: 'SimSun', '宋体', serif;
   color: #222;
