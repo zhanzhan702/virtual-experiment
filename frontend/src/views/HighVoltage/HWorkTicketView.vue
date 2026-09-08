@@ -1,7 +1,10 @@
 <template>
   <div class="experiment-scene">
-    <div class="scroll-wrapper">
-      <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
+    <div class="scene-frame" :style="sceneFrameStyle">
+      <div class="scroll-wrapper">
+        <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
+      </div>
+      <img class="work-ticket-sign" :src="Images.workTicketSign" alt="填写工作票" />
     </div>
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
@@ -20,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft, completeExperiment } from '@/api/experiment'
@@ -52,6 +55,22 @@ const currentStepSeconds = computed(() => formRef.value?.stats?.duration_seconds
 // 页面加载时记录步骤开始时间
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)
+
+// 随视口缩放整个工作票外框，让标题横幅与边框等比例缩放、不扭曲
+const sceneScale = ref(1)
+const sceneFrameStyle = computed(() => ({ transform: `scale(${sceneScale.value})` }))
+function updateSceneScale() {
+  const sx = window.innerWidth / 1000
+  const sy = window.innerHeight / 770
+  sceneScale.value = Math.min(1, sx, sy)
+}
+onMounted(() => {
+  updateSceneScale()
+  window.addEventListener('resize', updateSceneScale)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', updateSceneScale)
+})
 
 // 恢复草稿数据到表单
 onMounted(async () => {
@@ -164,10 +183,23 @@ function onVideoEnded() {
   justify-content: center;
   align-items: center;
   background-image: var(--img-hwt-bg);
-  /* 可以替换成你的高压场景背景图 */
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* 外层相对容器：用于把标题横幅定位到青色边框上方 */
+.scene-frame {
+  position: relative;
+}
+
+/* 工作票标题横幅：压在 scroll-wrapper 青色 outline 边框的左上角（源图 701×224） */
+.work-ticket-sign {
+  position: absolute;
+  top: -80px;
+  left: 22px;
+  z-index: 10;
+  width: clamp(200px, 28%, 320px);
 }
 
 /* 核心要求：限制区域大小，其他内容通过滚动显示 */

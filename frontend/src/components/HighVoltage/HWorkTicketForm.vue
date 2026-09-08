@@ -1,6 +1,8 @@
 <template>
   <div class="ticket-paper">
     <el-form ref="formRef" :model="formData" class="paper-form">
+      <!-- 表单左上角红字提示（与效果图一致） -->
+      <div class="form-note">注：请填写红色下划线部分</div>
       <!-- 表头 -->
       <div class="paper-header">
         <span class="paper-title">国网福建</span>
@@ -8,6 +10,8 @@
           <el-input v-model="formData.company" placeholder="" size="default" />
         </span>
         <span class="paper-title">供电公司</span>
+      </div>
+      <div class="paper-type">
         <span class="paper-right">配电第二种工作票</span>
       </div>
       <div class="paper-subheader">
@@ -470,21 +474,41 @@ defineExpose({ formData, stats })
   color: #222;
 }
 
+/* 左上角红字提示：与效果图样式一致 */
+.form-note {
+  margin-bottom: 10px;
+  color: #e60000;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: left;
+}
+
+.submit-zone {
+  margin-top: 24px;
+  text-align: right;
+}
+
 .paper-header {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 6px;
+}
+
+.paper-type {
+  text-align: center;
+  margin-bottom: 8px;
 }
 
 .paper-subheader {
   margin-bottom: 18px;
   padding-bottom: 8px;
   border-bottom: 1px solid #333;
+  text-align: right;
 }
 
 .paper-right {
-  margin-left: auto;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 2px;
@@ -531,7 +555,7 @@ defineExpose({ formData, stats })
 /* 国网福建中间输入框放大 */
 .paper-header .inline-input {
   font-size: 22px;
-  min-width: 140px;
+  min-width: 90px;
   border-bottom: 1.5px solid #ff0000;
 }
 
@@ -648,11 +672,6 @@ defineExpose({ formData, stats })
   font-family: 'SimSun', '宋体', serif;
   font-size: 14px;
   color: #222;
-}
-
-.submit-zone {
-  margin-top: 24px;
-  text-align: right;
 }
 
 /* 内联 form-item — 保持纸张横线布局，校验时显示错误 */
