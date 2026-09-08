@@ -53,7 +53,7 @@
       <!-- 第二行：工作班人员（不包括工作负责人）：共2人 -->
       <div class="form-line-row triple">
         <div class="form-noline">
-          <span class="line-label">2、工作班人员（不包括工作负责人）</span>
+          <span class="line-label">2、工作班人员（不包括工作负责人）：</span>
         </div>
 
         <div class="form-line">
@@ -83,7 +83,7 @@
       <!-- 第3点 -->
       <div>
         <div class="form-noline">
-          <span class="line-label"> 3、工作的变配电站名称及设备双重名称 </span>
+          <span class="line-label"> 3、工作的变配电站名称及设备双重名称： </span>
         </div>
         <div class="static-val">福州市台江区鳌峰路雪花水泥厂配电室计量柜</div>
       </div>
@@ -227,7 +227,7 @@
       <div class="form-noline section-brk">11、确认工作负责人布置的任务和本施工项目安全措施</div>
 
       <div class="form-line">
-        <span class="line-label">工作班人员签名</span>
+        <span class="line-label">工作班人员签名：</span>
         <span v-if="finalize" class="static-val">{{ finalizeMembersSign }}</span>
         <span v-else class="blank wide" />
       </div>
@@ -236,13 +236,13 @@
       <div class="form-noline section-brk">12、工作票延期</div>
 
       <div class="form-line">
-        <span class="line-label">有效期延长到</span>
+        <span class="line-label">有效期延长到：</span>
         <span v-if="finalize" class="static-val">无</span>
         <span v-else class="blank date" />
       </div>
 
       <div class="form-line">
-        <span class="line-label">工作负责人签名</span>
+        <span class="line-label">工作负责人签名：</span>
         <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
         <span v-else class="blank" />
       </div>
@@ -262,7 +262,7 @@
             全部工作于{{ endTimeText }}结束，工作人员已全部撤离，材料工具已清理完毕。
           </template>
           <template v-else>
-            全部工作于<span class="blank date" />结束，工作人员已全部撤离，材料工具已清理完毕。
+            全部工作于<span class="blank inline" />结束，工作人员已全部撤离，材料工具已清理完毕。
           </template>
         </span>
       </div>
@@ -536,13 +536,21 @@ defineExpose({ formData, stats })
 }
 
 .blank.wide {
-  min-width: 260px;
+  min-width: 200px;
   /* 工作班人员签名等长填空 */
 }
 
 .blank.date {
-  min-width: 560px;
+  min-width: 260px;
   /* 日期长串 */
+}
+
+/* 句内填空（如“全部工作于___结束”）：不高抬，避免下划线错位下沉 */
+.blank.inline {
+  height: auto;
+  vertical-align: baseline;
+  min-width: 160px;
+  padding: 0 4px;
 }
 
 .paper-title {
