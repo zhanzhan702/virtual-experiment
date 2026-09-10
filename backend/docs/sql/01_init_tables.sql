@@ -74,6 +74,9 @@ CREATE TABLE experiment_steps (
 -- 用户实验记录表
 -- draft_data：当前存档步骤草稿（saveDraft 写入，submitStep 清空）
 -- ticket_data：工作票提交数据（ticketNo + member1，submitStep 写入，不清空）
+-- score：系统算出的原始加权分 = Σ 步骤模板score × 得分率，量纲等于该模板步骤分合计
+-- manual_score：教师人工改分，**百分制**（0-100）。与 score 量纲不同是刻意的 ——
+--               模板步骤分值后期会调整，存百分制可避免历史改分含义漂移
 CREATE TABLE user_experiments (
     id BINARY(16) PRIMARY KEY,
     user_id BINARY(16) NOT NULL,
@@ -82,7 +85,10 @@ CREATE TABLE user_experiments (
     end_time DATETIME,
     total_duration INT DEFAULT 0,
     status TINYINT DEFAULT 0 COMMENT '0进行中 1完成',
-    score DECIMAL(5,2),
+    score DECIMAL(5,2) COMMENT '系统原始加权分（量纲=模板步骤分合计）',
+    manual_score DECIMAL(5,2) COMMENT '人工改分（百分制 0-100）',
+    scored_by BINARY(16) COMMENT '改分人',
+    scored_at DATETIME COMMENT '改分时间',
     draft_data JSON COMMENT '当前存档步骤草稿（saveDraft写入，submitStep清空）',
     ticket_data JSON COMMENT '工作票提交数据（ticketNo+member1）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
