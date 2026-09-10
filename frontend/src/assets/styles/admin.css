@@ -49,6 +49,15 @@ body.admin-theme {
   --el-table-header-text-color: #303133;
   --el-table-border-color: #ebeef5;
   --el-table-row-hover-bg-color: #f2fbf9;
+
+  /* ── 菜单 ────────────────────────────────────────────────
+     Element Plus 的菜单有一套独立变量，--el-menu-active-color 默认写死 #409eff，
+     不会跟随 --el-color-primary。只改主色的话按钮变青绿而菜单仍是蓝色，必须单独覆盖。 */
+  --el-menu-active-color: #1ab394;
+  --el-menu-hover-text-color: #1ab394;
+  --el-menu-hover-bg-color: transparent;
+  --el-menu-bg-color: transparent;
+  --el-menu-border-color: transparent;
 }
 
 /* ── 页面底 ─────────────────────────────────────────────── */
