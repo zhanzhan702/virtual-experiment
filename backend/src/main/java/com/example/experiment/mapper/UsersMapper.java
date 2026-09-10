@@ -31,6 +31,7 @@ public interface UsersMapper extends BaseMapper<Users> {
              u.username AS username,
              u.name     AS name,
              u.gender   AS gender,
+             u.org_id   AS orgId,
              u.phone    AS phone,
              o.path     AS orgName
       FROM users u
@@ -58,6 +59,42 @@ public interface UsersMapper extends BaseMapper<Users> {
       """)
   IPage<UserListVO> selectVisibleUsers(
       Page<UserListVO> page, @Param("q") UserQueryDTO query, @Param("maxLevel") int maxLevel);
+
+  /**
+   * 分页查询某组织节点（含子节点）下的学生。
+   *
+   * <p>用 path 前缀匹配而非精确 org_id，这样传年级能取到其下所有班级的学生。 层级过滤与用户列表一致：只看得到 level 低于操作者的用户。
+   */
+  @Select(
+      """
+      <script>
+      SELECT u.id       AS id,
+             u.username AS username,
+             u.name     AS name,
+             u.gender   AS gender,
+             u.org_id   AS orgId,
+             u.phone    AS phone,
+             o.path     AS orgName
+      FROM users u
+      JOIN organization o ON o.id = u.org_id
+      WHERE o.path LIKE CONCAT(#{pathPrefix}, '%')
+        AND (
+              SELECT MAX(r.level)
+              FROM user_roles ur
+              JOIN roles r ON r.id = ur.role_id
+              WHERE ur.user_id = u.id
+            ) &lt; #{maxLevel}
+        <if test="name != null and name != ''">
+          AND u.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+      ORDER BY u.name, u.id
+      </script>
+      """)
+  IPage<UserListVO> selectStudentsUnderOrg(
+      Page<UserListVO> page,
+      @Param("pathPrefix") String pathPrefix,
+      @Param("name") String name,
+      @Param("maxLevel") int maxLevel);
 
   /**
    * 查询单个用户的详情（含组织路径）。

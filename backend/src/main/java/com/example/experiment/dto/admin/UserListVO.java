@@ -11,6 +11,9 @@ public class UserListVO {
   private String name;
   private String gender;
 
+  /** 所属组织节点 ID。成绩页按班级归组时使用；用户管理页不展示 */
+  private String orgId;
+
   /** 单位/班级，后端拼好的 organization.path 完整路径，前端不自行拼接 */
   private String orgName;
 
