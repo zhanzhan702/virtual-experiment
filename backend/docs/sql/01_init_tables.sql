@@ -28,11 +28,13 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 角色表
+-- level：角色层级，数值越大权限越高；用户可见范围 = level < 当前用户的 level
 CREATE TABLE roles (
     id BINARY(16) PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL,
-    description VARCHAR(200)
+    description VARCHAR(200),
+    level INT NOT NULL DEFAULT 0 COMMENT '角色层级，数值越大权限越高'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 用户角色关联表
