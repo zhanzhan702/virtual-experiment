@@ -1,0 +1,80 @@
+/**
+ * 管理后台主题：青绿 + 浅色。
+ *
+ * 配色参考原仿真后台（INSPINIA / Bootstrap 3）：
+ *   主色 #1ab394 青绿、正文 #676a6c、页面底色 #f3f3f4、边框 #c2c2c2。
+ * 在此基础上做了现代化处理：更轻的边框与阴影、更克制的灰阶层级、更准的间距与悬停态。
+ *
+ * 生效方式：AdminLayoutView 挂载时给 <body> 加 `.admin-theme`，卸载时移除。
+ * 之所以加在 body 而不是组件根元素上 —— Element Plus 的弹窗、下拉菜单、气泡
+ * 都会 teleport 到 body，挂在组件根上它们会拿不到变量而退回默认蓝色。
+ * 学生端页面不会带上这个类，因此不受影响（那边是深色主题）。
+ */
+
+body.admin-theme {
+  /* ── 品牌青绿 ── */
+  --admin-primary: #1ab394;
+  --admin-primary-hover: #159c81;
+  --admin-primary-tint: #e8f7f4;
+
+  /* ── 灰阶层级 ── */
+  --admin-page-bg: #f5f7f9;
+  --admin-card-bg: #ffffff;
+  --admin-table-head-bg: #f6f8fa;
+  --admin-border: #ebeef5;
+  --admin-border-strong: #dfe4ea;
+
+  /* ── 文字 ── */
+  --admin-text: #303133;
+  --admin-text-secondary: #606266;
+  --admin-text-muted: #909399;
+
+  /* ── 阴影与圆角：比原站的硬边框更柔和 ── */
+  --admin-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --admin-radius: 6px;
+
+  /* ── 覆盖 Element Plus 主色 ──────────────────────────────
+     改这一处，按钮 / 分页当前页 / 输入框聚焦 / 下拉选中 / 链接
+     全部跟着变青绿，无需逐个组件调整 */
+  --el-color-primary: #1ab394;
+  --el-color-primary-light-3: #4fc4ab;
+  --el-color-primary-light-5: #8dd9cb;
+  --el-color-primary-light-7: #bce9e0;
+  --el-color-primary-light-8: #d3f1eb;
+  --el-color-primary-light-9: #e9f8f5;
+  --el-color-primary-dark-2: #159c81;
+
+  /* 表格：表头浅灰、边框收敛 */
+  --el-table-header-bg-color: #f6f8fa;
+  --el-table-header-text-color: #303133;
+  --el-table-border-color: #ebeef5;
+  --el-table-row-hover-bg-color: #f2fbf9;
+}
+
+/* ── 页面底 ─────────────────────────────────────────────── */
+body.admin-theme {
+  background: #f5f7f9;
+}
+
+/* ── 卡片式内容容器（搜索区 + 表格 + 分页共用一张卡） ───── */
+body.admin-theme .admin-card {
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-card);
+  padding: 20px;
+}
+
+/* ── 表格：表头加粗、行高更舒展 ─────────────────────────── */
+body.admin-theme .el-table th.el-table__cell {
+  font-weight: 600;
+}
+
+body.admin-theme .el-table .el-table__cell {
+  padding: 10px 0;
+}
+
+/* 移除 Element Plus 表格默认的底部描边，避免与卡片边框重叠成双线 */
+body.admin-theme .el-table::before {
+  display: none;
+}

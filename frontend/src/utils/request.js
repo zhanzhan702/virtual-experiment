@@ -18,6 +18,18 @@ request.interceptors.request.use(config => {
 request.interceptors.response.use(
   response => response.data,
   error => {
+    const status = error.response?.status
+
+    // 401：token 缺失/过期/无效，清登录态并回登录页
+    // 用 window.location 而非 import router —— router → views → api → request → router 会构成循环依赖
+    if (status === 401) {
+      localStorage.removeItem('token')
+      // 已在登录页时不再跳转，避免刷新循环
+      if (window.location.pathname !== '/') {
+        window.location.href = '/'
+      }
+    }
+
     console.error('请求失败:', error.response?.data || error.message)
     return Promise.reject(error)
   }
