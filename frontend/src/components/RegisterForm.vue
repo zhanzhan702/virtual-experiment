@@ -17,7 +17,7 @@
           v-model="form.password"
           type="password"
           show-password
-          placeholder="密码"
+          placeholder="密码（6-20位，含字母和数字）"
           size="large"
         />
       </el-form-item>
@@ -66,6 +66,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { PASSWORD_PATTERN, PASSWORD_MESSAGE } from '@/constants/password-rule'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -97,7 +98,12 @@ const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
+    // 强度规则与后端 PasswordPolicy 一致，见 @/constants/password-rule
+    {
+      pattern: PASSWORD_PATTERN,
+      message: PASSWORD_MESSAGE,
+      trigger: 'blur'
+    }
   ],
   confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
