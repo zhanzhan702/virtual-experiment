@@ -17,4 +17,7 @@ public class UserVO {
   private String orgId;
   private String orgName;
   private LocalDateTime createdAt;
+
+  /** 最高角色层级，前端据此做路由守卫与菜单显隐（真正的权限拦截在后端） */
+  private Integer maxLevel;
 }

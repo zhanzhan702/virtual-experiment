@@ -15,6 +15,7 @@ import com.example.experiment.service.UserService;
 import com.example.experiment.utils.JwtUtils;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,35 @@ public class UserServiceImpl implements UserService {
     return rolesMapper.selectBatchIds(roleIds).stream()
         .map(Roles::getCode)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public int getMaxLevel(String userId) {
+    if (userId == null) {
+      return 0;
+    }
+    List<UserRoles> userRoles =
+        userRolesMapper.selectList(
+            new LambdaQueryWrapper<UserRoles>().eq(UserRoles::getUserId, userId));
+    if (userRoles.isEmpty()) {
+      return 0;
+    }
+    List<String> roleIds =
+        userRoles.stream().map(UserRoles::getRoleId).collect(Collectors.toList());
+    return rolesMapper.selectBatchIds(roleIds).stream()
+        .map(Roles::getLevel)
+        .filter(Objects::nonNull)
+        .mapToInt(Integer::intValue)
+        .max()
+        .orElse(0);
+  }
+
+  @Override
+  public Users findById(String userId) {
+    if (userId == null) {
+      return null;
+    }
+    return usersMapper.selectById(userId);
   }
 
   @Override
@@ -103,14 +133,16 @@ public class UserServiceImpl implements UserService {
       throw new RuntimeException("用户名或密码错误");
     }
 
-    // 查询角色
+    // 查询角色与最高层级
     List<String> roles = getUserRoleCodes(user.getId());
+    int maxLevel = getMaxLevel(user.getId());
 
-    // 生成 token
-    String token = JwtUtils.generateToken(user.getId(), roles);
+    // 生成 token（maxLevel 一并写入 claim，后续请求无需查库）
+    String token = JwtUtils.generateToken(user.getId(), roles, maxLevel);
 
     // 组装 VO
     UserVO userVO = toUserVO(user);
+    userVO.setMaxLevel(maxLevel);
     LoginVO loginVO = new LoginVO();
     loginVO.setToken(token);
     loginVO.setUser(userVO);
@@ -119,7 +151,8 @@ public class UserServiceImpl implements UserService {
     return loginVO;
   }
 
-  private UserVO toUserVO(Users user) {
+  @Override
+  public UserVO toUserVO(Users user) {
     if (user == null) return null;
     UserVO vo = new UserVO();
     vo.setId(user.getId());
