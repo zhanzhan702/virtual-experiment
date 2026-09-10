@@ -60,7 +60,7 @@ onUnmounted(() => document.body.classList.remove('admin-theme'))
  */
 const menuItems = [
   { path: '/admin/users', label: '用户管理', disabled: false },
-  { path: '/admin/grades', label: '查看学生成绩', disabled: true },
+  { path: '/admin/grades', label: '查看学生成绩', disabled: false },
   { path: '/admin/org', label: '专业班级管理', disabled: true },
   { path: '/admin/stats', label: '统计分析', disabled: true },
   { path: '/admin/profile', label: '个人消息管理', disabled: true }

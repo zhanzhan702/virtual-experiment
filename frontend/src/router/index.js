@@ -18,6 +18,11 @@ const routes = [
         path: 'users',
         name: 'AdminUsers',
         component: () => import('@/views/Admin/UserManageView.vue')
+      },
+      {
+        path: 'grades',
+        name: 'AdminGrades',
+        component: () => import('@/views/Admin/GradeView.vue')
       }
     ]
   },
