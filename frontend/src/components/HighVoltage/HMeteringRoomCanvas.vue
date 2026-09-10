@@ -23,7 +23,12 @@
       <!-- 孔位信息悬浮层（步骤8） -->
       <div v-if="tooltipVisible" class="hole-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
       <!-- 确认键（计量小室全流程常驻，仅步骤11 铅封完成后激活；绝对定位按画布像素） -->
-      <div class="seal-confirm-btn" :class="{ active: sealsDone }" :style="confirmBtnStyle" @click="onConfirmClick" />
+      <div
+        class="seal-confirm-btn"
+        :class="{ active: sealsDone }"
+        :style="confirmBtnStyle"
+        @click="onConfirmClick"
+      />
       <!-- 终端编号提示面板（步骤5-11 常驻；CSS 百分比相对画布定位，画布上方、随画布缩放） -->
       <div v-if="showTerminalGuide" class="terminal-guide-overlay">
         <HMeteringRoomGuide />
@@ -1753,11 +1758,11 @@ function standardStateForStep(order) {
     s.cablePlaced = true
     s.phase = 'left'
     s.connectedCores = []
-      ;['right', 'left'].forEach(side => {
-        CORE_TIPS[side].forEach((core, idx) => {
-          s.connectedCores.push({ side, idx, terminal: core.terminal, color: core.color })
-        })
+    ;['right', 'left'].forEach(side => {
+      CORE_TIPS[side].forEach((core, idx) => {
+        s.connectedCores.push({ side, idx, terminal: core.terminal, color: core.color })
       })
+    })
   }
   if (order >= 10) s.tiePlaced = true // 步骤9 结束：扎带已放（靠背景图体现）
   if (order >= 11) s.switchStates = [...SWITCH_TARGETS_2] // 步骤10 结束（第二次调整完成）
@@ -1769,7 +1774,7 @@ const LS_KEY = () => 'meteringRoom_' + props.experimentId
 function persistState() {
   try {
     localStorage.setItem(LS_KEY(), JSON.stringify(getFullState()))
-  } catch (_) { }
+  } catch (_) {}
 }
 
 // 当前步骤可交互字段（草稿/local 仅影响这些；其余前序结果字段强制按标准推断，防旧草稿污染固定结果）
@@ -1788,7 +1793,7 @@ function restoreDraft(d) {
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
-  } catch (_) { }
+  } catch (_) {}
   if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
   if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
   const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
@@ -1912,7 +1917,7 @@ onMounted(() => {
         // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
         restoreDraft(d || {})
       })
-      .catch(() => { })
+      .catch(() => {})
   }
 })
 // 同组件导航时组件不重新挂载，需监听步骤变化构建开关/孔热区

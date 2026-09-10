@@ -4,27 +4,45 @@
     <div class="replica">
       <!-- 上排：遥控轮次 / 遥信（39-48） -->
       <div class="tg-row">
-        <div v-for="g in groups.top" :key="g.label + g.nums[0]" class="tg-grp" :style="{ '--tg-n': g.nums.length }">
+        <div
+          v-for="g in groups.top"
+          :key="g.label + g.nums[0]"
+          class="tg-grp"
+          :style="{ '--tg-n': g.nums.length }"
+        >
           <!-- 顶部符号行（恒定占位：遥控组填常开/常闭，其余留白 → 数字/横线跨组对齐） -->
           <div class="tg-syms">
             <span v-for="(_, i) in g.nums" :key="i" class="tg-sym">
-              {{ g.symPos === 'top' ? (g.syms[i] || ' ') : ' ' }}
+              {{ g.symPos === 'top' ? g.syms[i] || ' ' : ' ' }}
             </span>
           </div>
           <div class="tg-nums">
             <span v-for="n in g.nums" :key="n" class="tg-num">{{ n }}</span>
           </div>
           <!-- 端子排连接线：每数字一竖线、底部横线相连 -->
-          <svg class="tg-connect" :viewBox="'0 0 ' + g.nums.length * 10 + ' 12'" preserveAspectRatio="none"
-            aria-hidden="true">
-            <line v-for="(_, i) in g.nums" :key="'v' + i" :x1="i * 10 + 5" :x2="i * 10 + 5" y1="0" y2="9" />
+          <svg
+            class="tg-connect"
+            :viewBox="'0 0 ' + g.nums.length * 10 + ' 12'"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line
+              v-for="(_, i) in g.nums"
+              :key="'v' + i"
+              :x1="i * 10 + 5"
+              :x2="i * 10 + 5"
+              y1="0"
+              y2="9"
+            />
             <line :x1="5" :x2="(g.nums.length - 1) * 10 + 5" y1="9" y2="9" />
           </svg>
           <!-- 底部±（仅信号组：±紧贴横线，下方小字贴±）；无±组不渲染，标签大字+远距 -->
           <div v-if="g.symPos === 'bottom'" class="tg-syms tg-syms-bottom">
             <span v-for="(_, i) in g.nums" :key="i" class="tg-sym">{{ g.syms[i] || ' ' }}</span>
           </div>
-          <div class="tg-label" :class="{ 'tg-label-big': g.symPos !== 'bottom' }">{{ g.label }}</div>
+          <div class="tg-label" :class="{ 'tg-label-big': g.symPos !== 'bottom' }">
+            {{ g.label }}
+          </div>
         </div>
       </div>
 
@@ -32,24 +50,42 @@
 
       <!-- 下排：不用 / 告警 / 脉冲 / RS485 / 门接点（13-38） -->
       <div class="tg-row">
-        <div v-for="g in groups.bottom" :key="g.label + g.nums[0]" class="tg-grp" :style="{ '--tg-n': g.nums.length }">
+        <div
+          v-for="g in groups.bottom"
+          :key="g.label + g.nums[0]"
+          class="tg-grp"
+          :style="{ '--tg-n': g.nums.length }"
+        >
           <div class="tg-syms">
             <span v-for="(_, i) in g.nums" :key="i" class="tg-sym">
-              {{ g.symPos === 'top' ? (g.syms[i] || ' ') : ' ' }}
+              {{ g.symPos === 'top' ? g.syms[i] || ' ' : ' ' }}
             </span>
           </div>
           <div class="tg-nums">
             <span v-for="n in g.nums" :key="n" class="tg-num">{{ n }}</span>
           </div>
-          <svg class="tg-connect" :viewBox="'0 0 ' + g.nums.length * 10 + ' 12'" preserveAspectRatio="none"
-            aria-hidden="true">
-            <line v-for="(_, i) in g.nums" :key="'v' + i" :x1="i * 10 + 5" :x2="i * 10 + 5" y1="0" y2="9" />
+          <svg
+            class="tg-connect"
+            :viewBox="'0 0 ' + g.nums.length * 10 + ' 12'"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line
+              v-for="(_, i) in g.nums"
+              :key="'v' + i"
+              :x1="i * 10 + 5"
+              :x2="i * 10 + 5"
+              y1="0"
+              y2="9"
+            />
             <line :x1="5" :x2="(g.nums.length - 1) * 10 + 5" y1="9" y2="9" />
           </svg>
           <div v-if="g.symPos === 'bottom'" class="tg-syms tg-syms-bottom">
             <span v-for="(_, i) in g.nums" :key="i" class="tg-sym">{{ g.syms[i] || ' ' }}</span>
           </div>
-          <div class="tg-label" :class="{ 'tg-label-big': g.symPos !== 'bottom' }">{{ g.label }}</div>
+          <div class="tg-label" :class="{ 'tg-label-big': g.symPos !== 'bottom' }">
+            {{ g.label }}
+          </div>
         </div>
       </div>
     </div>
@@ -177,12 +213,12 @@ const groups = {
 }
 
 /* 常开/常闭（顶部符号）字号 */
-.tg-syms:not(.tg-syms-bottom)>.tg-sym {
+.tg-syms:not(.tg-syms-bottom) > .tg-sym {
   font-size: var(--tg-sym-fs);
 }
 
 /* ±号（底部符号）字号，独立控制、较小于常开/常闭 */
-.tg-syms-bottom>.tg-sym {
+.tg-syms-bottom > .tg-sym {
   font-size: var(--tg-bottom-sym-fs);
 }
 

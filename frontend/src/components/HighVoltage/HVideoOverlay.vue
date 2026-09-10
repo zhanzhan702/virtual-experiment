@@ -2,14 +2,7 @@
 <template>
   <Teleport to="body">
     <div v-if="visible" class="video-overlay">
-      <video
-        ref="videoRef"
-        :src="src"
-        autoplay
-        playsinline
-        muted
-        @ended="$emit('ended')"
-      ></video>
+      <video ref="videoRef" :src="src" autoplay playsinline muted @ended="$emit('ended')"></video>
     </div>
   </Teleport>
 </template>
