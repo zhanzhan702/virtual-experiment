@@ -32,12 +32,6 @@ public class AdminGradeController {
 
   private final AdminGradeService adminGradeService;
 
-  /** 完整组织架构树（5 级嵌套） */
-  @GetMapping("/org/tree")
-  public ResponseEntity<?> getOrgTree() {
-    return ResponseEntity.ok(adminGradeService.getOrgTree());
-  }
-
   /** 某节点下所有班级的成绩汇总；orgId 留空表示全校 */
   @GetMapping("/grades/classes")
   public ResponseEntity<?> getClassSummaries(@RequestParam(required = false) String orgId) {

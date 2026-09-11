@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.experiment.dto.admin.ClassSummaryVO;
-import com.example.experiment.dto.admin.OrgTreeNodeVO;
 import com.example.experiment.dto.admin.StudentExperimentVO;
 import com.example.experiment.dto.admin.StudentGradeVO;
 import com.example.experiment.dto.admin.UserListVO;
@@ -22,7 +21,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,35 +44,6 @@ public class AdminGradeServiceImpl implements AdminGradeService {
   private final UsersMapper usersMapper;
   private final UserExperimentsMapper userExperimentsMapper;
   private final UserService userService;
-
-  // ──────────────────────────── 组织树 ────────────────────────────
-
-  @Override
-  public List<OrgTreeNodeVO> getOrgTree() {
-    List<Organization> all = organizationMapper.selectAllOrdered();
-
-    Map<String, OrgTreeNodeVO> byId = new LinkedHashMap<>();
-    for (Organization org : all) {
-      OrgTreeNodeVO node = new OrgTreeNodeVO();
-      node.setId(org.getId());
-      node.setName(org.getName());
-      node.setType(org.getType());
-      byId.put(org.getId(), node);
-    }
-
-    List<OrgTreeNodeVO> roots = new ArrayList<>();
-    for (Organization org : all) {
-      OrgTreeNodeVO node = byId.get(org.getId());
-      OrgTreeNodeVO parent = org.getParentId() == null ? null : byId.get(org.getParentId());
-      if (parent == null) {
-        // 无父节点（或被引用的父节点不存在）视为根
-        roots.add(node);
-      } else {
-        parent.getChildren().add(node);
-      }
-    }
-    return roots;
-  }
 
   // ──────────────────────── 班级成绩汇总 ────────────────────────
 

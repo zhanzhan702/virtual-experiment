@@ -2,7 +2,6 @@ package com.example.experiment.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.experiment.dto.admin.ClassSummaryVO;
-import com.example.experiment.dto.admin.OrgTreeNodeVO;
 import com.example.experiment.dto.admin.StudentExperimentVO;
 import com.example.experiment.dto.admin.StudentGradeVO;
 import java.math.BigDecimal;
@@ -14,9 +13,6 @@ import java.util.List;
  * <p>界面上的分数一律为**百分制**（0-100），由系统原始加权分除以模板步骤分合计换算而来。 步骤分合计从 experiment_steps 实时求和，模板分值调整后历史分数自动跟随。
  */
 public interface AdminGradeService {
-
-  /** 完整组织架构树（5 级嵌套） */
-  List<OrgTreeNodeVO> getOrgTree();
 
   /**
    * 某节点下所有班级的成绩汇总。
