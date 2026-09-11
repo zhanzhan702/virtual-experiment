@@ -23,6 +23,13 @@ const routes = [
         path: 'grades',
         name: 'AdminGrades',
         component: () => import('@/views/Admin/GradeView.vue')
+      },
+      {
+        path: 'org',
+        name: 'AdminOrg',
+        component: () => import('@/views/Admin/OrgManageView.vue'),
+        // 覆盖父路由的 minLevel：组织架构改动影响全局，后端门槛是管理员
+        meta: { minLevel: 30 }
       }
     ]
   },

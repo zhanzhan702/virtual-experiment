@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fetchOrgTree } from '@/api/admin-grade'
 
@@ -55,10 +55,13 @@ const defaultExpanded = computed(() => {
 })
 
 /**
- * 抛给父组件时带上从根到当前节点的名称链。
+ * 抛给父组件时补充三项信息，省得父组件再去遍历树。
  *
- * <p>el-tree 的 node-click 第二个参数 treeNode 有 parent 链，
- * 顺着往上走即可得到路径；直接遍历 data 是拿不到的（子节点没有父引用）。
+ * <ul>
+ *   <li>{@code pathNames} 从根到当前节点的名称链（面包屑用）—— el-tree 的
+ *       node-click 第二个参数 treeNode 有 parent 链，顺着往上走即可；直接遍历 data 拿不到，子节点没有父引用
+ *   <li>{@code siblings} 同级节点列表（含自身），父组件据此判断能否上移 / 下移
+ * </ul>
  */
 function onNodeClick(data, treeNode) {
   const pathNames = []
@@ -67,10 +70,14 @@ function onNodeClick(data, treeNode) {
     if (cursor.data?.name) pathNames.unshift(cursor.data.name)
     cursor = cursor.parent
   }
-  emit('select', { ...data, pathNames })
+
+  const parentData = treeNode.parent?.data
+  const siblings = parentData?.children ?? tree.value
+
+  emit('select', { ...data, pathNames, siblings })
 }
 
-onMounted(async () => {
+async function load() {
   loading.value = true
   try {
     tree.value = await fetchOrgTree()
@@ -79,14 +86,31 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 
 /** 供父组件在需要时定位某个节点 */
 function setCurrentKey(key) {
   treeRef.value?.setCurrentKey(key)
 }
 
-defineExpose({ setCurrentKey })
+/**
+ * 重新拉取树数据。
+ *
+ * <p>增删改后调用 —— 依赖 default-expanded-keys 不足以保留展开状态（它只在首次渲染生效），
+ * 因此重载后会按传入的 key 重新定位并选中，避免整棵树折叠回初始状态。
+ */
+async function refresh(keepKey) {
+  await load()
+  if (keepKey) {
+    // 等 el-tree 用新数据渲染完再设置选中，否则节点还不存在
+    await nextTick()
+    treeRef.value?.setCurrentKey(keepKey)
+  }
+}
+
+defineExpose({ refresh, setCurrentKey })
 </script>
 
 <style scoped>

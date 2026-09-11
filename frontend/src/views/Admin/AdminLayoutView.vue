@@ -55,16 +55,29 @@ onMounted(() => document.body.classList.add('admin-theme'))
 onUnmounted(() => document.body.classList.remove('admin-theme'))
 
 /**
- * 顶栏入口。后 4 个功能尚未开发，先占位渲染并置灰，
- * 避免后续每加一个页面都要重排版；上线时只需把对应 disabled 改为 false。
+ * 顶栏入口。
+ *
+ * <p>{@code disabled} 标记尚未开发的功能，先占位渲染并置灰，避免每加一个页面都要重排版；
+ * 上线时把对应 disabled 改为 false。
+ *
+ * <p>{@code minLevel} 是访问该页所需的最低角色层级，与路由 meta 保持一致：
+ * 权限不够时菜单项置灰，避免老师点进「专业班级管理」后每个操作都被后端拒绝。
  */
-const menuItems = [
-  { path: '/admin/users', label: '用户管理', disabled: false },
-  { path: '/admin/grades', label: '查看学生成绩', disabled: false },
-  { path: '/admin/org', label: '专业班级管理', disabled: true },
-  { path: '/admin/stats', label: '统计分析', disabled: true },
-  { path: '/admin/profile', label: '个人消息管理', disabled: true }
+const MENU_ITEMS = [
+  { path: '/admin/users', label: '用户管理', disabled: false, minLevel: 20 },
+  { path: '/admin/grades', label: '查看学生成绩', disabled: false, minLevel: 20 },
+  { path: '/admin/org', label: '专业班级管理', disabled: false, minLevel: 30 },
+  { path: '/admin/stats', label: '统计分析', disabled: true, minLevel: 30 },
+  { path: '/admin/profile', label: '个人消息管理', disabled: true, minLevel: 20 }
 ]
+
+const menuItems = computed(() =>
+  MENU_ITEMS.map(item => ({
+    ...item,
+    // 未开发 或 权限不足，都置灰
+    disabled: item.disabled || authStore.maxLevel < item.minLevel
+  }))
+)
 
 const activeMenu = computed(() => router.currentRoute.value.path)
 
