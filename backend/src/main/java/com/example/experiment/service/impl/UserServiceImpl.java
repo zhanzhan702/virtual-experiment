@@ -1,6 +1,7 @@
 package com.example.experiment.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
@@ -8,6 +9,7 @@ import com.example.experiment.dto.auth.UserVO;
 import com.example.experiment.entity.Roles;
 import com.example.experiment.entity.UserRoles;
 import com.example.experiment.entity.Users;
+import com.example.experiment.exception.ApiException;
 import com.example.experiment.mapper.RolesMapper;
 import com.example.experiment.mapper.UserRolesMapper;
 import com.example.experiment.mapper.UsersMapper;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +93,34 @@ public class UserServiceImpl implements UserService {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     usersMapper.insert(user);
     return user;
+  }
+
+  @Override
+  @Transactional
+  public void changePassword(String userId, ChangePasswordDTO dto) {
+    // 先做不涉及查库的格式校验，再比对密码 —— BCrypt 是刻意设计成慢的，
+    // 让格式错误的请求先被挡掉，避免无谓的计算开销
+    if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+      throw ApiException.badRequest("两次输入的密码不一致");
+    }
+
+    Users user = usersMapper.selectById(userId);
+    if (user == null) {
+      throw ApiException.notFound("用户不存在");
+    }
+
+    if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+      throw ApiException.badRequest("原密码不正确");
+    }
+
+    if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+      throw ApiException.badRequest("新密码不能与原密码相同");
+    }
+
+    Users update = new Users();
+    update.setId(userId);
+    update.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    usersMapper.updateById(update);
   }
 
   @Override

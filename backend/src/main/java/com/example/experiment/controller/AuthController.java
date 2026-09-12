@@ -1,5 +1,6 @@
 package com.example.experiment.controller;
 
+import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,5 +75,18 @@ public class AuthController {
             "user", userVO,
             "roles", userService.getUserRoleCodes(userId),
             "maxLevel", userVO.getMaxLevel()));
+  }
+
+  /**
+   * 自助改密：修改当前登录用户自己的密码。
+   *
+   * <p>无 {@code @RequireRole} —— 任何登录用户都能改自己的密码。
+   *
+   * <p>改密成功后前端会清 token 跳回登录页；服务端不做会话失效处理（JWT 无状态，且无 token_version）。
+   */
+  @PutMapping("/password")
+  public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
+    userService.changePassword(UserContext.getUserId(), dto);
+    return ResponseEntity.ok(Map.of("message", "密码修改成功"));
   }
 }

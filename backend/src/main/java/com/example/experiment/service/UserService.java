@@ -1,5 +1,6 @@
 package com.example.experiment.service;
 
+import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
@@ -32,6 +33,14 @@ public interface UserService {
 
   /** 登录：校验密码，返回 token */
   LoginVO login(LoginDTO dto);
+
+  /**
+   * 自助改密：修改当前登录用户自己的密码。
+   *
+   * <p>必须验证原密码 —— 否则任何拿到 token 的人都能改掉密码，把真正的主人锁在系统外。 校验不通过时抛 {@link
+   * com.example.experiment.exception.ApiException}（400）。
+   */
+  void changePassword(String userId, ChangePasswordDTO dto);
 
   /** Entity → VO（不含 maxLevel，调用方按需补充） */
   UserVO toUserVO(Users user);
