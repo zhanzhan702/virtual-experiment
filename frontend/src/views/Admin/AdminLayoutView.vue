@@ -68,7 +68,7 @@ const MENU_ITEMS = [
   { path: '/admin/grades', label: '查看学生成绩', disabled: false, minLevel: 20 },
   { path: '/admin/org', label: '专业班级管理', disabled: false, minLevel: 30 },
   { path: '/admin/stats', label: '统计分析', disabled: true, minLevel: 30 },
-  { path: '/admin/profile', label: '个人消息管理', disabled: true, minLevel: 20 }
+  { path: '/admin/profile', label: '个人消息管理', disabled: false, minLevel: 20 }
 ]
 
 const menuItems = computed(() =>

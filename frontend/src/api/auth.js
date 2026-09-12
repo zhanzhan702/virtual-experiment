@@ -17,3 +17,11 @@ export function register(data) {
 export function getCurrentUser() {
   return request.get('/auth/me')
 }
+
+/**
+ * 自助改密（改自己的密码，需提供原密码）
+ * @param {{oldPassword:string,newPassword:string,confirmPassword:string}} data
+ */
+export function changePassword(data) {
+  return request.put('/auth/password', data)
+}

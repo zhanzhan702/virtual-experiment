@@ -27,13 +27,12 @@ public class GlobalExceptionHandler {
   /**
    * 请求体解析失败（JSON 格式错误、编码不是 UTF-8、类型不匹配等）。
    *
-   * <p>不处理的话 Spring 会返回默认错误体 {@code {timestamp,status,error,path}}，
-   * 前端拿不到 {@code message} 字段，只能显示「请求失败」这类无信息量的提示。
+   * <p>不处理的话 Spring 会返回默认错误体 {@code {timestamp,status,error,path}}， 前端拿不到 {@code message}
+   * 字段，只能显示「请求失败」这类无信息量的提示。
    */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<?> handleUnreadable(HttpMessageNotReadableException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(Map.of("message", "请求内容格式不正确"));
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "请求内容格式不正确"));
   }
 
   /**
