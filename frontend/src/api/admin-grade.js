@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
-/** 完整组织架构树（5 级嵌套） */
-export function fetchOrgTree() {
-  return request.get('/admin/org/tree')
-}
+/*
+ * 组织架构树接口不在这里 —— /admin/org/tree 已迁到 AdminOrgController，
+ * 前端对应 admin-org.js 的 fetchOrgTree，并由 stores/orgTree.js 统一缓存。
+ */
 
 /**
  * 某节点下所有班级的成绩汇总
@@ -11,6 +11,18 @@ export function fetchOrgTree() {
  */
 export function fetchClassSummaries(orgId) {
   return request.get('/admin/grades/classes', { params: { orgId } })
+}
+
+/**
+ * 单个班级的成绩概况：完成率、平均/最高/最低分、分数段分布、未完成名单
+ *
+ * 分数口径与 fetchClassSummaries 的 avgScore 一致（高压分与低压分混在同一批里统计），
+ * 因此同一个班在两处的平均分必然相同。
+ *
+ * @param {string} orgId 必须是班级节点，传年级/学院会 404
+ */
+export function fetchClassOverview(orgId) {
+  return request.get(`/admin/grades/classes/${orgId}/overview`)
 }
 
 /**

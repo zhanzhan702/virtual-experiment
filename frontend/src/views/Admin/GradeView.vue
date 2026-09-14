@@ -23,30 +23,34 @@
         @drill="drillIntoClass"
       />
 
-      <!-- 选中班级：学生成绩 -->
-      <StudentGradeTable
-        v-else
-        :rows="studentRows"
-        :loading="loading"
-        :total="studentTotal"
-        :page="query.page"
-        :size="query.size"
-        @search="onSearch"
-        @page-change="onPageChange"
-        @detail="onDetail"
-      />
+      <!-- 选中班级：概况卡 + 学生成绩 -->
+      <template v-else>
+        <ClassOverviewCard :data="overview" :loading="overviewLoading" />
+
+        <StudentGradeTable
+          :rows="studentRows"
+          :loading="loading"
+          :total="studentTotal"
+          :page="query.page"
+          :size="query.size"
+          @search="onSearch"
+          @page-change="onPageChange"
+          @detail="onDetail"
+        />
+      </template>
     </section>
 
-    <StudentGradeDialog ref="detailDialogRef" @changed="onScoreChanged" />
+    <StudentGradeDialog ref="detailDialogRef" @changed="refreshCurrentView" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { fetchClassSummaries, fetchStudentGrades } from '@/api/admin-grade'
+import { fetchClassOverview, fetchClassSummaries, fetchStudentGrades } from '@/api/admin-grade'
 import OrgTreePanel from '@/components/Admin/OrgTreePanel.vue'
 import ClassSummaryTable from '@/components/Admin/ClassSummaryTable.vue'
+import ClassOverviewCard from '@/components/Admin/ClassOverviewCard.vue'
 import StudentGradeTable from '@/components/Admin/StudentGradeTable.vue'
 import StudentGradeDialog from '@/components/Admin/StudentGradeDialog.vue'
 
@@ -56,6 +60,11 @@ const detailDialogRef = ref(null)
 const loading = ref(false)
 const mode = ref('summary')
 const currentNode = ref(null)
+
+// 概况卡单独维护 loading：它与学生表是两个请求，用同一个标志会让其中一方先回来时
+// 就把另一方的骨架屏也关掉
+const overview = ref(null)
+const overviewLoading = ref(false)
 
 const classRows = ref([])
 const studentRows = ref([])
@@ -74,14 +83,20 @@ function onSelectNode(node) {
   query.page = 1
   query.name = ''
 
-  // 班级节点看学生名单，其余节点看其下班级汇总
+  // 班级节点看概况 + 学生名单，其余节点看其下班级汇总
   if (node.type === 'class') {
     mode.value = 'students'
-    loadStudents()
+    loadClassView()
   } else {
     mode.value = 'summary'
     loadClasses(node.id)
   }
+}
+
+/** 班级视图的两块数据（概况卡 + 学生表）一起拉 */
+function loadClassView() {
+  loadStudents()
+  loadOverview()
 }
 
 async function loadClasses(orgId) {
@@ -120,6 +135,27 @@ async function loadStudents() {
   }
 }
 
+/**
+ * 拉班级概况。
+ *
+ * <p>失败时只清空概况卡并提示，不影响下方的学生成绩表 —— 概况是附加信息，
+ * 不该因为它出错就让整个页面看起来挂了。
+ */
+async function loadOverview() {
+  const orgId = currentNode.value?.id
+  if (!orgId) return
+
+  overviewLoading.value = true
+  try {
+    overview.value = await fetchClassOverview(orgId)
+  } catch (err) {
+    overview.value = null
+    ElMessage.error(err.response?.data?.message || '加载班级概况失败')
+  } finally {
+    overviewLoading.value = false
+  }
+}
+
 /** 从汇总表下钻到某个班级 */
 function drillIntoClass(row) {
   currentNode.value = {
@@ -132,7 +168,7 @@ function drillIntoClass(row) {
   mode.value = 'students'
   query.page = 1
   query.name = ''
-  loadStudents()
+  loadClassView()
 }
 
 function onSearch(name) {
@@ -154,12 +190,12 @@ function onDetail(row) {
 /**
  * 弹窗里改过分后刷新当前视图。
  *
- * 改动同时影响分数与「人工改分」标记，还会波及班级汇总的平均分，
+ * 改动同时影响分数、人工改分标记，还会波及概况卡与班级汇总的平均分，
  * 因此整块重新拉取，比只改内存里那一行更不容易漏更新。
  */
-function onScoreChanged() {
+function refreshCurrentView() {
   if (mode.value === 'students') {
-    loadStudents()
+    loadClassView()
   } else {
     loadClasses(currentNode.value?.id)
   }
