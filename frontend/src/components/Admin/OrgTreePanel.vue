@@ -32,13 +32,19 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { fetchOrgTree } from '@/api/admin-grade'
+import { useOrgTreeStore } from '@/stores/orgTree'
 
 const emit = defineEmits(['select'])
 
-const loading = ref(false)
-const tree = ref([])
+const orgTreeStore = useOrgTreeStore()
 const treeRef = ref(null)
+
+/**
+ * 读到的是 store 里的共享数据，不是本地快照 ——
+ * 「查看学生成绩」与「专业班级管理」两个实例因此始终一致，任一处增删改另一处自动更新。
+ */
+const tree = computed(() => orgTreeStore.tree)
+const loading = computed(() => orgTreeStore.loading)
 
 /** 默认展开到年级层（学校 / 学院 / 专业 / 年级 四层展开） */
 const defaultExpanded = computed(() => {
@@ -77,18 +83,19 @@ function onNodeClick(data, treeNode) {
   emit('select', { ...data, pathNames, siblings })
 }
 
-async function load() {
-  loading.value = true
+async function load(force = false) {
   try {
-    tree.value = await fetchOrgTree()
+    await orgTreeStore.ensure(force)
   } catch (err) {
     ElMessage.error(err.response?.data?.message || '加载组织架构失败')
-  } finally {
-    loading.value = false
   }
 }
 
-onMounted(load)
+/*
+ * 进页面时 ensure 一次：store 里已有数据就直接命中，不重发请求。
+ * 「查看学生成绩」与「专业班级管理」来回切时，只有第一次会真的打 /admin/org/tree。
+ */
+onMounted(() => load())
 
 /** 供父组件在需要时定位某个节点 */
 function setCurrentKey(key) {
@@ -100,9 +107,11 @@ function setCurrentKey(key) {
  *
  * <p>增删改后调用 —— 依赖 default-expanded-keys 不足以保留展开状态（它只在首次渲染生效），
  * 因此重载后会按传入的 key 重新定位并选中，避免整棵树折叠回初始状态。
+ *
+ * <p>强制重拉（force），因为调用方刚改过数据，缓存已不可信。
  */
 async function refresh(keepKey) {
-  await load()
+  await load(true)
   if (keepKey) {
     // 等 el-tree 用新数据渲染完再设置选中，否则节点还不存在
     await nextTick()
