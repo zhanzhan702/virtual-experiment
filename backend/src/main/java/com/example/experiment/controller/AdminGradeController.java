@@ -38,6 +38,12 @@ public class AdminGradeController {
     return ResponseEntity.ok(adminGradeService.getClassSummaries(orgId, UserContext.getMaxLevel()));
   }
 
+  /** 单个班级的成绩概况：完成率、平均/最高/最低分、分数段分布、未完成名单 */
+  @GetMapping("/grades/classes/{orgId}/overview")
+  public ResponseEntity<?> getClassOverview(@PathVariable String orgId) {
+    return ResponseEntity.ok(adminGradeService.getClassOverview(orgId, UserContext.getMaxLevel()));
+  }
+
   /** 某节点下学生的成绩分页 */
   @GetMapping("/grades/students")
   public ResponseEntity<?> getStudentGrades(

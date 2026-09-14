@@ -68,13 +68,14 @@ public interface UsersMapper extends BaseMapper<Users> {
   @Select(
       """
       <script>
-      SELECT u.id       AS id,
-             u.username AS username,
-             u.name     AS name,
-             u.gender   AS gender,
-             u.org_id   AS orgId,
-             u.phone    AS phone,
-             o.path     AS orgName
+      SELECT u.id         AS id,
+             u.username   AS username,
+             u.name       AS name,
+             u.gender     AS gender,
+             u.student_no AS studentNo,
+             u.org_id     AS orgId,
+             u.phone      AS phone,
+             o.path       AS orgName
       FROM users u
       JOIN organization o ON o.id = u.org_id
       WHERE o.path LIKE CONCAT(#{pathPrefix}, '%')

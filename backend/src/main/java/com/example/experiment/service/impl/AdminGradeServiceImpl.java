@@ -3,9 +3,12 @@ package com.example.experiment.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.experiment.dto.admin.ClassOverviewVO;
 import com.example.experiment.dto.admin.ClassSummaryVO;
+import com.example.experiment.dto.admin.ScoreBucketVO;
 import com.example.experiment.dto.admin.StudentExperimentVO;
 import com.example.experiment.dto.admin.StudentGradeVO;
+import com.example.experiment.dto.admin.UnfinishedStudentVO;
 import com.example.experiment.dto.admin.UserListVO;
 import com.example.experiment.dto.admin.UserScoreRowVO;
 import com.example.experiment.entity.Organization;
@@ -115,6 +118,124 @@ public class AdminGradeServiceImpl implements AdminGradeService {
     return result;
   }
 
+  // ──────────────────────── 班级概况 ────────────────────────
+
+  @Override
+  public ClassOverviewVO getClassOverview(String orgId, int myMaxLevel) {
+    Organization cls = orgId == null ? null : organizationMapper.selectById(orgId);
+    if (cls == null || !"class".equals(cls.getType())) {
+      throw ApiException.notFound("班级不存在");
+    }
+
+    List<UserListVO> members = loadStudentsInClasses(List.of(orgId), myMaxLevel);
+    Map<String, Map<String, BestScore>> scoresByUser =
+        loadBestScoresByUser(members.stream().map(UserListVO::getId).toList());
+
+    int highDone = 0;
+    int lowDone = 0;
+    int bothDone = 0;
+    // 与 getClassSummaries 同一口径：高压分与低压分混在同一批里统计，
+    // 这样一个班在汇总表和概况卡上的平均分永远相同。改这里必须同步改那边。
+    List<BigDecimal> scores = new ArrayList<>();
+    List<UnfinishedStudentVO> unfinished = new ArrayList<>();
+
+    for (UserListVO student : members) {
+      // 用 getOrDefault 而非 get + null 判断：完全没做过实验的学生也要进未完成名单
+      Map<String, BestScore> byCategory = scoresByUser.getOrDefault(student.getId(), Map.of());
+      BestScore high = byCategory.get(HIGH);
+      BestScore low = byCategory.get(LOW);
+
+      if (high != null) {
+        highDone++;
+        scores.add(high.score());
+      }
+      if (low != null) {
+        lowDone++;
+        scores.add(low.score());
+      }
+
+      if (high != null && low != null) {
+        bothDone++;
+      } else {
+        UnfinishedStudentVO row = new UnfinishedStudentVO();
+        row.setUserId(student.getId());
+        row.setName(student.getName());
+        row.setStudentNo(student.getStudentNo());
+        row.setMissingHigh(high == null);
+        row.setMissingLow(low == null);
+        unfinished.add(row);
+      }
+    }
+
+    ClassOverviewVO vo = new ClassOverviewVO();
+    vo.setStudentCount(members.size());
+    vo.setHighDone(highDone);
+    vo.setLowDone(lowDone);
+    vo.setHighDoneRate(toRate(highDone, members.size()));
+    vo.setLowDoneRate(toRate(lowDone, members.size()));
+    vo.setOverallDoneRate(toRate(bothDone, members.size()));
+    vo.setAvgScore(average(scores));
+    vo.setMaxScore(scores.stream().max(BigDecimal::compareTo).orElse(null));
+    vo.setMinScore(scores.stream().min(BigDecimal::compareTo).orElse(null));
+    vo.setBuckets(buildBuckets(scores));
+    vo.setUnfinished(unfinished);
+    return vo;
+  }
+
+  /**
+   * 占比（整数百分比）。
+   *
+   * <p>总数 0 时返回 null 而非 0 —— 空班级显示「完成率 0%」会让人读成「全班都没做」， 而真实情况是「班里没有人」。前端据此显示「—」。
+   */
+  private Integer toRate(int part, int total) {
+    if (total <= 0) {
+      return null;
+    }
+    return Math.round(part * 100f / total);
+  }
+
+  /** 固定 5 档，空档也返回（count 0），前端不必自己补列 */
+  private List<ScoreBucketVO> buildBuckets(List<BigDecimal> scores) {
+    String[] labels = {"优 (90-100)", "良 (80-89)", "中 (70-79)", "及格 (60-69)", "不及格 (<60)"};
+    int[] counts = new int[labels.length];
+    for (BigDecimal score : scores) {
+      counts[bucketIndex(score)]++;
+    }
+
+    List<ScoreBucketVO> buckets = new ArrayList<>(labels.length);
+    for (int i = 0; i < labels.length; i++) {
+      ScoreBucketVO bucket = new ScoreBucketVO();
+      bucket.setLabel(labels[i]);
+      bucket.setCount(counts[i]);
+      bucket.setRatio(toRate(counts[i], scores.size()));
+      buckets.add(bucket);
+    }
+    return buckets;
+  }
+
+  /**
+   * 分数落在哪一档。
+   *
+   * <p>用 {@code intValue()} 截断即可 —— 档位边界（60/70/80/90）都是整数，89.9 截断成 89 仍落在 「良」，与标签「80-89」一致，不会出现
+   * 89.9 掉进「优」的错位。
+   */
+  private int bucketIndex(BigDecimal score) {
+    int value = score.intValue();
+    if (value >= 90) {
+      return 0;
+    }
+    if (value >= 80) {
+      return 1;
+    }
+    if (value >= 70) {
+      return 2;
+    }
+    if (value >= 60) {
+      return 3;
+    }
+    return 4;
+  }
+
   // ───────────────────────── 学生成绩 ─────────────────────────
 
   @Override
@@ -138,6 +259,7 @@ public class AdminGradeServiceImpl implements AdminGradeService {
       vo.setUserId(student.getId());
       vo.setUsername(student.getUsername());
       vo.setName(student.getName());
+      vo.setStudentNo(student.getStudentNo());
       applyCategory(byCategory.get(HIGH), true, vo);
       applyCategory(byCategory.get(LOW), false, vo);
       rows.add(vo);

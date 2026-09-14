@@ -1,6 +1,7 @@
 package com.example.experiment.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.example.experiment.dto.admin.ClassOverviewVO;
 import com.example.experiment.dto.admin.ClassSummaryVO;
 import com.example.experiment.dto.admin.StudentExperimentVO;
 import com.example.experiment.dto.admin.StudentGradeVO;
@@ -20,6 +21,16 @@ public interface AdminGradeService {
    * <p>传年级返回其下所有班级，传班级返回它自己，传学院返回其下所有年级的所有班级 —— 逻辑统一，不必按节点类型分支。 空班级也会返回（人数 0），否则新建的班级在页面上不可见。
    */
   List<ClassSummaryVO> getClassSummaries(String orgId, int myMaxLevel);
+
+  /**
+   * 单个班级的成绩概况：完成率、平均/最高/最低分、分数段分布、未完成名单。
+   *
+   * <p>{@code orgId} 必须是班级节点（传年级/学院会 404）—— 这个视图是为「点开一个班看它怎么样」设计的， 多班对比由 {@link #getClassSummaries}
+   * 承担。
+   *
+   * <p>分数口径与 {@link #getClassSummaries} 一致，两处的平均分必然相同。
+   */
+  ClassOverviewVO getClassOverview(String orgId, int myMaxLevel);
 
   /** 某节点下学生的成绩分页（含无任何实验记录的学生） */
   IPage<StudentGradeVO> getStudentGrades(

@@ -10,6 +10,7 @@ public class StudentGradeVO {
   private String userId;
   private String username;
   private String name;
+  private String studentNo;
 
   /** 高压是否已完成（存在 status=1 的记录） */
   private Boolean highDone;

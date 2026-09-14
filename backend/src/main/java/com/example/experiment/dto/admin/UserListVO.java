@@ -11,6 +11,9 @@ public class UserListVO {
   private String name;
   private String gender;
 
+  /** 学号。只有 selectStudentsUnderOrg 会取回；用户管理页的查询不取，那里为 null */
+  private String studentNo;
+
   /** 所属组织节点 ID。成绩页按班级归组时使用；用户管理页不展示 */
   private String orgId;
 
