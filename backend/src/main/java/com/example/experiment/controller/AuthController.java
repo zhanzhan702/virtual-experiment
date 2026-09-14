@@ -4,6 +4,7 @@ import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
+import com.example.experiment.dto.auth.UpdateProfileDTO;
 import com.example.experiment.dto.auth.UserVO;
 import com.example.experiment.entity.Users;
 import com.example.experiment.service.UserService;
@@ -88,5 +89,18 @@ public class AuthController {
   public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
     userService.changePassword(UserContext.getUserId(), dto);
     return ResponseEntity.ok(Map.of("message", "密码修改成功"));
+  }
+
+  /**
+   * 自助改资料：修改当前登录用户自己的姓名、性别、生日、手机号、邮箱。
+   *
+   * <p>无 {@code @RequireRole} —— 任何登录用户都能改自己的资料。<b>userId 只取自 UserContext，
+   * 不接受请求体传入</b>，因此不存在「改别人资料」的越权路径；可改字段由 DTO 的字段白名单界定。
+   *
+   * <p>返回更新后的用户信息，前端直接用它刷新本地 store（顶栏显示名随之变化），无需再调 /me。
+   */
+  @PutMapping("/profile")
+  public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileDTO dto) {
+    return ResponseEntity.ok(userService.updateProfile(UserContext.getUserId(), dto));
   }
 }

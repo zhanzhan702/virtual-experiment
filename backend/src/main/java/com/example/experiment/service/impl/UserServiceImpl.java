@@ -1,15 +1,19 @@
 package com.example.experiment.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
+import com.example.experiment.dto.auth.UpdateProfileDTO;
 import com.example.experiment.dto.auth.UserVO;
+import com.example.experiment.entity.Organization;
 import com.example.experiment.entity.Roles;
 import com.example.experiment.entity.UserRoles;
 import com.example.experiment.entity.Users;
 import com.example.experiment.exception.ApiException;
+import com.example.experiment.mapper.OrganizationMapper;
 import com.example.experiment.mapper.RolesMapper;
 import com.example.experiment.mapper.UserRolesMapper;
 import com.example.experiment.mapper.UsersMapper;
@@ -31,6 +35,7 @@ public class UserServiceImpl implements UserService {
   private final UserRolesMapper userRolesMapper;
   private final RolesMapper rolesMapper;
   private final UsersMapper usersMapper;
+  private final OrganizationMapper organizationMapper;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   @Override
@@ -123,6 +128,66 @@ public class UserServiceImpl implements UserService {
     usersMapper.updateById(update);
   }
 
+  /**
+   * 自助改资料。
+   *
+   * <p><b>必须用 {@code LambdaUpdateWrapper} 而非 {@code updateById}</b> —— 后者对 null 字段直接跳过， 而「清空手机号 /
+   * 邮箱 / 生日」恰恰要把这几列写回 NULL。用 updateById 的话用户删掉手机号后 界面提示保存成功、重新打开却发现旧号码还在（与撤销改分踩的是同一个坑，见
+   * AdminGradeServiceImpl）。
+   */
+  @Override
+  @Transactional
+  public UserVO updateProfile(String userId, UpdateProfileDTO dto) {
+    if (usersMapper.selectById(userId) == null) {
+      throw ApiException.notFound("用户不存在");
+    }
+
+    usersMapper.update(
+        null,
+        Wrappers.<Users>lambdaUpdate()
+            .eq(Users::getId, userId)
+            .set(Users::getName, dto.getName().trim())
+            .set(Users::getGender, normalizeGender(dto.getGender()))
+            .set(Users::getBirthday, dto.getBirthday())
+            .set(Users::getPhone, blankToNull(dto.getPhone()))
+            .set(Users::getEmail, blankToNull(dto.getEmail())));
+
+    return toUserVO(usersMapper.selectById(userId));
+  }
+
+  /** 空串归一成 null，避免库里同时存在「''」和「NULL」两种「没填」 */
+  private String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
+  /**
+   * 性别归一。
+   *
+   * <p>users.gender 是 {@code TINYINT DEFAULT 0}，不能存空串（会被 MySQL 隐式转成 0 并产生告警）， 因此空值统一落成 "0"（未设置）。
+   */
+  private String normalizeGender(String value) {
+    return value == null || value.isBlank() ? "0" : value;
+  }
+
+  /**
+   * 取组织节点的完整路径作为「单位/班级」显示名，如 {@code 闽江大学/物理与电子信息工程学院/电气工程及其自动化/2024级/1班}。
+   *
+   * <p>去掉 organization.path 首尾的斜杠 —— 库里存的是 {@code /闽江大学/.../1班/}（首尾带斜杠便于 LIKE
+   * 前缀匹配），但直接显示给用户看会多出两个多余的斜杠。
+   *
+   * <p>组织不存在（org_id 悬空）时返回 null 而非抛异常 —— 组织数据缺失不该让用户打不开自己的资料页。
+   */
+  private String resolveOrgName(String orgId) {
+    if (orgId == null) {
+      return null;
+    }
+    Organization org = organizationMapper.selectById(orgId);
+    if (org == null || org.getPath() == null) {
+      return null;
+    }
+    return org.getPath().replaceAll("^/|/$", "");
+  }
+
   @Override
   public Users register(RegisterDTO dto) {
     // DTO → Entity
@@ -195,6 +260,7 @@ public class UserServiceImpl implements UserService {
     vo.setBirthday(user.getBirthday());
     vo.setStudentNo(user.getStudentNo());
     vo.setOrgId(user.getOrgId());
+    vo.setOrgName(resolveOrgName(user.getOrgId()));
     vo.setCreatedAt(user.getCreatedAt());
     return vo;
   }

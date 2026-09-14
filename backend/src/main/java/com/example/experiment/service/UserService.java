@@ -4,6 +4,7 @@ import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
 import com.example.experiment.dto.auth.RegisterDTO;
+import com.example.experiment.dto.auth.UpdateProfileDTO;
 import com.example.experiment.dto.auth.UserVO;
 import com.example.experiment.entity.Users;
 import java.util.List;
@@ -41,6 +42,15 @@ public interface UserService {
    * com.example.experiment.exception.ApiException}（400）。
    */
   void changePassword(String userId, ChangePasswordDTO dto);
+
+  /**
+   * 自助改资料：修改当前登录用户自己的姓名、性别、生日、手机号、邮箱。
+   *
+   * <p>可改字段由 {@link UpdateProfileDTO} 的字段本身界定 —— 学号、班级、用户名不在其中，改不了。
+   *
+   * @return 更新后的用户信息，供前端直接刷新本地 store，省去再调一次 /me
+   */
+  UserVO updateProfile(String userId, UpdateProfileDTO dto);
 
   /** Entity → VO（不含 maxLevel，调用方按需补充） */
   UserVO toUserVO(Users user);
