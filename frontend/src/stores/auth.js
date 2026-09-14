@@ -45,6 +45,20 @@ export const useAuthStore = defineStore('auth', () => {
     return res
   }
 
+  /**
+   * 局部替换用户信息（改完资料后同步顶栏显示名等）。
+   *
+   * 改资料接口返回的 VO 不含 maxLevel，这里用 store 里已有的值补上 ——
+   * 否则 `user.maxLevel` 会被抹成 undefined，将来若有组件读它就会拿到 undefined。
+   */
+  function setUser(next) {
+    if (!next) {
+      user.value = null
+      return
+    }
+    user.value = { ...next, maxLevel: next.maxLevel ?? maxLevel.value }
+  }
+
   /** 清空本地登录态（不调后端，JWT 无状态） */
   function clearAuth() {
     token.value = ''
@@ -71,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     fetchMe,
+    setUser,
     clearAuth,
     logout
   }

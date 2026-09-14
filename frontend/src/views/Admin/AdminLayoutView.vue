@@ -25,7 +25,8 @@
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+            <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -62,13 +63,14 @@ onUnmounted(() => document.body.classList.remove('admin-theme'))
  *
  * <p>{@code minLevel} 是访问该页所需的最低角色层级，与路由 meta 保持一致：
  * 权限不够时菜单项置灰，避免老师点进「专业班级管理」后每个操作都被后端拒绝。
+ *
+ * <p>「个人中心」不在这里 —— 它是账号操作，入口在右上角用户下拉里（与「退出登录」同处）。
  */
 const MENU_ITEMS = [
   { path: '/admin/users', label: '用户管理', disabled: false, minLevel: 20 },
   { path: '/admin/grades', label: '查看学生成绩', disabled: false, minLevel: 20 },
   { path: '/admin/org', label: '专业班级管理', disabled: false, minLevel: 30 },
-  { path: '/admin/stats', label: '统计分析', disabled: true, minLevel: 30 },
-  { path: '/admin/profile', label: '个人消息管理', disabled: false, minLevel: 20 }
+  { path: '/admin/stats', label: '统计分析', disabled: true, minLevel: 30 }
 ]
 
 const menuItems = computed(() =>
@@ -82,6 +84,11 @@ const menuItems = computed(() =>
 const activeMenu = computed(() => router.currentRoute.value.path)
 
 async function onUserCommand(command) {
+  if (command === 'profile') {
+    router.push('/admin/profile')
+    return
+  }
+
   if (command !== 'logout') return
 
   try {
