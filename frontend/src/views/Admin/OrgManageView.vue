@@ -5,7 +5,7 @@
       <OrgTreePanel ref="treeRef" @select="onSelectNode" />
     </aside>
 
-    <!-- 右：节点编辑表单 -->
+    <!-- 右：编辑表单 + 节点详情 -->
     <section class="org-main admin-card">
       <div class="breadcrumb-bar">
         <el-breadcrumb separator="/">
@@ -15,15 +15,53 @@
         </el-breadcrumb>
       </div>
 
-      <OrgNodeForm
-        :node="current"
-        :saving="saving"
-        :siblings="current?.siblings || []"
-        @save="onSave"
-        @delete="onDelete"
-        @create="onCreate"
-        @move="onMove"
-      />
+      <div class="org-main-body" :class="{ 'is-empty': !current }">
+        <div class="org-form-area">
+          <OrgNodeForm
+            :node="current"
+            :saving="saving"
+            :siblings="current?.siblings || []"
+            @save="onSave"
+            @delete="onDelete"
+            @create="onCreate"
+            @move="onMove"
+          />
+        </div>
+
+        <!--
+          详情区：吃掉表单之外的全部宽度。
+          加的初衷是消除宽屏右侧的大片留白，顺带让这一页多出「选中节点后能顺便看到什么」。
+          数据全部来自已有接口 / 树节点自带的字段，没有为此新增后端接口。
+        -->
+        <div v-if="current" class="org-detail-area">
+          <OrgClassStudents v-if="current.type === 'class'" :node="current" />
+
+          <template v-else>
+            <div class="panel-title">
+              下级{{ childTypeLabel }}<span class="count">（{{ childNodes.length }}）</span>
+            </div>
+
+            <el-table
+              v-if="childNodes.length"
+              :data="childNodes"
+              size="small"
+              max-height="calc(100vh - 300px)"
+            >
+              <el-table-column prop="name" label="名称" min-width="140" show-overflow-tooltip />
+              <el-table-column label="类型" width="80" align="center">
+                <template #default="{ row }">{{ TYPE_LABELS[row.type] || row.type }}</template>
+              </el-table-column>
+              <el-table-column prop="userCount" label="挂靠人数" width="90" align="center" />
+            </el-table>
+
+            <el-empty
+              v-else
+              :description="`该${TYPE_LABELS[current.type] || '节点'}下暂无子节点`"
+              :image-size="80"
+            />
+          </template>
+        </div>
+      </div>
     </section>
 
     <!-- 新增节点弹窗 -->
@@ -56,6 +94,7 @@ import { ElMessage } from 'element-plus'
 import { createOrgNode, renameOrgNode, deleteOrgNode, moveOrgNode } from '@/api/admin-org'
 import OrgTreePanel from '@/components/Admin/OrgTreePanel.vue'
 import OrgNodeForm from '@/components/Admin/OrgNodeForm.vue'
+import OrgClassStudents from '@/components/Admin/OrgClassStudents.vue'
 
 const treeRef = ref(null)
 const saving = ref(false)
@@ -89,6 +128,22 @@ const createTitle = computed(() => {
 })
 
 const createParentName = computed(() => createParent.value?.name || '')
+
+/** 各类型可添加的子节点类型；班级没有下一级 */
+const CHILD_TYPES = {
+  university: 'college',
+  college: 'major',
+  major: 'grade',
+  grade: 'class'
+}
+
+const childTypeLabel = computed(() => TYPE_LABELS[CHILD_TYPES[current.value?.type]] || '节点')
+
+/**
+ * 下级节点直接取树节点自带的 children —— el-tree 的节点数据就是后端返回的完整节点，
+ * 所以展示下级不需要再发一次请求。
+ */
+const childNodes = computed(() => current.value?.children || [])
 
 function onSelectNode(node) {
   current.value = node
@@ -188,11 +243,74 @@ async function onMove(direction) {
   min-height: calc(100vh - 136px);
 }
 
+/*
+ * 这里原本有一条 max-width: 720px，是从成绩页抄骨架时带过来的遗留 ——
+ * 成绩页的表格正好 640px 左右，限制宽度有意义；本页只有一张窄表单，
+ * 于是 1920 宽屏下右侧空出约 900px。去掉后由「表单 + 详情」两栏填满。
+ */
 .org-main {
   flex: 1;
   min-width: 0;
-  max-width: 720px;
   min-height: calc(100vh - 136px);
+}
+
+.org-main-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* 表单字段不需要横向拉伸，给它固定宽度比铺满更好读 */
+.org-form-area {
+  flex: 0 0 420px;
+  min-width: 0;
+}
+
+/* 未选中任何节点时不渲染详情区，让表单区独占整宽 ——
+   否则页面上会并排出现两个「请选择左侧节点」的空状态，看着像出了错 */
+.org-main-body.is-empty .org-form-area {
+  flex: 1;
+}
+
+.org-detail-area {
+  flex: 1;
+  min-width: 0;
+  min-height: 320px;
+  padding-left: 24px;
+  border-left: 1px solid var(--admin-border);
+}
+
+.panel-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.panel-title .count {
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* 窄屏放不下两栏时改为上下堆叠，分隔线也跟着从竖变横 */
+@media (max-width: 1200px) {
+  .org-main-body {
+    flex-direction: column;
+  }
+
+  .org-form-area,
+  .org-detail-area {
+    flex: none;
+    width: 100%;
+  }
+
+  .org-detail-area {
+    padding-left: 0;
+    padding-top: 20px;
+    border-left: none;
+    border-top: 1px solid var(--admin-border);
+  }
 }
 
 .breadcrumb-bar {
