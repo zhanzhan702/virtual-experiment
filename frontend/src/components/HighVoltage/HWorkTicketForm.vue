@@ -1,6 +1,8 @@
 <template>
   <div class="ticket-paper">
     <el-form ref="formRef" :model="formData" class="paper-form">
+      <!-- 表单左上角红字提示（与效果图一致） -->
+      <div class="form-note">注：请填写红色下划线部分</div>
       <!-- 表头 -->
       <div class="paper-header">
         <span class="paper-title">国网福建</span>
@@ -8,6 +10,8 @@
           <el-input v-model="formData.company" placeholder="" size="default" />
         </span>
         <span class="paper-title">供电公司</span>
+      </div>
+      <div class="paper-type">
         <span class="paper-right">配电第二种工作票</span>
       </div>
       <div class="paper-subheader">
@@ -49,7 +53,7 @@
       <!-- 第二行：工作班人员（不包括工作负责人）：共2人 -->
       <div class="form-line-row triple">
         <div class="form-noline">
-          <span class="line-label">2、工作班人员（不包括工作负责人）</span>
+          <span class="line-label">2、工作班人员（不包括工作负责人）：</span>
         </div>
 
         <div class="form-line">
@@ -79,7 +83,7 @@
       <!-- 第3点 -->
       <div>
         <div class="form-noline">
-          <span class="line-label"> 3、工作的变配电站名称及设备双重名称 </span>
+          <span class="line-label"> 3、工作的变配电站名称及设备双重名称： </span>
         </div>
         <div class="static-val">福州市台江区鳌峰路雪花水泥厂配电室计量柜</div>
       </div>
@@ -223,7 +227,7 @@
       <div class="form-noline section-brk">11、确认工作负责人布置的任务和本施工项目安全措施</div>
 
       <div class="form-line">
-        <span class="line-label">工作班人员签名</span>
+        <span class="line-label">工作班人员签名：</span>
         <span v-if="finalize" class="static-val">{{ finalizeMembersSign }}</span>
         <span v-else class="blank wide" />
       </div>
@@ -232,13 +236,13 @@
       <div class="form-noline section-brk">12、工作票延期</div>
 
       <div class="form-line">
-        <span class="line-label">有效期延长到</span>
+        <span class="line-label">有效期延长到：</span>
         <span v-if="finalize" class="static-val">无</span>
         <span v-else class="blank date" />
       </div>
 
       <div class="form-line">
-        <span class="line-label">工作负责人签名</span>
+        <span class="line-label">工作负责人签名：</span>
         <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
         <span v-else class="blank" />
       </div>
@@ -258,7 +262,7 @@
             全部工作于{{ endTimeText }}结束，工作人员已全部撤离，材料工具已清理完毕。
           </template>
           <template v-else>
-            全部工作于<span class="blank date" />结束，工作人员已全部撤离，材料工具已清理完毕。
+            全部工作于<span class="blank inline" />结束，工作人员已全部撤离，材料工具已清理完毕。
           </template>
         </span>
       </div>
@@ -284,9 +288,6 @@
         <span>无</span>
       </div>
 
-      <div class="submit-zone">
-        <el-button type="warning" size="large" @click="validateAndSubmit">提交</el-button>
-      </div>
     </el-form>
   </div>
 </template>
@@ -454,37 +455,51 @@ const validateAndSubmit = async () => {
   })
 }
 
-defineExpose({ formData, stats })
+defineExpose({ formData, stats, validateAndSubmit })
 </script>
 
 <style scoped>
 .ticket-paper {
-  width: 850px;
+  /* 撑满整个滚动区域 (scroll-wrapper)，去掉圆角与阴影过渡 */
+  width: 100%;
   background-color: #fffef8;
-  border: 2px solid #333;
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 30px 36px;
+  /* 左右内边距都加大，保持文字略偏左；边框与提交组件不动 */
+  padding: 30px 40px 30px 24px;
   box-sizing: border-box;
   font-family: 'SimSun', '宋体', serif;
   color: #222;
 }
 
+/* 左上角红字提示：与效果图样式一致 */
+.form-note {
+  margin-bottom: 10px;
+  color: #e60000;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: left;
+}
+
 .paper-header {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 6px;
+}
+
+.paper-type {
+  text-align: center;
+  margin-bottom: 8px;
 }
 
 .paper-subheader {
   margin-bottom: 18px;
   padding-bottom: 8px;
   border-bottom: 1px solid #333;
+  text-align: right;
 }
 
 .paper-right {
-  margin-left: auto;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 2px;
@@ -513,13 +528,21 @@ defineExpose({ formData, stats })
 }
 
 .blank.wide {
-  min-width: 260px;
+  min-width: 200px;
   /* 工作班人员签名等长填空 */
 }
 
 .blank.date {
-  min-width: 560px;
+  min-width: 260px;
   /* 日期长串 */
+}
+
+/* 句内填空（如“全部工作于___结束”）：不高抬，避免下划线错位下沉 */
+.blank.inline {
+  height: auto;
+  vertical-align: baseline;
+  min-width: 160px;
+  padding: 0 4px;
 }
 
 .paper-title {
@@ -531,7 +554,7 @@ defineExpose({ formData, stats })
 /* 国网福建中间输入框放大 */
 .paper-header .inline-input {
   font-size: 22px;
-  min-width: 140px;
+  min-width: 90px;
   border-bottom: 1.5px solid #ff0000;
 }
 
@@ -648,11 +671,6 @@ defineExpose({ formData, stats })
   font-family: 'SimSun', '宋体', serif;
   font-size: 14px;
   color: #222;
-}
-
-.submit-zone {
-  margin-top: 24px;
-  text-align: right;
 }
 
 /* 内联 form-item — 保持纸张横线布局，校验时显示错误 */
