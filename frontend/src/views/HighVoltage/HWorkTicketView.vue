@@ -6,7 +6,9 @@
       </div>
       <img class="work-ticket-sign" :src="Images.workTicketSign" alt="填写工作票" />
       <div class="work-ticket-commit">
-        <img :src="Images.workTicketCommit" alt="提交" />
+        <img class="commit-sign" :src="Images.workTicketCommit" alt="提交" draggable="false" />
+        <!-- 绳子压在金属挂钩的银色上（叠在标牌之上），滚轮焦点沿其滑动 -->
+        <img class="commit-rope" :src="Images.workTicketRope" alt="" draggable="false" />
         <button
           class="commit-hit-area"
           type="button"
@@ -79,10 +81,10 @@ const currentStepSeconds = computed(() => formRef.value?.stats?.duration_seconds
 const startedAt = ref(formatLocalTime(new Date()))
 const saving = ref(false)
 
-// ===== 绳子滚动条：焦点沿绳子移动，与滚动位置按比例联动 =====
-// 几何（基于 WorkTicketCommit 130x586，图片显示高 550）
-const FOCUS_KNOT_Y = 120    // 容器内绳顶/交点 y（scrollTop=0 时焦点位置）
-// 焦点最底端不贴图片底：按行程向上收 11%（行程=549-120≈429，新底端≈502）
+// ===== 绳子滚动条：滚轮焦点沿绳子移动，与滚动位置按比例联动 =====
+// 几何（紧裁剪素材：绳 34x795 绳顶 y=114 起于挂钩尖端 => 轴心 x≈71；滚轮 52x45 展示宽 28.5）
+const FOCUS_KNOT_Y = 120 // 容器内绳顶/交点 y（scrollTop=0 时焦点位置）
+// 焦点最底端不贴绳尾：按行程向上收 11%（行程=502-120=382）
 const FOCUS_TAIL_Y = 502
 const focusTop = ref(FOCUS_KNOT_Y)
 const focusDragging = ref(false)
@@ -291,38 +293,54 @@ function onVideoEnded() {
   width: clamp(200px, 28%, 320px);
 }
 
-/* 提交标牌：金属挂环卡在边框右上角，绳子垂坠到约 2/3 高度、不触底 */
+/* 提交标牌容器：金属挂钩卡在边框右上角，绳子自挂钩垂到约 4/5 高度、不触底
+   内部坐标基于 140x560 设计稿（源图紧裁剪后按下面各处标注的尺寸摆放） */
 .work-ticket-commit {
   position: absolute;
   top: -53px;
   right: -28px;
   z-index: 11;
-  /* 高度 550px => 绳尾约在 650px 高度的 2/3 处、不触底 */
-  height: 550px;
-  width: auto;
+  width: 140px;
+  height: 560px;
+  /* 标牌与绳子是装饰图，不拦截点击；仅提交牌与滚轮可交互 */
+  pointer-events: none;
 }
 
-.work-ticket-commit img:not(.scroll-focus) {
-  width: auto;
-  height: 100%;
+/* 提交标牌 + 金属挂钩（源图 786x828，展示宽 108px，牌面右边缘贴容器右边） */
+.commit-sign {
+  position: absolute;
+  left: 32px;
+  top: 4px;
+  width: 108px;
+  height: auto;
   display: block;
-  /* 图片本身不拦截点击，点击交给热区 */
-  pointer-events: none;
   user-select: none;
 }
 
-/* 绳上焦点（jiaodian）：绝对定位，沿绳子移动，可拖动 */
+/* 绳子（源图 34x795）：轴心 x=71，绳顶 y=114 起于挂钩尖端，垂到 y=545 */
+.commit-rope {
+  position: absolute;
+  left: 62px;
+  top: 114px;
+  height: 431px;
+  width: auto;
+  display: block;
+  user-select: none;
+}
+
+/* 绳上滚轮焦点（源图 52x45，展示宽 28.5px）：沿绳子移动，可拖动 */
 .scroll-focus {
   position: absolute;
-  /* 绳子中心显示 x≈49px，焦点宽 34px => 左移半宽 17px 对齐中心 */
-  left: 32px;
+  /* 绳子轴心 x≈71px，滚轮宽 28.5px => 左移半宽对齐轴心 */
+  left: 57px;
   top: 120px;
-  width: 34px;
+  width: 28.5px;
   height: auto;
   z-index: 12;
   cursor: grab;
   user-select: none;
   -webkit-user-drag: none;
+  pointer-events: auto;
   /* 初始隐藏到拿到滚动状态后再定位，避免闪跳 */
   visibility: hidden;
 }
@@ -338,15 +356,16 @@ function onVideoEnded() {
 /* 点击热区：仅黄色“提交”牌子本体，不含金属柄/挂钩与绳子 */
 .commit-hit-area {
   position: absolute;
-  /* 相对图片左上：黄色牌子约在 x15–120 / y13–96（550 高展示坐标） */
-  left: 15px;
-  top: 13px;
-  width: 105px;
-  height: 83px;
+  /* 黄色牌面约在容器 x37–130 / y4–94，取内接矩形 */
+  left: 46px;
+  top: 16px;
+  width: 80px;
+  height: 72px;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 /* 核心要求：限制区域大小，其他内容通过滚动显示 */
