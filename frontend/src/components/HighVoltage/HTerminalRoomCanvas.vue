@@ -14,11 +14,7 @@
       </div>
       <!-- 步骤17 信号线跟随 -->
       <div v-if="cableFollowing != null" class="meter-following" :style="cableFollowStyle">
-        <img
-          :src="SIGNAL_CABLES[cableFollowing].img"
-          :alt="SIGNAL_CABLES[cableFollowing].name"
-          draggable="false"
-        />
+        <img :src="SIGNAL_CABLES[cableFollowing].img" :alt="SIGNAL_CABLES[cableFollowing].name" draggable="false" />
       </div>
       <!-- 步骤18 安装跟随（通信模块/SIM卡/天线） -->
       <div v-if="installFollowing != null" class="meter-following" :style="installFollowStyle">
@@ -80,7 +76,7 @@ const activeToolIdxs = ref([]) // 剥线钳+当前导线持续高亮，螺丝刀
 const screwdriverFollowing = ref(false)
 const screwdriverStyle = ref({})
 // 螺丝刀跟随：跟随图尖端对准鼠标（尖端相对图片中心的偏移 px，正=右/下，负=左/上；用户按素材微调））
-const SCREWDRIVER_TIP = { x: -39, y: 37 }
+const SCREWDRIVER_TIP = { x: -32, y: 30 }
 // 步骤16-17 信号线状态机
 const cablePlaced = ref([false, false, false]) // 3 根线是否已放置
 const cableFollowing = ref(null) // 跟随中的线索引（null 无）
@@ -1128,24 +1124,24 @@ function corePos(ci, side, idx) {
 /** 构建指定线的芯点热区（追加，不清除其他线的芯点——多根线热区共存） */
 function buildCableCores(ci) {
   const cfg = SIGNAL_CABLES[ci]
-  ;['right', 'left'].forEach(side => {
-    cfg[side].forEach((_, idx) => {
-      const p = corePos(ci, side, idx)
-      const rect = new Rect({
-        x: p.x - CORE_SIZE / 2,
-        y: p.y - CORE_SIZE / 2,
-        width: CORE_SIZE,
-        height: CORE_SIZE,
-        fill: 'rgba(0, 150, 255, 0.3)',
-        stroke: 'rgba(0, 150, 255, 0.9)',
-        strokeWidth: 1,
-        zIndex: 5 // 芯点热区在线材图片与放置热区之上
+    ;['right', 'left'].forEach(side => {
+      cfg[side].forEach((_, idx) => {
+        const p = corePos(ci, side, idx)
+        const rect = new Rect({
+          x: p.x - CORE_SIZE / 2,
+          y: p.y - CORE_SIZE / 2,
+          width: CORE_SIZE,
+          height: CORE_SIZE,
+          fill: 'rgba(0, 150, 255, 0.3)',
+          stroke: 'rgba(0, 150, 255, 0.9)',
+          strokeWidth: 1,
+          zIndex: 5 // 芯点热区在线材图片与放置热区之上
+        })
+        rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
+        hitLayer.add(rect)
+        signalCoreRects.push(rect)
       })
-      rect.on(PointerEvent.CLICK, () => onCoreClick(ci, side, idx))
-      hitLayer.add(rect)
-      signalCoreRects.push(rect)
     })
-  })
 }
 
 /** 重建全部已放置线的芯点热区（比例校正/画布重建后恢复） */
@@ -2133,7 +2129,7 @@ function persistState() {
         sealPlaced: Array.from({ length: SEALS.length }, (_, i) => !!sealPlaced.value[i])
       })
     )
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /** 全量状态（存档用）：画布所有状态字段（与 localStorage 兜底内容一致） */
@@ -2216,7 +2212,7 @@ function restoreDraft(d) {
   let local = {}
   try {
     local = JSON.parse(localStorage.getItem(LS_KEY()) || '{}')
-  } catch (_) {}
+  } catch (_) { }
   if (local.stepOrder && local.stepOrder !== props.stepOrder) local = {}
   if (d?.stepOrder && d.stepOrder !== props.stepOrder) d = {}
   const merged = { ...standardStateForStep(props.stepOrder), ...(d || {}), ...local }
@@ -2494,7 +2490,7 @@ onMounted(() => {
         // 无论后端是否有草稿都执行恢复（restoreDraft 内部合并标准推断 + 草稿 + localStorage 兜底）
         restoreDraft(d || {})
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 })
 onUnmounted(() => {
