@@ -1,8 +1,6 @@
 <template>
   <div class="experiment-scene">
-    <div class="scroll-wrapper">
-      <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
-    </div>
+    <WorkTicketForm ref="formRef" :finalize="isFinalize" @submit-ticket="handleTicketSubmit" />
     <ExperimentTimer :experiment-id="experimentId" :current-step-seconds="currentStepSeconds" />
     <div class="save-bar-fixed" :class="{ saving }" @click="saveProgress" title="保存进度" />
 
@@ -156,50 +154,17 @@ function onVideoEnded() {
 </script>
 
 <style scoped>
-/* 整个实验场景外层，通常铺满屏幕 */
 .experiment-scene {
+  overflow-x: clip;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: var(--img-hwt-bg);
-  /* 可以替换成你的高压场景背景图 */
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  padding: 10vh 0 9vh;
+  box-sizing: border-box;
+  background: var(--img-hwt-bg) center / cover no-repeat;
 }
-
-/* 核心要求：限制区域大小，其他内容通过滚动显示 */
-.scroll-wrapper {
-  width: 900px;
-  height: 650px;
-  overflow-y: auto;
-  background-color: rgba(255, 255, 255, 0.9);
-  /* 半透明背景增加景深感 */
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  /* 边框：使用 outline 不占据盒模型空间，避免出现滚动条 */
-  outline: 10px solid #73bcbb;
-  outline-offset: -4px;
-}
-
-/* 自定义滚动条，使其风格契合仿真平台 */
-.scroll-wrapper::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scroll-wrapper::-webkit-scrollbar-thumb {
-  background: #a0a5aa;
-  border-radius: 4px;
-}
-
-.scroll-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #7a8085;
-}
-
-/* 保存进度/查看工作任务按钮样式见 assets/styles/main.css */
 
 .work-bg-img {
   max-width: 80vw;

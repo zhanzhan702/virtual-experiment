@@ -1,298 +1,364 @@
 <template>
-  <div class="ticket-paper">
-    <el-form ref="formRef" :model="formData" class="paper-form">
-      <!-- 表头 -->
-      <div class="paper-header">
-        <span class="paper-title">国网福建</span>
-        <span class="inline-input">
-          <el-input v-model="formData.company" placeholder="" size="default" />
-        </span>
-        <span class="paper-title">供电公司</span>
-        <span class="paper-right">配电第二种工作票</span>
-      </div>
-      <div class="paper-subheader">
-        <span class="paper-label">编号：</span>
-        <span class="inline-input short">
-          <el-input v-model="formData.ticketNo" placeholder="" size="default" />
-        </span>
-      </div>
+  <div class="ticket-board">
+    <div class="board-heading">
+      <img class="work-ticket-sign" :src="Images.workTicketSign" alt="填写工作票" />
+    </div>
+    <div ref="commitRef" class="work-ticket-commit">
+      <img class="commit-sign" :src="Images.workTicketCommit" alt="" draggable="false" />
+      <img
+        ref="ropeRef"
+        class="commit-rope"
+        :src="Images.workTicketRope"
+        alt=""
+        draggable="false"
+        @load="handleSyncFocus"
+      />
+      <button
+        class="commit-hit-area"
+        type="button"
+        aria-label="提交工作票"
+        title="提交工作票"
+        @click.stop="validateAndSubmit"
+      />
+      <button
+        class="scroll-focus"
+        :class="{ dragging: focusDragging, ready: focusReady }"
+        :style="{ top: focusTop + 'px' }"
+        type="button"
+        role="scrollbar"
+        aria-label="工作票滚动条"
+        aria-orientation="vertical"
+        aria-controls="high-ticket-paper"
+        :aria-valuenow="Math.round(focusRatio * 100)"
+        :aria-valuemin="0"
+        :aria-valuemax="100"
+        @pointerdown="handleFocusDown"
+        @pointermove="handleFocusMove"
+        @pointerup="handleFocusEnd"
+        @pointercancel="handleFocusEnd"
+        @lostpointercapture="handleFocusEnd"
+        @keydown="handleFocusKeydown"
+      >
+        <img :src="Images.scrollFocus" alt="" draggable="false" />
+      </button>
+    </div>
+    <div class="paper-frame">
+      <div class="paper-notice">注：请填写红色下划线部分</div>
+      <div
+        id="high-ticket-paper"
+        ref="paperRef"
+        class="paper-scroll"
+        tabindex="0"
+        aria-label="高压工作票正文"
+        @scroll="handleSyncFocus"
+      >
+        <div class="ticket-paper">
+          <el-form ref="formRef" :model="formData" class="paper-form">
+            <!-- 表头 -->
+            <div class="paper-header">
+              <span class="paper-title">国网福建</span>
+              <span class="inline-input">
+                <el-input v-model="formData.company" placeholder="" size="default" />
+              </span>
+              <span class="paper-title">供电公司</span>
+              <span class="paper-right">配电第二种工作票</span>
+            </div>
+            <div class="paper-subheader">
+              <span class="paper-label">编号：</span>
+              <span class="inline-input short">
+                <el-input v-model="formData.ticketNo" placeholder="" size="default" />
+              </span>
+            </div>
 
-      <!-- 第一行：部门 + 工作班组 + 工作负责人（还原工作票） -->
-      <div class="form-line-row triple">
-        <div class="form-line">
-          <span class="line-label">1、部门：</span>
-          <span class="static-val">营销部</span>
-        </div>
-        <div class="form-line">
-          <span class="line-label">工作班组：</span>
-          <span class="inline-input">
-            <el-select v-model="formData.team" placeholder="" size="default">
-              <el-option label="修试班" value="修试班" />
-              <el-option label="装表班" value="装表班" />
-              <el-option label="运维班" value="运维班" />
-            </el-select>
-          </span>
-        </div>
-        <div class="form-line">
-          <span class="line-label">工作负责人：</span>
-          <span class="inline-input">
-            <el-select v-model="formData.leader" placeholder="" size="default">
-              <el-option label="张亮" value="张亮" />
-              <el-option label="王五" value="王五" />
-              <el-option label="张三" value="张三" />
-              <el-option label="赵六" value="赵六" />
-            </el-select>
-          </span>
-        </div>
-      </div>
+            <!-- 第一行：部门 + 工作班组 + 工作负责人（还原工作票） -->
+            <div class="form-line-row triple">
+              <div class="form-line">
+                <span class="line-label">1、部门：</span>
+                <span class="static-val">营销部</span>
+              </div>
+              <div class="form-line">
+                <span class="line-label">工作班组：</span>
+                <span class="inline-input">
+                  <el-select v-model="formData.team" placeholder="" size="default">
+                    <el-option label="修试班" value="修试班" />
+                    <el-option label="装表班" value="装表班" />
+                    <el-option label="运维班" value="运维班" />
+                  </el-select>
+                </span>
+              </div>
+              <div class="form-line">
+                <span class="line-label">工作负责人：</span>
+                <span class="inline-input">
+                  <el-select v-model="formData.leader" placeholder="" size="default">
+                    <el-option label="张亮" value="张亮" />
+                    <el-option label="王五" value="王五" />
+                    <el-option label="张三" value="张三" />
+                    <el-option label="赵六" value="赵六" />
+                  </el-select>
+                </span>
+              </div>
+            </div>
 
-      <!-- 第二行：工作班人员（不包括工作负责人）：共2人 -->
-      <div class="form-line-row triple">
-        <div class="form-noline">
-          <span class="line-label">2、工作班人员（不包括工作负责人）</span>
-        </div>
+            <!-- 第二行：工作班人员（不包括工作负责人）：共2人 -->
+            <div class="form-line-row triple">
+              <div class="form-noline">
+                <span class="line-label">2、工作班人员（不包括工作负责人）</span>
+              </div>
 
-        <div class="form-line">
-          <span class="inline-input">
-            <el-input v-model="formData.member1" placeholder="" size="default" />
-          </span>
-        </div>
-        <div class="form-line">
-          <span class="line-label">、</span>
-          <span class="inline-input">
-            <el-select v-model="formData.member2" placeholder="" size="default">
-              <el-option label="张三" value="张三" />
-              <el-option label="赵六" value="赵六" />
-              <el-option label="张亮" value="张亮" />
-              <el-option label="王五" value="王五" />
-            </el-select>
-          </span>
-        </div>
+              <div class="form-line">
+                <span class="inline-input">
+                  <el-input v-model="formData.member1" placeholder="" size="default" />
+                </span>
+              </div>
+              <div class="form-line">
+                <span class="line-label">、</span>
+                <span class="inline-input">
+                  <el-select v-model="formData.member2" placeholder="" size="default">
+                    <el-option label="张三" value="张三" />
+                    <el-option label="赵六" value="赵六" />
+                    <el-option label="张亮" value="张亮" />
+                    <el-option label="王五" value="王五" />
+                  </el-select>
+                </span>
+              </div>
 
-        <div class="form-line">
-          <span class="line-label">共</span>
-          <span class="static-val">2</span>
-          <span class="line-label">人</span>
-        </div>
-      </div>
+              <div class="form-line">
+                <span class="line-label">共</span>
+                <span class="static-val">2</span>
+                <span class="line-label">人</span>
+              </div>
+            </div>
 
-      <!-- 第3点 -->
-      <div>
-        <div class="form-noline">
-          <span class="line-label"> 3、工作的变配电站名称及设备双重名称 </span>
-        </div>
-        <div class="static-val">福州市台江区鳌峰路雪花水泥厂配电室计量柜</div>
-      </div>
+            <!-- 第3点 -->
+            <div>
+              <div class="form-noline">
+                <span class="line-label"> 3、工作的变配电站名称及设备双重名称 </span>
+              </div>
+              <div class="static-val">福州市台江区鳌峰路雪花水泥厂配电室计量柜</div>
+            </div>
 
-      <!-- 第4点 -->
-      <div class="form-noline section-brk">4、工作任务</div>
+            <!-- 第4点 -->
+            <div class="form-noline section-brk">4、工作任务</div>
 
-      <table class="task-table">
-        <thead>
-          <tr>
-            <th style="width: 70%">工作地点或地段</th>
-            <th>工作内容</th>
-          </tr>
-        </thead>
+            <table class="task-table">
+              <thead>
+                <tr>
+                  <th style="width: 70%">工作地点或地段</th>
+                  <th>工作内容</th>
+                </tr>
+              </thead>
 
-        <tbody>
-          <tr>
-            <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
-            <td>专变终端安装与调试</td>
-          </tr>
+              <tbody>
+                <tr>
+                  <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
+                  <td>专变终端安装与调试</td>
+                </tr>
 
-          <tr>
-            <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
-            <td>三相电能表安装</td>
-          </tr>
-        </tbody>
-      </table>
+                <tr>
+                  <td>福州市台江区鳌峰路雪花水泥厂配电室计量柜</td>
+                  <td>三相电能表安装</td>
+                </tr>
+              </tbody>
+            </table>
 
-      <!-- 第5点 -->
-      <div>
-        <span class="line-label">5、计划工作时间：</span>
-        <span
-          >自 <span class="static-val">{{ planStart }}</span> 至
-          <span class="static-val">{{ planEnd }}</span></span
-        >
-      </div>
+            <!-- 第5点 -->
+            <div>
+              <span class="line-label">5、计划工作时间：</span>
+              <span
+                >自 <span class="static-val">{{ planStart }}</span> 至
+                <span class="static-val">{{ planEnd }}</span></span
+              >
+            </div>
 
-      <!-- 第6点 -->
-      <div class="form-noline">
-        <div class="line-label">6、工作条件（停电或不停电，或邻近及保留带电设备名称）：</div>
+            <!-- 第6点 -->
+            <div class="form-noline">
+              <div class="line-label">6、工作条件（停电或不停电，或邻近及保留带电设备名称）：</div>
 
-        <div class="static-val">不停电</div>
-      </div>
+              <div class="static-val">不停电</div>
+            </div>
 
-      <!-- 7、安全措施 -->
-      <div class="form-noline section-brk">7、注意事项（安全措施）</div>
-      <div class="form-line">
-        <span class="inline-input full">
-          <el-select v-model="formData.safetyMeasures" multiple placeholder="" size="default">
-            <el-option label="A、防止电压回路短路或接地" value="A" />
-            <el-option label="B、严禁电流互感器二次回路开路" value="B" />
-            <el-option label="C、与带电设备保持足够安全距离" value="C" />
-          </el-select>
-        </span>
-      </div>
-      <div class="form-line">
-        <span class="line-label">工作票签发人签名：</span>
-        <span class="static-val">李强</span>
-      </div>
-      <div class="form-line">
-        <span class="line-label">签发日期：</span>
-        <span class="static-val">{{ signDate }}</span>
-      </div>
-
-      <!-- 第8点 -->
-      <div class="form-line">
-        <span class="line-label"> 8、补充安全措施（工作许可人填写）</span>
-      </div>
-      <div class="static-val">无</div>
-
-      <!-- 第9点 -->
-      <div class="form-noline section-brk">9、确认本工作票1-8项</div>
-
-      <div class="form-line">
-        <span class="line-label">许可工作时间：</span>
-        <span v-if="finalize" class="static-val">{{ permitTime }}</span>
-        <span v-else class="blank" />
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作负责人签名：</span>
-        <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
-        <span v-else class="blank" />
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作许可人签名：</span>
-        <span v-if="finalize" class="static-val">{{ finalizePermitterSign }}</span>
-        <span v-else class="blank" />
-      </div>
-
-      <!-- 10、危险点分析（表格样式，还原工作票：单元格内保留防范措施选择） -->
-      <div class="form-noline section-brk">10、本工作危险点分析及防范措施（工作负责人填写）</div>
-      <table class="task-table danger-table">
-        <thead>
-          <tr>
-            <th style="width: 8%">序号</th>
-            <th style="width: 18%">防范类型</th>
-            <th style="width: 18%">危险点</th>
-            <th>预防控制措施</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="center" rowspan="2">1</td>
-            <td class="center" rowspan="2">人身触电<br />与伤害</td>
-            <td class="center">走错工作间隔</td>
-            <td>
+            <!-- 7、安全措施 -->
+            <div class="form-noline section-brk">7、注意事项（安全措施）</div>
+            <div class="form-line">
               <span class="inline-input full">
-                <el-select v-model="formData.dangerInterval" multiple placeholder="" size="default">
-                  <el-option label="A、负责人对班成员进行安全教育" value="A" />
-                  <el-option label="B、检查是否悬挂标示牌" value="B" />
-                  <el-option label="C、核对工作任务单与现场信息一致" value="C" />
-                  <el-option label="D、检查接入电源电线有无破损" value="D" />
+                <el-select v-model="formData.safetyMeasures" multiple placeholder="" size="default">
+                  <el-option label="A、防止电压回路短路或接地" value="A" />
+                  <el-option label="B、严禁电流互感器二次回路开路" value="B" />
+                  <el-option label="C、与带电设备保持足够安全距离" value="C" />
                 </el-select>
               </span>
-            </td>
-          </tr>
-          <tr>
-            <td class="center">短路或接地</td>
-            <td>
-              <span class="inline-input full">
-                <el-select
-                  v-model="formData.dangerShortCircuit"
-                  multiple
-                  placeholder=""
-                  size="default"
+            </div>
+            <div class="form-line">
+              <span class="line-label">工作票签发人签名：</span>
+              <span class="static-val">李强</span>
+            </div>
+            <div class="form-line">
+              <span class="line-label">签发日期：</span>
+              <span class="static-val">{{ signDate }}</span>
+            </div>
+
+            <!-- 第8点 -->
+            <div class="form-line">
+              <span class="line-label"> 8、补充安全措施（工作许可人填写）</span>
+            </div>
+            <div class="static-val">无</div>
+
+            <!-- 第9点 -->
+            <div class="form-noline section-brk">9、确认本工作票1-8项</div>
+
+            <div class="form-line">
+              <span class="line-label">许可工作时间：</span>
+              <span v-if="finalize" class="static-val">{{ permitTime }}</span>
+              <span v-else class="blank" />
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作负责人签名：</span>
+              <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
+              <span v-else class="blank" />
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作许可人签名：</span>
+              <span v-if="finalize" class="static-val">{{ finalizePermitterSign }}</span>
+              <span v-else class="blank" />
+            </div>
+
+            <!-- 10、危险点分析（表格样式，还原工作票：单元格内保留防范措施选择） -->
+            <div class="form-noline section-brk">
+              10、本工作危险点分析及防范措施（工作负责人填写）
+            </div>
+            <table class="task-table danger-table">
+              <thead>
+                <tr>
+                  <th style="width: 8%">序号</th>
+                  <th style="width: 18%">防范类型</th>
+                  <th style="width: 18%">危险点</th>
+                  <th>预防控制措施</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="center" rowspan="2">1</td>
+                  <td class="center" rowspan="2">人身触电<br />与伤害</td>
+                  <td class="center">走错工作间隔</td>
+                  <td>
+                    <span class="inline-input full">
+                      <el-select
+                        v-model="formData.dangerInterval"
+                        multiple
+                        placeholder=""
+                        size="default"
+                      >
+                        <el-option label="A、负责人对班成员进行安全教育" value="A" />
+                        <el-option label="B、检查是否悬挂标示牌" value="B" />
+                        <el-option label="C、核对工作任务单与现场信息一致" value="C" />
+                        <el-option label="D、检查接入电源电线有无破损" value="D" />
+                      </el-select>
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="center">短路或接地</td>
+                  <td>
+                    <span class="inline-input full">
+                      <el-select
+                        v-model="formData.dangerShortCircuit"
+                        multiple
+                        placeholder=""
+                        size="default"
+                      >
+                        <el-option label="A、检查接入电源电线有无破损" value="A" />
+                        <el-option label="B、使用合格工器具，螺丝刀除刀口外应绝缘" value="B" />
+                        <el-option label="C、防止操作时相间或相对地短路" value="C" />
+                        <el-option label="D、移动电源盘应带漏电保护器" value="D" />
+                      </el-select>
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- 第11点 -->
+            <div class="form-noline section-brk">
+              11、确认工作负责人布置的任务和本施工项目安全措施
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作班人员签名</span>
+              <span v-if="finalize" class="static-val">{{ finalizeMembersSign }}</span>
+              <span v-else class="blank wide" />
+            </div>
+
+            <!-- 第12点 -->
+            <div class="form-noline section-brk">12、工作票延期</div>
+
+            <div class="form-line">
+              <span class="line-label">有效期延长到</span>
+              <span v-if="finalize" class="static-val">无</span>
+              <span v-else class="blank date" />
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作负责人签名</span>
+              <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
+              <span v-else class="blank" />
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作许可人签名：</span>
+              <span v-if="finalize" class="static-val">{{ finalizePermitterSign }}</span>
+              <span v-else class="blank" />
+            </div>
+
+            <!-- 第13点 -->
+            <div class="form-noline section-brk">13、工作票终结</div>
+
+            <div class="form-line">
+              <span>
+                <template v-if="finalize">
+                  全部工作于{{ endTimeText }}结束，工作人员已全部撤离，材料工具已清理完毕。
+                </template>
+                <template v-else>
+                  全部工作于<span
+                    class="blank date"
+                  />结束，工作人员已全部撤离，材料工具已清理完毕。
+                </template>
+              </span>
+            </div>
+
+            <div class="form-line">
+              <span class="line-label">工作负责人签名：</span>
+              <span>
+                <template v-if="finalize"
+                  >{{ formData.leader || '张亮' }}　　{{ endTimeText }}</template
                 >
-                  <el-option label="A、检查接入电源电线有无破损" value="A" />
-                  <el-option label="B、使用合格工器具，螺丝刀除刀口外应绝缘" value="B" />
-                  <el-option label="C、防止操作时相间或相对地短路" value="C" />
-                  <el-option label="D、移动电源盘应带漏电保护器" value="D" />
-                </el-select>
+                <template v-else><span class="blank" /></template>
               </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
 
-      <!-- 第11点 -->
-      <div class="form-noline section-brk">11、确认工作负责人布置的任务和本施工项目安全措施</div>
+            <div class="form-line">
+              <span class="line-label">工作许可人签名：</span>
+              <span>
+                <template v-if="finalize">王伟、王五　　{{ endTimeText }}</template>
+                <template v-else><span class="blank" /></template>
+              </span>
+            </div>
 
-      <div class="form-line">
-        <span class="line-label">工作班人员签名</span>
-        <span v-if="finalize" class="static-val">{{ finalizeMembersSign }}</span>
-        <span v-else class="blank wide" />
+            <div class="form-line">
+              <span class="line-label">备注：</span>
+              <span>无</span>
+            </div>
+          </el-form>
+        </div>
       </div>
-
-      <!-- 第12点 -->
-      <div class="form-noline section-brk">12、工作票延期</div>
-
-      <div class="form-line">
-        <span class="line-label">有效期延长到</span>
-        <span v-if="finalize" class="static-val">无</span>
-        <span v-else class="blank date" />
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作负责人签名</span>
-        <span v-if="finalize" class="static-val">{{ finalizeLeaderSign }}</span>
-        <span v-else class="blank" />
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作许可人签名：</span>
-        <span v-if="finalize" class="static-val">{{ finalizePermitterSign }}</span>
-        <span v-else class="blank" />
-      </div>
-
-      <!-- 第13点 -->
-      <div class="form-noline section-brk">13、工作票终结</div>
-
-      <div class="form-line">
-        <span>
-          <template v-if="finalize">
-            全部工作于{{ endTimeText }}结束，工作人员已全部撤离，材料工具已清理完毕。
-          </template>
-          <template v-else>
-            全部工作于<span class="blank date" />结束，工作人员已全部撤离，材料工具已清理完毕。
-          </template>
-        </span>
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作负责人签名：</span>
-        <span>
-          <template v-if="finalize">{{ formData.leader || '张亮' }}　　{{ endTimeText }}</template>
-          <template v-else><span class="blank" /></template>
-        </span>
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">工作许可人签名：</span>
-        <span>
-          <template v-if="finalize">王伟、王五　　{{ endTimeText }}</template>
-          <template v-else><span class="blank" /></template>
-        </span>
-      </div>
-
-      <div class="form-line">
-        <span class="line-label">备注：</span>
-        <span>无</span>
-      </div>
-
-      <div class="submit-zone">
-        <el-button type="warning" size="large" @click="validateAndSubmit">提交</el-button>
-      </div>
-    </el-form>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, watch, computed, onMounted, onUnmounted } from 'vue'
+import Images from '@/constants/images'
 
 const props = defineProps({
   /** 步骤24 办理工作终结模式：第13点工作票终结显示补全内容 */
@@ -359,8 +425,77 @@ const stats = reactive({
   error_count: 0
 })
 
+const paperRef = ref(null)
+const commitRef = ref(null)
+const ropeRef = ref(null)
+const focusRatio = ref(0)
+const focusTop = ref(0)
+const focusReady = ref(false)
+const focusDragging = ref(false)
+let dragStartY = 0
+let dragStartRatio = 0
+let resizeObserver = null
+// 滚轮中心沿绳子有效区域移动，比例与低压工作票素材一致。
+const FOCUS_START_RATIO = 18 / 431
+const FOCUS_END_RATIO = 388 / 431
+
+function handleSyncFocus() {
+  const paper = paperRef.value
+  const rope = ropeRef.value
+  if (!paper || !rope?.clientHeight) return
+  const max = paper.scrollHeight - paper.clientHeight
+  focusRatio.value = max > 0 ? Math.min(1, Math.max(0, paper.scrollTop / max)) : 0
+  focusTop.value =
+    rope.offsetTop +
+    rope.clientHeight *
+      (FOCUS_START_RATIO + focusRatio.value * (FOCUS_END_RATIO - FOCUS_START_RATIO))
+  focusReady.value = true
+}
+function handleFocusDown(event) {
+  if (event.button !== 0) return
+  event.preventDefault()
+  event.currentTarget.focus({ preventScroll: true })
+  event.currentTarget.setPointerCapture(event.pointerId)
+  focusDragging.value = true
+  dragStartY = event.clientY
+  dragStartRatio = focusRatio.value
+}
+function handleFocusMove(event) {
+  if (!focusDragging.value) return
+  const paper = paperRef.value
+  const travel = ropeRef.value.clientHeight * (FOCUS_END_RATIO - FOCUS_START_RATIO)
+  if (!paper || travel <= 0) return
+  const ratio = Math.min(1, Math.max(0, dragStartRatio + (event.clientY - dragStartY) / travel))
+  paper.scrollTop = ratio * (paper.scrollHeight - paper.clientHeight)
+  handleSyncFocus()
+}
+function handleFocusEnd() {
+  focusDragging.value = false
+}
+function handleFocusKeydown(event) {
+  const paper = paperRef.value
+  if (!paper) return
+  const positions = {
+    ArrowDown: paper.scrollTop + 40,
+    ArrowUp: paper.scrollTop - 40,
+    PageDown: paper.scrollTop + paper.clientHeight,
+    PageUp: paper.scrollTop - paper.clientHeight,
+    Home: 0,
+    End: paper.scrollHeight
+  }
+  if (!(event.key in positions)) return
+  event.preventDefault()
+  paper.scrollTop = positions[event.key]
+  handleSyncFocus()
+}
+
 let timer = null
 onMounted(() => {
+  resizeObserver = new ResizeObserver(handleSyncFocus)
+  resizeObserver.observe(commitRef.value)
+  resizeObserver.observe(paperRef.value)
+  resizeObserver.observe(paperRef.value.firstElementChild)
+  handleSyncFocus()
   timer = setInterval(() => {
     stats.duration_seconds++
   }, 1000)
@@ -383,6 +518,7 @@ onMounted(() => {
   }
 })
 onUnmounted(() => {
+  resizeObserver?.disconnect()
   if (timer) clearInterval(timer)
 })
 
@@ -458,22 +594,148 @@ defineExpose({ formData, stats })
 </script>
 
 <style scoped>
+.ticket-board {
+  width: min(76vw, 1150px);
+  position: relative;
+  color: #123f68;
+}
+.board-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 7% 0 4%;
+  gap: 2%;
+}
+.work-ticket-sign {
+  width: clamp(130px, 28%, 320px);
+  height: auto;
+  display: block;
+  margin-bottom: -8px;
+  position: relative;
+  z-index: 2;
+}
+.paper-frame {
+  border: clamp(6px, 0.7vw, 12px) solid #008d85;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow:
+    0 0 0 4px #0b5a60,
+    inset 0 0 0 3px #80d3c9,
+    0 18px 25px #163f6533;
+  overflow: hidden;
+  padding: 0 1.4% 1%;
+}
+.paper-notice {
+  color: #f22;
+  font-size: clamp(13px, 1.4vw, 21px);
+  font-weight: bold;
+  padding: 0.6em 0.2em 0.3em;
+  min-height: 2em;
+}
+.paper-scroll {
+  height: 61vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container-type: inline-size;
+}
+/* 隐藏原生滚动条，正文支持滚轮、触控及绳上滚轮操作。 */
+.paper-scroll {
+  scrollbar-width: none;
+}
+.paper-scroll::-webkit-scrollbar {
+  display: none;
+}
+/* 复用高压提交牌/金属钩、绳与滚轮素材；内部横向坐标沿用 140px 设计稿。 */
+.work-ticket-commit {
+  position: absolute;
+  top: 7%;
+  right: -2.4%;
+  z-index: 11;
+  width: clamp(72px, 12.2%, 140px);
+  height: 78%;
+  container-type: inline-size;
+  pointer-events: none;
+}
+.commit-sign {
+  position: absolute;
+  left: 22.857%;
+  top: 2.857cqw;
+  width: 77.143%;
+  height: auto;
+  user-select: none;
+}
+.commit-rope {
+  position: absolute;
+  left: 44.286%;
+  top: 81.429cqw;
+  bottom: 2.7%;
+  height: calc(97.3% - 81.429cqw);
+  width: auto;
+  user-select: none;
+}
+.commit-hit-area {
+  position: absolute;
+  left: 32.857%;
+  top: 11.429cqw;
+  width: 57.143%;
+  height: 51.429cqw;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.commit-hit-area:disabled {
+  cursor: default;
+}
+.commit-hit-area:focus-visible {
+  outline: 3px solid #078c83;
+  border-radius: 8px;
+}
+.scroll-focus {
+  position: absolute;
+  left: 40.714%;
+  width: 20.357%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  visibility: hidden;
+  user-select: none;
+}
+.scroll-focus img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.scroll-focus.ready {
+  visibility: visible;
+}
+.scroll-focus.dragging {
+  cursor: grabbing;
+}
+.scroll-focus:focus-visible {
+  outline: 2px solid #078c83;
+}
+
 .ticket-paper {
-  width: 850px;
-  background-color: #fffef8;
-  border: 2px solid #333;
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  padding: 30px 36px;
+  width: 100%;
+  background: #fffdf5;
+  padding: 0.4em 3% 1.4em;
   box-sizing: border-box;
-  font-family: 'SimSun', '宋体', serif;
-  color: #222;
+  font-family: 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  font-size: clamp(14px, 2cqw, 22px);
+  line-height: 1.65;
+  color: #123f68;
 }
 
 .paper-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(3em, 20%) auto;
   align-items: baseline;
-  flex-wrap: wrap;
+  justify-content: center;
   margin-bottom: 6px;
 }
 
@@ -484,59 +746,61 @@ defineExpose({ formData, stats })
 }
 
 .paper-right {
-  margin-left: auto;
-  font-size: 18px;
+  grid-column: 1 / -1;
+  text-align: center;
+  margin: 0.5em 0;
+  font-size: 1.15em;
   font-weight: bold;
   letter-spacing: 2px;
 }
 
 .paper-label,
 .line-label {
-  font-size: 14px;
+  font-size: 1em;
   white-space: nowrap;
 }
 
 /* 静态填充值（部门/人数等无需输入的文字，与页面宋体统一） */
 .static-val {
   border-bottom: 1px solid #333;
-  font-family: 'SimSun', '宋体', serif;
-  font-size: 14px;
-  color: #222;
+  font-family: inherit;
+  font-size: 1em;
+  color: #123f68;
 }
 
 /* 填空下划线：span + 黑色细下划线（替代字符下划线 ____） */
 .blank {
   display: inline-block;
   border-bottom: 1px solid #333;
-  min-width: 130px;
+  min-width: 6em;
   height: 1.4em;
 }
 
 .blank.wide {
-  min-width: 260px;
+  min-width: min(13em, 100%);
   /* 工作班人员签名等长填空 */
 }
 
 .blank.date {
-  min-width: 560px;
+  min-width: min(28em, 100%);
   /* 日期长串 */
 }
 
 .paper-title {
-  font-size: 22px;
+  font-size: 1.35em;
   font-weight: bold;
   letter-spacing: 2px;
 }
 
 /* 国网福建中间输入框放大 */
 .paper-header .inline-input {
-  font-size: 22px;
-  min-width: 140px;
+  font-size: 1.35em;
+  min-width: 5em;
   border-bottom: 1.5px solid #ff0000;
 }
 
 .paper-header .inline-input :deep(.el-input__inner) {
-  font-size: 22px !important;
+  font-size: 1.35em !important;
   font-weight: bold;
   text-align: center;
 }
@@ -544,6 +808,7 @@ defineExpose({ formData, stats })
 /* 横线行 — 模拟纸上填空 */
 .form-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   padding: 6px 0;
 
@@ -559,21 +824,22 @@ defineExpose({ formData, stats })
 /* 分节标题行：普通宋体，仅上方留白区分各节（无下划线、不加粗） */
 .section-brk {
   margin-top: 14px;
-  font-family: 'SimSun', '宋体', serif;
+  font-family: inherit;
 }
 
 .form-line-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .form-line-row.triple .form-line {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .inline-input {
   display: inline-flex;
-  min-width: 120px;
+  min-width: 5em;
   margin: 0 4px;
   border-bottom: 1.5px solid #ff0000;
 }
@@ -584,7 +850,7 @@ defineExpose({ formData, stats })
 
 .inline-input.full {
   flex: 1;
-  min-width: 200px;
+  min-width: 6em;
 }
 
 /* ===== 输入框：只保留红色下划线 ===== */
@@ -597,9 +863,9 @@ defineExpose({ formData, stats })
 }
 
 :deep(.inline-input .el-input__inner) {
-  font-size: 14px;
-  color: #222;
-  font-family: 'SimSun', '宋体', serif;
+  font-size: 1em;
+  color: #123f68;
+  font-family: inherit;
 }
 
 :deep(.inline-input .el-input__inner::placeholder) {
@@ -630,29 +896,24 @@ defineExpose({ formData, stats })
   background: #fffef8 !important;
   border: none !important;
   border-radius: 0 !important;
-  font-family: 'SimSun', '宋体', serif;
-  font-size: 14px;
-  color: #222;
+  font-family: inherit;
+  font-size: 1em;
+  color: #123f68;
   margin: 1px 2px;
   padding: 0 2px !important;
 }
 
 /* 选中后的显示文字与正文统一 */
 :deep(.inline-input .el-select__selected-item) {
-  font-family: 'SimSun', '宋体', serif;
-  font-size: 14px;
-  color: #222;
+  font-family: inherit;
+  font-size: 1em;
+  color: #123f68;
 }
 
 :deep(.inline-input .el-select__input) {
-  font-family: 'SimSun', '宋体', serif;
-  font-size: 14px;
-  color: #222;
-}
-
-.submit-zone {
-  margin-top: 24px;
-  text-align: right;
+  font-family: inherit;
+  font-size: 1em;
+  color: #123f68;
 }
 
 /* 内联 form-item — 保持纸张横线布局，校验时显示错误 */
@@ -688,20 +949,20 @@ defineExpose({ formData, stats })
   width: 100%;
   border-collapse: collapse;
   margin: 8px 0 14px 0;
-  font-size: 14px;
-  font-family: 'SimSun', '宋体', serif;
+  font-size: 1em;
+  font-family: inherit;
 }
 
 .task-table th,
 .task-table td {
-  border: 1px solid #333;
+  border: 1px solid #315e83;
   padding: 8px 10px;
   text-align: left;
   vertical-align: middle;
 }
 
 .task-table th {
-  background: #f5f5f5;
+  background: #edf7f4;
   font-weight: bold;
 }
 
@@ -718,5 +979,56 @@ defineExpose({ formData, stats })
 
 .danger-table .inline-input :deep(.el-select) {
   width: 100%;
+}
+/* 保持单选、多选控件随票面缩放，并允许长选项换行。 */
+.inline-input :deep(.el-select) {
+  width: 100%;
+}
+.inline-input :deep(.el-select__selected-item) {
+  white-space: normal;
+}
+.inline-input :deep(.el-select .el-tag) {
+  height: auto;
+  white-space: normal;
+}
+.inline-input :deep(.el-tag__content) {
+  white-space: normal;
+}
+.paper-scroll:focus-visible {
+  outline: 2px solid #078c83;
+  outline-offset: -2px;
+}
+@media (max-width: 700px) {
+  .line-label {
+    white-space: normal;
+  }
+  .ticket-board {
+    width: 86vw;
+  }
+  .work-ticket-commit {
+    right: -5%;
+  }
+  .ticket-paper {
+    padding-right: 6%;
+  }
+  .paper-header .inline-input {
+    min-width: 3em;
+    width: 4em;
+  }
+  .paper-right {
+    width: 100%;
+    text-align: center;
+    margin: 0.5em 0;
+  }
+  .task-table th,
+  .task-table td {
+    padding: 0.4em 0.2em;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-height: 600px) {
+  .paper-scroll {
+    height: 57vh;
+  }
 }
 </style>
