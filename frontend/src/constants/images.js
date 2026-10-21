@@ -38,6 +38,10 @@ import distributionRoomPanorama from '@/assets/images/cabinet/DistributionRoomPa
 
 // ─── 高压工作票 ───
 import workTicketBackground from '@/assets/images/work-ticket/WorkTicketBackground.jpg'
+import workTicketSign from '@/assets/images/work-ticket/WorkTicketSign.png'
+import workTicketCommit from '@/assets/images/work-ticket/WorkTicketCommit.png'
+import workTicketRope from '@/assets/images/work-ticket/WorkTicketRope.png'
+import scrollFocus from '@/assets/images/work-ticket/ScrollFocus.png'
 
 // ─── 高压工器具选择 ───
 import toolSelectionBg from '@/assets/images/tool-selection/ToolSelectionBackground.jpg'
@@ -194,6 +198,10 @@ export default {
   distributionRoomPanorama,
   // 高压工作票
   workTicketBackground,
+  workTicketSign,
+  workTicketCommit,
+  workTicketRope,
+  scrollFocus,
   // 高压工器具
   toolSelectionBg,
   // 工器具选择
