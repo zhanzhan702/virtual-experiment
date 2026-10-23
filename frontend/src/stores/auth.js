@@ -1,29 +1,47 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { login as loginApi, register as registerApi, getCurrentUser } from '@/api/auth'
+import { ref, computed, onScopeDispose } from 'vue'
+import {
+  login as loginApi,
+  logout as logoutApi,
+  register as registerApi,
+  getCurrentUser
+} from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token') || '')
+  // 升级后不再保留可被 JavaScript 读取的旧凭证。
+  localStorage.removeItem('token')
   const user = ref(null)
   const roles = ref([])
-  // 最高角色层级：学生 10 / 教师 20 / 管理员 30 / 超级管理员 40
-  // 仅用于路由守卫与菜单显隐，真正的权限拦截在后端
   const maxLevel = ref(0)
+  const initialized = ref(false)
+  let restoration = null
+  let revision = 0
 
-  const isLoggedIn = computed(() => !!token.value)
+  const isLoggedIn = computed(() => !!user.value)
   const isStudent = computed(() => roles.value.includes('student'))
   const isTeacher = computed(() => roles.value.includes('teacher'))
   const isAdmin = computed(() => roles.value.includes('admin'))
 
-  /** 登录 */
-  async function login(loginDTO) {
-    const res = await loginApi(loginDTO)
-    token.value = res.token
+  /** 写入服务端返回的用户和权限快照 */
+  function applyUser(res) {
     user.value = res.user
     roles.value = res.roles || []
-    maxLevel.value = res.user?.maxLevel ?? 0
-    localStorage.setItem('token', res.token)
-    return res
+    maxLevel.value = res.maxLevel ?? res.user?.maxLevel ?? 0
+    initialized.value = true
+  }
+
+  /** 登录，凭证仅由浏览器接收和保存 */
+  async function login(loginDTO) {
+    revision++
+    restoration = null
+    try {
+      const res = await loginApi(loginDTO)
+      applyUser(res)
+      return res
+    } catch (error) {
+      if (error.response?.status === 401) clearAuth()
+      throw error
+    }
   }
 
   /** 注册 */
@@ -31,53 +49,66 @@ export const useAuthStore = defineStore('auth', () => {
     return await registerApi(registerDTO)
   }
 
-  /**
-   * 恢复登录态。
-   *
-   * token 存在但 user/roles 为空（页面刷新后的首次导航）时调用，从后端重新拉取。
-   * token 失效时抛错，由路由守卫处理跳转。
-   */
-  async function fetchMe() {
-    const res = await getCurrentUser()
-    user.value = res.user
-    roles.value = res.roles || []
-    maxLevel.value = res.maxLevel ?? res.user?.maxLevel ?? 0
-    return res
+  /** 恢复登录态，合并并发请求；忽略退出或重新登录前发起的旧响应 */
+  function fetchMe() {
+    if (restoration) return restoration
+    const currentRevision = revision
+    const pending = getCurrentUser()
+      .then(res => {
+        if (currentRevision === revision) applyUser(res)
+        return res
+      })
+      .catch(error => {
+        if (currentRevision === revision && error.response?.status === 401) clearAuth()
+        throw error
+      })
+      .finally(() => {
+        if (restoration === pending) restoration = null
+      })
+    restoration = pending
+    return pending
   }
 
-  /**
-   * 局部替换用户信息（改完资料后同步顶栏显示名等）。
-   *
-   * 改资料接口返回的 VO 不含 maxLevel，这里用 store 里已有的值补上 ——
-   * 否则 `user.maxLevel` 会被抹成 undefined，将来若有组件读它就会拿到 undefined。
-   */
-  function setUser(next) {
-    if (!next) {
-      user.value = null
-      return
+  /** 首次导航恢复一次；临时网络故障不标记为已完成，下次导航可重试 */
+  async function ensureInitialized() {
+    if (initialized.value) return
+    try {
+      await fetchMe()
+    } catch (error) {
+      if (error.response?.status !== 401) throw error
     }
-    user.value = { ...next, maxLevel: next.maxLevel ?? maxLevel.value }
   }
 
-  /** 清空本地登录态（不调后端，JWT 无状态） */
+  /** 更新资料后保留已有的最高角色层级 */
+  function setUser(next) {
+    user.value = next ? { ...next, maxLevel: next.maxLevel ?? maxLevel.value } : null
+  }
+
+  /** 清空本地状态；Cookie 必须由后端清除 */
   function clearAuth() {
-    token.value = ''
+    revision++
+    restoration = null
     user.value = null
     roles.value = []
     maxLevel.value = 0
+    initialized.value = true
     localStorage.removeItem('token')
   }
 
-  /** 登出 */
-  function logout() {
+  /** 后端退出成功后才清理本地状态，失败时保留状态供重试 */
+  async function logout() {
+    await logoutApi()
     clearAuth()
   }
 
+  window.addEventListener('auth:unauthorized', clearAuth)
+  onScopeDispose(() => window.removeEventListener('auth:unauthorized', clearAuth))
+
   return {
-    token,
     user,
     roles,
     maxLevel,
+    initialized,
     isLoggedIn,
     isStudent,
     isTeacher,
@@ -85,6 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     fetchMe,
+    ensureInitialized,
     setUser,
     clearAuth,
     logout

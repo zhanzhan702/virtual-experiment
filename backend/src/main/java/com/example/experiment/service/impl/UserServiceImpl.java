@@ -18,7 +18,6 @@ import com.example.experiment.mapper.RolesMapper;
 import com.example.experiment.mapper.UserRolesMapper;
 import com.example.experiment.mapper.UsersMapper;
 import com.example.experiment.service.UserService;
-import com.example.experiment.utils.JwtUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -233,14 +232,10 @@ public class UserServiceImpl implements UserService {
     List<String> roles = getUserRoleCodes(user.getId());
     int maxLevel = getMaxLevel(user.getId());
 
-    // 生成 token（maxLevel 一并写入 claim，后续请求无需查库）
-    String token = JwtUtils.generateToken(user.getId(), roles, maxLevel);
-
     // 组装 VO
     UserVO userVO = toUserVO(user);
     userVO.setMaxLevel(maxLevel);
     LoginVO loginVO = new LoginVO();
-    loginVO.setToken(token);
     loginVO.setUser(userVO);
     loginVO.setRoles(roles);
     loginVO.setRedirectUrl(roles.contains("student") ? "/experiment" : "/admin");

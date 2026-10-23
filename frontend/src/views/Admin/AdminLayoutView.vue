@@ -42,7 +42,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -101,8 +101,12 @@ async function onUserCommand(command) {
     return // 用户取消
   }
 
-  authStore.logout()
-  router.push('/')
+  try {
+    await authStore.logout()
+    router.push('/')
+  } catch (err) {
+    ElMessage.error(err.response?.data?.message || '退出失败，请重试')
+  }
 }
 </script>
 

@@ -8,6 +8,9 @@ spring:
     password: ${MYSQL_PASSWORD}
 server:
   port: 8080
+auth:
+  cookie-secure: ${AUTH_COOKIE_SECURE:false}
+  allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印SQL

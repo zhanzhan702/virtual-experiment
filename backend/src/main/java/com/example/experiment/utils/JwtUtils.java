@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -11,7 +12,7 @@ import javax.crypto.SecretKey;
 public class JwtUtils {
 
   private static final String SECRET = "virtual-experiment-platform-jwt-secret-key-2026";
-  private static final long EXPIRATION = 24 * 60 * 60 * 1000; // 24小时
+  public static final Duration TOKEN_TTL = Duration.ofHours(24);
   private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
   /**
@@ -26,7 +27,7 @@ public class JwtUtils {
         .claim("roles", roles)
         .claim("maxLevel", maxLevel)
         .issuedAt(new Date())
-        .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+        .expiration(new Date(System.currentTimeMillis() + TOKEN_TTL.toMillis()))
         .signWith(KEY)
         .compact();
   }

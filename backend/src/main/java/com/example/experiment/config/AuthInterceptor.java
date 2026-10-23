@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,20 +17,22 @@ import org.springframework.web.servlet.HandlerInterceptor;
 /**
  * JWT 鉴权拦截器。
  *
- * <p>链路：解析 Bearer token → 校验 → 写入 {@link UserContext} → 校验 {@link RequireRole} → 放行。
+ * <p>链路：读取 HttpOnly Cookie → 校验 JWT → 写入 {@link UserContext} → 校验 {@link RequireRole} → 放行。
  *
- * <p>放行路径在 {@link WebConfig} 中配置，仅 {@code /api/auth/login} 与 {@code /api/auth/register}。 注意不是整个
- * {@code /api/auth/**} —— {@code /api/auth/me} 需要经过本拦截器以取得 userId。
+ * <p>放行路径由 {@link SecurityWhitelist} 配置：登录、注册与退出。注意不是整个 {@code /api/auth/**} —— {@code
+ * /api/auth/me} 需要经过本拦截器以取得 userId。
  */
 @Component
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
   private final SecurityWhitelist whitelist;
+  private final AuthCookie authCookie;
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
+    UserContext.clear();
     // 放行预检请求（CORS 由 CorsFilter 处理，此处不拦截）
     if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
       return true;
@@ -40,13 +43,12 @@ public class AuthInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    // 1. 解析 Authorization 头
-    String header = request.getHeader("Authorization");
-    if (header == null || !header.startsWith("Bearer ")) {
+    // 1. 只接受 Cookie，不再兼容 Bearer。
+    String token = authCookie.read(request);
+    if (token == null) {
       return reject(response, HttpStatus.UNAUTHORIZED, "未登录");
     }
 
-    String token = header.substring("Bearer ".length()).trim();
     if (token.isEmpty() || !JwtUtils.validateToken(token)) {
       return reject(response, HttpStatus.UNAUTHORIZED, "登录已过期，请重新登录");
     }
@@ -92,6 +94,11 @@ public class AuthInterceptor implements HandlerInterceptor {
   /** 返回 JSON 错误响应；与 AuthController 的 {@code Map.of("message", ...)} 结构保持一致 */
   private boolean reject(HttpServletResponse response, HttpStatus status, String message)
       throws Exception {
+    // preHandle 返回 false 时不会执行自身的 afterCompletion。
+    UserContext.clear();
+    if (status == HttpStatus.UNAUTHORIZED) {
+      response.addHeader(HttpHeaders.SET_COOKIE, authCookie.clear());
+    }
     response.setStatus(status.value());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());

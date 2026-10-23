@@ -5,6 +5,11 @@ export function login(data) {
   return request.post('/auth/login', data)
 }
 
+/** 清除后端签发的登录 Cookie */
+export function logout() {
+  return request.post('/auth/logout')
+}
+
 /** 学生注册 */
 export function register(data) {
   return request.post('/auth/register', data)

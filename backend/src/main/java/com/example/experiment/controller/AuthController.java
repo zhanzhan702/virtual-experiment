@@ -1,5 +1,6 @@
 package com.example.experiment.controller;
 
+import com.example.experiment.config.AuthCookie;
 import com.example.experiment.dto.auth.ChangePasswordDTO;
 import com.example.experiment.dto.auth.LoginDTO;
 import com.example.experiment.dto.auth.LoginVO;
@@ -8,10 +9,12 @@ import com.example.experiment.dto.auth.UpdateProfileDTO;
 import com.example.experiment.dto.auth.UserVO;
 import com.example.experiment.entity.Users;
 import com.example.experiment.service.UserService;
+import com.example.experiment.utils.JwtUtils;
 import com.example.experiment.utils.UserContext;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final UserService userService;
+  private final AuthCookie authCookie;
 
   /** 注册（仅限学生） */
   @PostMapping("/register")
@@ -47,10 +51,22 @@ public class AuthController {
   public ResponseEntity<?> login(@Valid @RequestBody LoginDTO dto) {
     try {
       LoginVO vo = userService.login(dto);
-      return ResponseEntity.ok(vo);
+      String token =
+          JwtUtils.generateToken(vo.getUser().getId(), vo.getRoles(), vo.getUser().getMaxLevel());
+      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, authCookie.issue(token)).body(vo);
     } catch (RuntimeException e) {
-      return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+      return ResponseEntity.status(401)
+          .header(HttpHeaders.SET_COOKIE, authCookie.clear())
+          .body(Map.of("message", e.getMessage()));
     }
+  }
+
+  /** 幂等退出：即使凭证已过期也能清除当前浏览器的 Cookie。 */
+  @PostMapping("/logout")
+  public ResponseEntity<?> logout() {
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, authCookie.clear())
+        .body(Map.of("message", "已退出登录"));
   }
 
   /**
@@ -65,7 +81,9 @@ public class AuthController {
     String userId = UserContext.getUserId();
     Users user = userService.findById(userId);
     if (user == null) {
-      return ResponseEntity.status(401).body(Map.of("message", "用户不存在"));
+      return ResponseEntity.status(401)
+          .header(HttpHeaders.SET_COOKIE, authCookie.clear())
+          .body(Map.of("message", "用户不存在"));
     }
 
     UserVO userVO = userService.toUserVO(user);
@@ -83,12 +101,14 @@ public class AuthController {
    *
    * <p>无 {@code @RequireRole} —— 任何登录用户都能改自己的密码。
    *
-   * <p>改密成功后前端会清 token 跳回登录页；服务端不做会话失效处理（JWT 无状态，且无 token_version）。
+   * <p>改密成功后清除当前浏览器 Cookie；JWT 无状态，不撤销其他已签发的凭证。
    */
   @PutMapping("/password")
   public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
     userService.changePassword(UserContext.getUserId(), dto);
-    return ResponseEntity.ok(Map.of("message", "密码修改成功"));
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, authCookie.clear())
+        .body(Map.of("message", "密码修改成功"));
   }
 
   /**

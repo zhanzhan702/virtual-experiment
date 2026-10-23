@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityWhitelist {
 
-  private static final Set<String> PUBLIC_PATHS = Set.of("/api/auth/login", "/api/auth/register");
+  private static final Set<String> PUBLIC_PATHS =
+      Set.of("/api/auth/login", "/api/auth/register", "/api/auth/logout");
 
   /** 路径是否无需登录即可访问 */
   public boolean isPublic(String path) {
