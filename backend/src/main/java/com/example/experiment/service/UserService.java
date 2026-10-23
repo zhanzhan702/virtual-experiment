@@ -32,7 +32,7 @@ public interface UserService {
   /** 注册（DTO版本）：自动分配学生角色 */
   Users register(RegisterDTO dto);
 
-  /** 登录：校验密码，返回 token */
+  /** 登录：校验密码，返回用户与角色，由 Controller 签发登录 Cookie。 */
   LoginVO login(LoginDTO dto);
 
   /**

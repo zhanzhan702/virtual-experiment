@@ -282,26 +282,63 @@ npm run dev
 | 方法 | 路径                 | 说明                              | 认证 |
 | ---- | -------------------- | --------------------------------- | ---- |
 | POST | `/api/auth/register` | 学生注册（自动分配 student 角色） | 无   |
-| POST | `/api/auth/login`    | 登录，返回 JWT + 角色 + 跳转路径  | 无   |
+| POST | `/api/auth/login`    | 登录，设置 HttpOnly Cookie，返回用户、角色和跳转路径  | 无   |
+
+### Cookie 登录与部署配置
+
+登录凭证只通过后端的 `Set-Cookie` 响应头发送：`auth_token`，`HttpOnly`、
+`SameSite=Lax`、`Path=/api`，不设置 Domain，有效期与 JWT 一致，均为 24 小时。
+登录响应不再返回 `token`，接口不再接受 `Authorization: Bearer ...`。
+升级后原有用户需要重新登录；前端启动时清理旧 `localStorage.token`，实验存档保留。
+
+| 方法 | 路径 | 说明 |
+| ---- | ---- | ---- |
+| GET | `/api/auth/me` | 用 Cookie 恢复当前用户与角色；未登录返回 401 |
+| POST | `/api/auth/logout` | 幂等退出，无需有效凭证，清除当前浏览器 Cookie |
+| PUT | `/api/auth/password` | 改密成功后清除当前浏览器 Cookie，要求重新登录 |
+
+所有写请求（POST、PUT、PATCH、DELETE 等，包括登录、注册和退出）都要通过来源校验：
+优先校验 `Origin`，不存在时校验 `Referer` 的来源；来源缺失、`null` 或不可信返回 403。
+命令行调用也需使用可信 `Origin` 并通过 Cookie jar 保存、发送凭证。
+
+| 环境变量 | 默认值 | 说明 |
+| ---- | ---- | ---- |
+| `AUTH_COOKIE_SECURE` | `false` | 本地 HTTP 开发关闭；正式 HTTPS 部署必须设为 `true` |
+| `AUTH_ALLOWED_ORIGINS` | `http://localhost:5173` | 逗号分隔的可信来源，包含协议和端口，不带路径或末尾斜杠；禁止通配符 |
+
+开发继续使用 Vite 的 `/api` 代理；正式部署也应将页面和 `/api` 放在同一来源下，
+并将 `AUTH_ALLOWED_ORIGINS` 设为浏览器访问站点的真实来源（例如 `https://lab.example.com`）。
+反向代理必须透传 `Cookie`、`Set-Cookie`、`Origin` 和 `Referer`。
+
+退出、改密和凭证失效时使用相同的 Path、SameSite、HttpOnly、Secure 属性删除 Cookie。
+JWT 仍为无状态机制：退出与改密不撤销其他设备或已复制的 JWT，它们在原有效期结束时过期。
+
+### 认证测试
+
+- 后端：在 `backend/` 执行 `mvn test`，新增用例使用真实控制器、JWT、过滤器与拦截器，模拟业务服务，无需连接数据库。
+- 前端：在 `frontend/` 执行 `npm test`，覆盖 Cookie 登录状态恢复、角色守卫、退出、401 和网络异常。
+- 构建检查：在 `frontend/` 执行 `npm run build`。
+- 浏览器检查：登录后检查 `auth_token` 的 HttpOnly、Path、SameSite 和有效期；在 `/api/auth/me` 页面确认 `document.cookie` 无法读取凭证；刷新业务页面应恢复用户，退出后 `/api/auth/me` 应返回 401。
+
+本次测试结果及不依赖数据库的浏览器联调方法见 [HttpOnly Cookie 验证记录](docs/testing/httponly-cookie.md)。
 
 ### 实验
 
 | 方法   | 路径                          | 说明                                   | 认证       |
 | ------ | ----------------------------- | -------------------------------------- | ---------- |
-| POST   | `/api/experiment/start`       | 启动实验                               | Bearer JWT |
-| POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）                   | Bearer JWT |
-| POST   | `/api/experiment/complete`    | 完成实验（更新 status/结束时间/总时长/总分） | Bearer JWT |
-| POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分）                 | Bearer JWT |
-| GET    | `/api/experiment/unfinished`  | 查询未完成实验                         | Bearer JWT |
-| GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据                       | Bearer JWT |
-| GET    | `/api/experiment/{id}/steps`  | 获取实验步骤列表（恢复时重建步骤映射） | Bearer JWT |
-| DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联）                 | Bearer JWT |
+| POST   | `/api/experiment/start`       | 启动实验                               | HttpOnly Cookie |
+| POST   | `/api/experiment/step/submit` | 提交步骤结果（评分）                   | HttpOnly Cookie |
+| POST   | `/api/experiment/complete`    | 完成实验（更新 status/结束时间/总时长/总分） | HttpOnly Cookie |
+| POST   | `/api/experiment/step/draft`  | 保存进度草稿（不评分）                 | HttpOnly Cookie |
+| GET    | `/api/experiment/unfinished`  | 查询未完成实验                         | HttpOnly Cookie |
+| GET    | `/api/experiment/step/draft`  | 恢复步骤草稿数据                       | HttpOnly Cookie |
+| GET    | `/api/experiment/{id}/steps`  | 获取实验步骤列表（恢复时重建步骤映射） | HttpOnly Cookie |
+| DELETE | `/api/experiment/{id}`        | 删除未完成实验（级联）                 | HttpOnly Cookie |
 
 ### 登录响应示例
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
   "user": {
     "id": "74341904353443fcab03633f8cfebfa3",
     "username": "student1",
