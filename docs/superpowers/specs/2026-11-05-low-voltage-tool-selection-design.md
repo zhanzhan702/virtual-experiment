@@ -139,7 +139,7 @@
 | `views/HighVoltage/HWorkTicketView.vue` | `HVideoOverlay` import 路径 |
 | `views/LowVoltage/LWorkTicketView.vue` | 增加视频 1 与跳转 `/LTS` |
 | `router/index.js` | 注册 `/LTS`、`/LSO` |
-| `constants/images.js` | 新增 `wireGreenBlack`、`wireRS485` |
+| `constants/images.js` | 新增 `wireGreenBlack`、`wireRS485`（选择页）与 `barWireGreenBlack`（工具栏，本轮只注册不使用） |
 | `backend/docs/sql/04_low_experiment_templates.sql` | 追加第 2 步（权威脚本） |
 
 **删除**
@@ -174,14 +174,25 @@
 
 ## 五、素材
 
+现有三张以数字命名的未跟踪素材，按用途与尺寸归位（尺寸验证过：选择页为横向，工具栏为 1:1）：
+
+| 原文件 | 尺寸 | 重命名为 | 用途 |
+| --- | --- | --- | --- |
+| `tool-selection/wire/4.png` | 4724×3543 | `tool-selection/wire/WireGreenBlack.png` | 选择页 · 4mm²绿黑线 |
+| `tool-selection/wire/30.png` | 1048×656 | `tool-selection/wire/WireRS485.png` | 选择页 · RS485 线 |
+| `cabinet/toolbar/3.png` | 3543×3543 | `cabinet/toolbar/WireGreenBlack.png` | 工具栏 · 绿黑线 |
+
+其余素材处理：
+
 | 用途 | 处理 |
 | --- | --- |
-| 4mm²绿黑线 | `24.png` → 重命名 `wire/WireGreenBlack.png` |
-| RS485 线 | `30.png` → 重命名 `wire/WireRS485.png` |
 | 扎带 | 复用 `wire/CableTieLabel.png` |
 | 其余线材/防护/终端/工器具 | 复用现有素材 |
 | 页面背景 | 复用 `tool-selection/ToolSelectionBackground.jpg` |
 | 教学视频 | 复用 `videos/test.mp4` |
+
+**工具栏版本的绿黑线本轮只注册、不使用**：它服务于柜体局部操作的工具栏，而低压柜体场景尚未开发。
+在 `images.js` 里先加 `barWireGreenBlack` 导出，等做低压柜体时直接引用，避免这张图以数字文件名长期滞留在仓库里。
 
 ## 六、数据库
 
