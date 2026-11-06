@@ -13,7 +13,7 @@
     </PromptModal>
 
     <!-- 视频1：工作票填写完（播放完毕自动进入工器具选择） -->
-    <HVideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
+    <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </div>
 </template>
 
@@ -26,7 +26,7 @@ import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WorkTicketForm from '@/components/HighVoltage/HWorkTicketForm.vue'
-import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
+import VideoOverlay from '@/components/VideoOverlay.vue'
 import Images from '@/constants/images'
 import Videos from '@/constants/videos'
 

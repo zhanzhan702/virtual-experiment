@@ -20,7 +20,7 @@
     </PromptModal>
 
     <!-- 视频2：工器具选择完（播放完毕自动进入下一步） -->
-    <HVideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
+    <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </div>
 </template>
 
@@ -30,8 +30,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import PromptModal from '@/components/PromptModal.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
-import WizardInventorySelection from '@/components/HighVoltage/HWizardInventorySelection.vue'
-import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
+import WizardInventorySelection from '@/components/WizardInventorySelection.vue'
+import VideoOverlay from '@/components/VideoOverlay.vue'
 import { categories } from '@/constants/tool-selection-config'
 import Images from '@/constants/images'
 import Videos from '@/constants/videos'

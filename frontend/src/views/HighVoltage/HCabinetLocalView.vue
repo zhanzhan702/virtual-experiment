@@ -65,10 +65,10 @@
     />
 
     <!-- 视频3：告示牌悬挂完成（播放完毕自动进入步骤4验电） -->
-    <HVideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
+    <VideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
 
     <!-- 合闸三段教学视频（播放完毕自动弹提示图，确认后进入下一段/铅封） -->
-    <HVideoOverlay
+    <VideoOverlay
       :key="videoSeq"
       :visible="showPowerVideo"
       :src="Videos.testVideo"
@@ -182,7 +182,7 @@ import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
 import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
 import HTerminalRoomCanvas from '@/components/HighVoltage/HTerminalRoomCanvas.vue'
-import HVideoOverlay from '@/components/HighVoltage/HVideoOverlay.vue'
+import VideoOverlay from '@/components/VideoOverlay.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import Images from '@/constants/images'
 import Videos from '@/constants/videos'
