@@ -58,6 +58,9 @@
         </p>
       </article>
     </PromptModal>
+
+    <!-- 视频1：工作票提交完（播放完毕自动进入工器具选择） -->
+    <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </main>
 </template>
 
@@ -68,6 +71,8 @@ import { ElMessage } from 'element-plus'
 import LWorkTicketForm from '@/components/LowVoltage/LWorkTicketForm.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import VideoOverlay from '@/components/VideoOverlay.vue'
+import Videos from '@/constants/videos'
 import { getStepDraft, saveDraft, submitStep } from '@/api/experiment'
 import { useAuthStore } from '@/stores/auth'
 import { formatLocalTime } from '@/utils/time'
@@ -85,6 +90,9 @@ const saving = ref(false)
 const submitting = ref(false)
 const completed = ref(false)
 const showTask = ref(false)
+// 视频1：工作票提交完播放（播毕进入工器具选择）
+const showVideo = ref(false)
+const nextStepId = ref('')
 const startedAt = ref(formatLocalTime(new Date()))
 const busy = computed(() => saving.value || submitting.value)
 const canWrite = computed(
@@ -165,12 +173,31 @@ async function handleTicketSubmit(result) {
     await submitStep(createPayload(result.data, true))
     persistedStats = { ...result.data.stats }
     completed.value = true
-    ElMessage.success('两张工作票已完成')
+
+    // 查找第 2 步。找不到时停留并提示，而不是带着空 stepId 跳过去 ——
+    // 工具选择页拿不到有效 stepId 就既存不了档也提交不了
+    const steps = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId) || '[]')
+    const nextStep = steps.find(s => s.stepOrder === 2)
+    if (!nextStep) {
+      ElMessage.warning('未找到下一步骤，请确认数据库已执行低压第 2 步脚本')
+      return
+    }
+    nextStepId.value = nextStep.stepId
+    ElMessage.success('两张工作票已完成，即将播放教学视频…')
+    showVideo.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
   } finally {
     submitting.value = false
   }
+}
+/** 视频1 播放完毕 → 进入工器具选择（步骤2） */
+function onVideoEnded() {
+  showVideo.value = false
+  router.push({
+    path: '/LTS',
+    query: { experimentId, stepId: nextStepId.value }
+  })
 }
 onMounted(handleRestore)
 </script>
