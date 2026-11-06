@@ -168,7 +168,7 @@ async function handleToolSelectionSubmit(selectedMap) {
   }
 }
 
-/** 视频播放完毕 → 进入低压场景总览（占位页） */
+/** 视频播放完毕 → 进入居民表箱场景（步骤 3） */
 function onVideoEnded() {
   showVideo.value = false
   router.push({ path: '/LRB', query: { experimentId, stepId: nextStepId.value } })
