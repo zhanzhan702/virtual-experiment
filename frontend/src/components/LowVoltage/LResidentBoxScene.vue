@@ -11,6 +11,7 @@
 
       <!-- 排插：叠在背景左上角，与高压一致 -->
       <img
+        ref="socketRef"
         :src="Images.powerSocket"
         alt="排插"
         class="overlay power-socket"
@@ -58,33 +59,24 @@
       <div v-if="vtActive && vtStep === 1" class="check-zone" :style="zoneStyle(DOOR_CHECK_ZONE)" />
     </div>
 
-    <!-- 左侧工具栏：步骤 3 -->
-    <aside v-if="stage === 3" class="toolbar toolbar-left">
-      <button
-        v-for="tool in LEFT_TOOLS"
-        :key="tool.idx"
-        type="button"
-        class="tool-btn"
-        :class="{ active: followingTool === tool.idx }"
-        :aria-label="tool.name"
-        @click.stop="selectTool(tool.idx)"
-      >
-        <img :src="tool.img" :alt="tool.name" draggable="false" />
-      </button>
-    </aside>
-
-    <!-- 右侧工具栏：步骤 4 -->
-    <aside v-if="stage === 4" class="toolbar toolbar-right">
-      <button
-        type="button"
-        class="tool-btn"
-        :class="{ active: vtActive }"
-        aria-label="验电笔"
-        @click.stop="toggleVoltageTester"
-      >
-        <img :src="Images.barVoltageTesterNormal" alt="验电笔" draggable="false" />
-      </button>
-    </aside>
+    <!--
+      左右工具栏与高压共用同一套组件和样式（@/components/ToolBarLeft | ToolBarRight，
+      样式在 assets/styles/toolbar.css）。两侧常驻显示：已放置的物品会置灰，
+      不在当前阶段时可点击但会给出对应提示，与高压的交互一致。
+    -->
+    <ToolBarLeft
+      :items="LEFT_TOOLS"
+      :placed-mask="placed"
+      :active-idx="followingTool"
+      @select="selectTool"
+    />
+    <ToolBarRight
+      :items="RIGHT_TOOLS"
+      :vt-idx="0"
+      :vt-active="vtActive"
+      :vt-done="vtDone"
+      @click="toggleVoltageTester"
+    />
 
     <!-- 鼠标跟随：围栏/标识牌中心对准光标；验电笔尖端对准光标 -->
     <img
@@ -99,9 +91,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import Images from '@/constants/images'
+import ToolBarLeft from '@/components/ToolBarLeft.vue'
+import ToolBarRight from '@/components/ToolBarRight.vue'
 import {
   LEFT_FENCE_STYLE,
   RIGHT_FENCE_STYLE,
@@ -123,17 +117,35 @@ const props = defineProps({
 const emit = defineEmits(['complete', 'operation', 'error'])
 
 const groupRef = ref(null)
+const socketRef = ref(null)
 
 // ── 步骤 3：放置状态 ──────────────────────────────────────
 // 顺序：0 围栏、1 有电危险牌、2 有人工作牌
 const placed = reactive([false, false, false])
 const followingTool = ref(null)
 
+/*
+ * 进入步骤 4 时围栏与标识牌必然已经放好（步骤 3 的完成条件就是三样齐全），
+ * 但步骤 4 有自己的存档记录，里面没有放置状态。这里强制标记为已放置，
+ * 否则验电前会被「请先完成围栏与标识牌放置」挡住。与高压的处理一致。
+ */
+watch(
+  () => props.stage,
+  s => {
+    if (s === 4) placed.splice(0, 3, true, true, true)
+  },
+  { immediate: true }
+)
+
+// 顺序即 placed 数组的下标：0 围栏、1 有电危险牌、2 有人工作牌
 const LEFT_TOOLS = [
-  { idx: 0, name: '围栏', img: Images.barLeftFence },
-  { idx: 1, name: '有电危险标识牌', img: Images.barSignStopHighVoltage },
-  { idx: 2, name: '有人工作标识牌', img: Images.barSignPersonWorking }
+  { name: '围栏', img: Images.barLeftFence },
+  { name: '有电危险标识牌', img: Images.barSignStopHighVoltage },
+  { name: '有人工作标识牌', img: Images.barSignPersonWorking }
 ]
+
+// 低压验电只需验电笔，放在右栏唯一的位置上（vtIdx = 0）
+const RIGHT_TOOLS = [{ name: '验电笔', img: Images.barVoltageTesterNormal }]
 
 // ── 步骤 4：三步验电 ──────────────────────────────────────
 // 0 待验电 → 1 已点排插 → 2 已点门把 → 3 完成
@@ -177,24 +189,42 @@ function moveCursor(e) {
 
 // ── 命中判定 ──────────────────────────────────────────────
 
-/** 百分比矩形是否命中光标（相对场景容器） */
+/**
+ * 百分比矩形是否命中光标（相对场景容器）。
+ *
+ * 配置里的值是带 `%` 的字符串（`:style` 要直接用它），做数学运算前必须 parseFloat ——
+ * 直接相乘会得到 NaN，判定永远为假。
+ */
 function hitZone(e, zone) {
   const g = groupRef.value
   if (!g) return false
   const r = g.getBoundingClientRect()
-  const x = r.left + (r.width * zone.left) / 100
-  const y = r.top + (r.height * zone.top) / 100
-  const w = (r.width * zone.width) / 100
-  const h = (r.height * zone.height) / 100
+  const x = r.left + (r.width * parseFloat(zone.left)) / 100
+  const y = r.top + (r.height * parseFloat(zone.top)) / 100
+  const w = (r.width * parseFloat(zone.width)) / 100
+  const h = (r.height * parseFloat(zone.height)) / 100
   return e.clientX >= x && e.clientX <= x + w && e.clientY >= y && e.clientY <= y + h
 }
 
+/**
+ * 元素本体是否被点中。
+ *
+ * 排插的 width 是百分比、height 是 auto（跟着图片比例走），没法用百分比矩形算，
+ * 直接量它的实际渲染尺寸最准 —— 与高压的 hitTest 一致。
+ */
+function hitEl(e, el) {
+  if (!el) return false
+  const r = el.getBoundingClientRect()
+  return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+}
+
+/** 热区可视化：配置值本身已带 %，直接透传，不能再拼一次 */
 function zoneStyle(zone) {
   return {
-    left: zone.left + '%',
-    top: zone.top + '%',
-    width: zone.width + '%',
-    height: zone.height + '%'
+    left: zone.left,
+    top: zone.top,
+    width: zone.width,
+    height: zone.height
   }
 }
 
@@ -266,7 +296,7 @@ function toggleVoltageTester() {
 function handleVoltageTest(e) {
   if (!vtActive.value || vtDone.value) return
 
-  const onSocket = hitZone(e, POWER_SOCKET_STYLE)
+  const onSocket = hitEl(e, socketRef.value)
   const onDoor = hitZone(e, DOOR_CHECK_ZONE)
 
   // 顺序错：归零并计一次错误（与高压一致）
@@ -297,7 +327,8 @@ function getState() {
 
 function restore(state) {
   if (!state) return
-  if (Array.isArray(state.placed) && state.placed.length === 3) {
+  // 步骤 4 的放置状态恒为「已完成」，不采纳存档里的旧值
+  if (props.stage === 3 && Array.isArray(state.placed) && state.placed.length === 3) {
     placed.splice(0, 3, ...state.placed.map(Boolean))
   }
   if (typeof state.vtStep === 'number') vtStep.value = state.vtStep
@@ -356,55 +387,7 @@ defineExpose({ getState, restore })
   pointer-events: none;
 }
 
-/* 工具栏 */
-.toolbar {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 10px;
-  background: rgba(0, 141, 133, 0.9);
-  border-radius: 16px;
-  z-index: 20;
-}
-
-.toolbar-left {
-  left: 2vw;
-}
-
-.toolbar-right {
-  right: 2vw;
-}
-
-.tool-btn {
-  width: 64px;
-  height: 64px;
-  padding: 6px;
-  border: 2px solid transparent;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    transform 0.2s;
-}
-
-.tool-btn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.tool-btn:hover {
-  transform: scale(1.05);
-}
-
-.tool-btn.active {
-  border-color: #ffd400;
-  box-shadow: 0 0 12px rgba(255, 212, 0, 0.8);
-}
+/* 工具栏样式由 @/assets/styles/toolbar.css 提供（与高压共用） */
 
 /* 鼠标跟随图：fixed 定位，中心（或验电笔尖端）对准光标 */
 .follower {

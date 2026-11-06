@@ -21,7 +21,9 @@ export const SIGN_DANGER_STYLE = { left: '3%', top: '40%', width: '10%', height:
 export const SIGN_WORKING_STYLE = { left: '82%', top: '40%', width: '10%', height: 'auto' }
 
 // ── 排插：叠在背景左上角（与高压一致，不画进背景图） ────────
-export const POWER_SOCKET_STYLE = { left: '2%', top: '12%', width: '7%', height: 'auto' }
+// left 不能小于 14%：左侧工具栏是 fixed 定位、宽 10vw，场景宽 90vw，
+// 工具栏会盖住场景最左侧约 11% 的宽度，排插落在那下面就点不到
+export const POWER_SOCKET_STYLE = { left: '14%', top: '12%', width: '7%', height: 'auto' }
 
 // ── 三步验电第二步：表箱门把热区 ───────────────────────────
 // 只做命中判定；验电进行到第二步时会显示半透明高亮框，方便调坐标

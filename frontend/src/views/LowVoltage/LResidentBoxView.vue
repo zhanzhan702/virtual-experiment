@@ -52,9 +52,13 @@ import { getStepDraft, saveDraft, submitStep } from '@/api/experiment'
 const route = useRoute()
 const router = useRouter()
 
-const experimentId = typeof route.query.experimentId === 'string' ? route.query.experimentId : ''
-const stepId = typeof route.query.stepId === 'string' ? route.query.stepId : ''
-const hasMetadata = !!experimentId && !!stepId
+// 必须是 computed：步骤 3 完成后会用 router.replace 换掉 stepId，
+// 用普通常量的话 stage 不会更新，页面会一直停在步骤 3 的逻辑里
+const experimentId = computed(() =>
+  typeof route.query.experimentId === 'string' ? route.query.experimentId : ''
+)
+const stepId = computed(() => (typeof route.query.stepId === 'string' ? route.query.stepId : ''))
+const hasMetadata = computed(() => !!experimentId.value && !!stepId.value)
 
 const sceneRef = ref(null)
 const showTask = ref(false)
@@ -71,24 +75,29 @@ let timer = null
 /** 步骤映射表来自实验启动时写入 localStorage 的 steps */
 const steps = computed(() => {
   try {
-    return JSON.parse(localStorage.getItem('experimentSteps_' + experimentId) || '[]')
+    return JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
   } catch {
     return []
   }
 })
 
 /** 当前步骤属于第几阶段：3 = 围栏挂牌，4 = 三步验电 */
-const stage = computed(() => steps.value.find(s => s.stepId === stepId)?.stepOrder ?? 3)
+const stage = computed(() => steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 3)
 
 const canInteract = computed(
-  () => hasMetadata && !restoreFailed.value && !saving.value && !submitting.value && !finished.value
+  () =>
+    hasMetadata.value &&
+    !restoreFailed.value &&
+    !saving.value &&
+    !submitting.value &&
+    !finished.value
 )
 
 async function handleRestore() {
-  if (!hasMetadata) return
+  if (!hasMetadata.value) return
   restoreFailed.value = false
   try {
-    const draft = await getStepDraft(experimentId, stepId)
+    const draft = await getStepDraft(experimentId.value, stepId.value)
     if (draft && Object.keys(draft).length > 0) sceneRef.value?.restore(draft)
   } catch (err) {
     restoreFailed.value = true
@@ -98,8 +107,8 @@ async function handleRestore() {
 
 function buildPayload(status) {
   return {
-    experimentId,
-    stepId,
+    experimentId: experimentId.value,
+    stepId: stepId.value,
     status,
     durationSeconds: durationSeconds.value,
     operationCount: operationCount.value,
@@ -147,7 +156,7 @@ async function onStageComplete() {
     }
     ElMessage.success('围栏与标识牌已完成')
     // 同一组件内换 stepId，场景原地进入下一阶段
-    await router.replace({ query: { experimentId, stepId: next.stepId } })
+    await router.replace({ query: { experimentId: experimentId.value, stepId: next.stepId } })
     await handleRestore()
     timer = setInterval(() => durationSeconds.value++, 1000)
   } catch (err) {
