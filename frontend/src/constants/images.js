@@ -90,6 +90,9 @@ import signalCable8Core from '@/assets/images/tool-selection/wire/SignalCable8Co
 import communicationModule from '@/assets/images/tool-selection/wire/CommunicationModule.png'
 import simCard from '@/assets/images/tool-selection/wire/SimCard.png'
 import antenna from '@/assets/images/tool-selection/wire/Antenna.png'
+// 低压专用线材（高压无对应素材）
+import wireGreenBlack from '@/assets/images/tool-selection/wire/WireGreenBlack.png'
+import wireRS485 from '@/assets/images/tool-selection/wire/WireRS485.png'
 import cableTieLabel from '@/assets/images/tool-selection/wire/CableTieLabel.png'
 
 // ─── 柜体局部操作 — 背景图 / prompt 提示窗 ───
@@ -140,6 +143,8 @@ import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlac
 import barCableTieLabel from '@/assets/images/cabinet/toolbar/CableTieLabel.png'
 import barSignalCable6Core from '@/assets/images/cabinet/toolbar/SignalCable6Core.png'
 import barSignalCable8Core from '@/assets/images/cabinet/toolbar/SignalCable8Core.png'
+// 低压柜体工具栏版绿黑线（1:1）。本轮只注册，低压柜体场景开发时引用
+import barWireGreenBlack from '@/assets/images/cabinet/toolbar/WireGreenBlack.png'
 import barCommunicationModule from '@/assets/images/cabinet/toolbar/CommunicationModule.png'
 import barSimCard from '@/assets/images/cabinet/toolbar/SimCard.png'
 import barAntenna from '@/assets/images/cabinet/toolbar/Antenna.png'
@@ -247,6 +252,8 @@ export default {
   communicationModule,
   simCard,
   antenna,
+  wireGreenBlack,
+  wireRS485,
   cableTieLabel,
   // 柜体操作 — 背景图 / prompt 提示窗
   cabinetGroupOverview,
@@ -292,6 +299,7 @@ export default {
   barCableTieLabel,
   barSignalCable6Core,
   barSignalCable8Core,
+  barWireGreenBlack,
   barCommunicationModule,
   barSimCard,
   barAntenna,
