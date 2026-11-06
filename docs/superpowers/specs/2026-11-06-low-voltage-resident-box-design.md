@@ -74,15 +74,36 @@ vtStep 0 → 点排插 → 1 → 点表箱门把 → 2 → 再点排插 → 3 �
 
 顺序错了就把 `vtStep` 归零并计一次错误 —— 与高压一致。
 
-### 2.4 排插放在背景左上角
+### 2.4 位置与尺寸全部集中在配置文件，留出微调入口
 
-与高压一致：排插是场景里的一个独立元素，不画在背景图里，用百分比定位叠在背景上：
+场景里每个叠加元素都有自己的位置常量，全部放在 `constants/resident-box-scene.js`，
+沿用高压 `HMiddleArea.vue` 的写法（`★` 标注「用户按需调整」，单位是相对场景图的百分比）。
+
+**这些数值是给使用者微调用的，实现时先填占位初值，之后逐个对着背景图调：**
 
 ```js
-export const POWER_SOCKET_STYLE = { left: '2%', top: '12%', width: '7%' }
+// ★★★ 以下坐标均由使用者按实际效果微调（相对场景图的百分比） ★★★
+
+// 围栏：左右两半各自独立落位
+export const LEFT_FENCE_STYLE = { left: '-12%', top: '58%', width: '56%', height: 'auto' }
+export const RIGHT_FENCE_STYLE = { left: '56%', top: '63%', width: '46%', height: 'auto' }
+
+// 两块标识牌分开挂：各自独立的位置，互不影响
+export const SIGN_DANGER_STYLE = { left: '3%', top: '40%', width: '10%', height: 'auto' }
+export const SIGN_WORKING_STYLE = { left: '82%', top: '40%', width: '10%', height: 'auto' }
+
+// 排插：叠在背景左上角（与高压一致，不画进背景图）
+export const POWER_SOCKET_STYLE = { left: '2%', top: '12%', width: '7%', height: 'auto' }
+
+// 三步验电第二段的门把热区（只做命中判定，不显示）
+export const DOOR_CHECK_ZONE = { left: '52%', top: '30%', width: '8%', height: '12%' }
+
+// 点击判定区域
+export const FENCE_HIT_ZONE = { left: '5%', top: '55%', width: '90%', height: '35%' }
+export const SIGN_HIT_ZONE = { left: '30%', top: '8%', width: '40%', height: '45%' }
 ```
 
-具体数值在实现时按素材微调，集中在配置文件里。
+配置文件顶部写明「改这一处即可调整位置与大小，无需动组件」。
 
 ## 三、交互设计
 
@@ -93,9 +114,11 @@ export const POWER_SOCKET_STYLE = { left: '2%', top: '12%', width: '7%' }
 | 操作 | 结果 |
 | --- | --- |
 | 选「围栏」→ 点地面 | 左右两半围栏同时落位（`barLeftFence` + `barRightFence`） |
-| 选「有电危险牌」→ 点表箱区域 | 牌挂上表箱左侧 |
-| 选「有人工作牌」→ 点表箱区域 | 牌挂上表箱右侧 |
+| 选「有电危险牌」→ 点悬挂区域 | 挂在 `SIGN_DANGER_STYLE` 指定的位置 |
+| 选「有人工作牌」→ 点悬挂区域 | 挂在 `SIGN_WORKING_STYLE` 指定的位置 |
 | 三样都放完 | 自动提交步骤 3，推进到步骤 4 |
+
+两块牌的位置互相独立，可以分别微调；两者的点击命中区域统一由 `SIGN_HIT_ZONE` 控制。
 
 未选工具就点场景、或选错工具点错位置 → 提示 + 计一次错误。
 
@@ -214,13 +237,14 @@ export const POWER_SOCKET_STYLE = { left: '2%', top: '12%', width: '7%' }
 10. 完成步骤 4 → 提交成功，弹出「外部操作完成」
 11. 数据库里该实验的步骤 3、4 记录 `status = 1`，分数按公式落库
 12. 窗口缩放时场景与热区同步等比变化，不错位
+13. 只改 `constants/resident-box-scene.js` 里的坐标常量，刷新页面即生效，无需改动任何组件
 
 ## 九、待确认风险
 
 - **背景是 1425×945 的静态图**，围栏、标识牌、排插都靠百分比叠上去，位置需要在实现时对着图微调
   （集中在 `constants/resident-box-scene.js`）
 - **热区坐标无原网页参考**：手册里的示意图没有提取到，坐标只能靠视觉估位置后再人工微调
-- **标识牌挂在哪里**：本设计的默认是「点表箱区域挂上」（与高压一致）；手册 1.5.2 的正文没有提取到，
-  如果实际是挂在围栏立柱上，只需改 `resident-box-scene.js` 里的命中区域，不影响结构
+- **标识牌的悬挂位置**：两块牌各自有独立的位置常量，具体挂在哪、多大，由使用者在
+  `resident-box-scene.js` 里调；组件不写死任何坐标
 - **步骤分值**为暂定值
 - **柜门打开后的内部场景**未实现，验电完成只给提示，不切换背景
