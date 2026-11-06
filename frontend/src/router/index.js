@@ -42,7 +42,8 @@ const routes = [
   { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') },
   { path: '/HSO', component: () => import('@/views/HighVoltage/HSceneOverviewView.vue') },
   { path: '/HCL', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
-  { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') }
+  { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
+  { path: '/LTS', component: () => import('@/views/LowVoltage/LToolSelectionView.vue') }
 ]
 
 const router = createRouter({
