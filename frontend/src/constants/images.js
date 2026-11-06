@@ -157,6 +157,8 @@ import meteringRoomWithCableTies from '@/assets/images/cabinet/room/metering-roo
 import meteringRoomCovered from '@/assets/images/cabinet/room/metering-room/MeteringRoomCovered.png'
 import junctionBox from '@/assets/images/cabinet/room/JunctionBox.png'
 import junctionBoxSwitch from '@/assets/images/cabinet/room/JunctionBoxSwitch.png'
+// 低压居民表箱外部场景背景
+import residentBoxBg from '@/assets/images/cabinet/7.jpg'
 import strippedSignalCable6Core from '@/assets/images/cabinet/room/metering-room/StrippedSignalCable6Core.png'
 
 // ─── 终端小室（leafer ui 画布） ───
@@ -311,6 +313,7 @@ export default {
   meteringRoomCovered,
   junctionBox,
   junctionBoxSwitch,
+  residentBoxBg,
   strippedSignalCable6Core,
   // 终端小室（leafer ui 画布）
   terminalRoomNoMeter,
