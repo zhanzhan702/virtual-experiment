@@ -107,9 +107,7 @@ async function saveProgress() {
   if (!canWrite.value) return
   saving.value = true
   try {
-    const fullData = wizardRef.value
-      ? JSON.parse(JSON.stringify(wizardRef.value.selectedMap))
-      : {}
+    const fullData = wizardRef.value ? JSON.parse(JSON.stringify(wizardRef.value.selectedMap)) : {}
     await saveDraft({
       experimentId,
       stepId,

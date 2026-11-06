@@ -27,8 +27,20 @@ const ppe = [
 ]
 
 const terminal = [
-  { id: 21, name: '三相三线专变终端', slot: 'device', icon: '📟', image: 'threePhaseThreeWireTerminal' },
-  { id: 22, name: '三相四线专变终端', slot: 'device', icon: '📟', image: 'threePhaseFourWireTerminal' },
+  {
+    id: 21,
+    name: '三相三线专变终端',
+    slot: 'device',
+    icon: '📟',
+    image: 'threePhaseThreeWireTerminal'
+  },
+  {
+    id: 22,
+    name: '三相四线专变终端',
+    slot: 'device',
+    icon: '📟',
+    image: 'threePhaseFourWireTerminal'
+  },
   { id: 23, name: '230M终端', slot: 'device', icon: '📡', image: 'terminal230M' },
   { id: 24, name: '集中器', slot: 'device', icon: '🖥️', image: 'concentrator' },
   { id: 25, name: '采集器', slot: 'device', icon: '📷', image: 'collector' }
