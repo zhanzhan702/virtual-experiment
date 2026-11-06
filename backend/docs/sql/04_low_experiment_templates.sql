@@ -5,7 +5,7 @@
 -- （experiment_steps.template_id 为 NOT NULL，会直接报错）。
 --
 -- 固定 UUID 分配表（与 02_create_data.sql 统一编号）：
---   32 低压训练场景V1（LV_TRAIN_V1）：步骤 1 填写工作票 / 步骤 2 工器具选择
+--   32 低压训练场景V1（LV_TRAIN_V1）：1 填写工作票 / 2 工器具选择 / 3 架设围栏并悬挂标识牌 / 4 三步式验电
 
 INSERT INTO experiment_templates (id, code, name, category, mode, version, description) VALUES
 (0x00000000000000000000000000000032, 'LV_TRAIN_V1', '低压训练场景V1', 'low_voltage', 'training', '1.0', '低压场景下的用电信息采集终端安装与调试训练模式');
@@ -13,4 +13,6 @@ INSERT INTO experiment_templates (id, code, name, category, mode, version, descr
 -- 步骤 1：填写工作票
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score) VALUES
 (UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 1, 'FILL_TICKET', '填写工作票', 300, 25.00),
-(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 2, 'SELECT_TOOLS', '工器具选择', 180, 30.00);
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 2, 'SELECT_TOOLS', '工器具选择', 180, 30.00),
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 3, 'ERECT_FENCE', '架设围栏并悬挂标识牌', 120, 20.00),
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 4, 'THREE_STEP_CHECK', '三步式验电', 90, 15.00);
