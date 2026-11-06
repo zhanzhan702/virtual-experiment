@@ -44,7 +44,7 @@ const routes = [
   { path: '/HCL', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
   { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
   { path: '/LTS', component: () => import('@/views/LowVoltage/LToolSelectionView.vue') },
-  { path: '/LSO', component: () => import('@/views/LowVoltage/LSceneOverviewView.vue') }
+  { path: '/LRB', component: () => import('@/views/LowVoltage/LResidentBoxView.vue') }
 ]
 
 const router = createRouter({

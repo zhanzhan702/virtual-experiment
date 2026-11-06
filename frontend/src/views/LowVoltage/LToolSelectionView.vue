@@ -70,6 +70,7 @@ const router = useRouter()
 const wizardRef = ref(null)
 const showTask = ref(false)
 const showVideo = ref(false)
+const nextStepId = ref('')
 
 const experimentId = typeof route.query.experimentId === 'string' ? route.query.experimentId : ''
 const stepId = typeof route.query.stepId === 'string' ? route.query.stepId : ''
@@ -156,6 +157,9 @@ async function handleToolSelectionSubmit(selectedMap) {
       startedAt: startedAt.value
     })
     ElMessage.success('工器具选择已完成，即将播放教学视频…')
+    // 找到第 3 步的 stepId，视频播完后跳过去
+    const allSteps = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId) || '[]')
+    nextStepId.value = allSteps.find(s => s.stepOrder === 3)?.stepId || ''
     showVideo.value = true
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
@@ -167,7 +171,7 @@ async function handleToolSelectionSubmit(selectedMap) {
 /** 视频播放完毕 → 进入低压场景总览（占位页） */
 function onVideoEnded() {
   showVideo.value = false
-  router.push({ path: '/LSO', query: { experimentId } })
+  router.push({ path: '/LRB', query: { experimentId, stepId: nextStepId.value } })
 }
 
 onMounted(() => {
