@@ -1,4 +1,4 @@
-/* 左右工具栏通用样式（HLeftToolBar / HRightToolBar 共享） */
+/* 左右工具栏通用样式（ToolBarLeft / ToolBarRight 共享，高压与低压场景共用） */
 .tool-bar {
   position: fixed;
   top: 10vh;

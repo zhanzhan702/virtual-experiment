@@ -1,4 +1,4 @@
-<!-- 右工具栏：21 个工具（纯展示组件，验电笔高亮由父组件驱动） -->
+<!-- 右工具栏：工具列表（纯展示组件，验电笔高亮由父组件驱动） -->
 <template>
   <div class="tool-bar tool-bar-right">
     <div
@@ -6,8 +6,8 @@
       :key="'R' + idx"
       class="tool-item tool-item-img"
       :class="{
-        'tool-selected': activeIdxs.includes(idx) || (idx === 4 && vtActive),
-        'tool-placed': idx === 4 && vtDone
+        'tool-selected': activeIdxs.includes(idx) || (idx === vtIdx && vtActive),
+        'tool-placed': idx === vtIdx && vtDone
       }"
       @click="emit('click', idx, $event)"
     >
@@ -28,7 +28,9 @@ defineProps({
   items: { type: Array, required: true },
   vtActive: { type: Boolean, default: false },
   vtDone: { type: Boolean, default: false },
-  activeIdxs: { type: Array, default: () => [] }
+  activeIdxs: { type: Array, default: () => [] },
+  /** 验电笔在 items 里的下标。高压是 4；低压场景只有一个工具，传 0 */
+  vtIdx: { type: Number, default: 4 }
 })
 const emit = defineEmits(['click'])
 </script>

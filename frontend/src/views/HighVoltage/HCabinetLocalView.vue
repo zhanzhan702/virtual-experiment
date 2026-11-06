@@ -8,7 +8,7 @@
     @click="onPageClick"
   >
     <!-- 左侧物品栏 -->
-    <HLeftToolBar
+    <ToolBarLeft
       :items="leftTools"
       :placed-mask="middleRef?.itemPlaced || []"
       :active-idx="middleRef?.followingToolIdx"
@@ -56,7 +56,7 @@
     />
 
     <!-- 右侧物品栏（终端/工器具/线材，第5个为验电笔） -->
-    <HRightToolBar
+    <ToolBarRight
       :items="rightTools"
       :vt-active="middleRef?.vtActive || false"
       :vt-done="middleRef?.vtDone || false"
@@ -177,9 +177,9 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft, getExperimentSteps } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
-import HLeftToolBar from '@/components/HighVoltage/HLeftToolBar.vue'
+import ToolBarLeft from '@/components/ToolBarLeft.vue'
 import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
-import HRightToolBar from '@/components/HighVoltage/HRightToolBar.vue'
+import ToolBarRight from '@/components/ToolBarRight.vue'
 import HMeteringRoomCanvas from '@/components/HighVoltage/HMeteringRoomCanvas.vue'
 import HTerminalRoomCanvas from '@/components/HighVoltage/HTerminalRoomCanvas.vue'
 import VideoOverlay from '@/components/VideoOverlay.vue'
