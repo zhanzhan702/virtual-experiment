@@ -445,6 +445,14 @@ function calcToolsPerPage() {
     const rows = Math.max(1, Math.floor((availH + gap) / (cardMinH + gap)))
     const cols = Math.max(2, style.gridTemplateColumns.split(' ').length || 3)
     TOOLS_PER_PAGE.value = rows * cols
+
+    // 窗口变大后每页能放更多卡片、总页数变少，原先停留的页码可能越界，
+    // 此时 slice 取不到任何元素，整个网格会空白。把页码夹回最后一页。
+    const maxPage = Math.max(
+      0,
+      Math.ceil(currentCategory.value.tools.length / TOOLS_PER_PAGE.value) - 1
+    )
+    if (toolPage.value > maxPage) toolPage.value = maxPage
   })
 }
 
