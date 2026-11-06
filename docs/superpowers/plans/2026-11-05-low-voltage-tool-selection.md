@@ -115,8 +115,9 @@ git commit -m "chore(frontend): 新增低压线材图片并统一命名"
 **Files:**
 - Move: `frontend/src/components/HighVoltage/HWizardInventorySelection.vue` → `frontend/src/components/WizardInventorySelection.vue`
 - Move: `frontend/src/components/HighVoltage/HVideoOverlay.vue` → `frontend/src/components/VideoOverlay.vue`
-- Modify: `frontend/src/views/HighVoltage/HToolSelectionView.vue:1-24`（模板标签）、`:33`（import）
-- Modify: `frontend/src/views/HighVoltage/HWorkTicketView.vue`（import 与模板标签）
+- Modify: `frontend/src/views/HighVoltage/HToolSelectionView.vue:23`（模板标签）、`:33-34`（import）
+- Modify: `frontend/src/views/HighVoltage/HWorkTicketView.vue:16`（模板标签）、`:29`（import）
+- Modify: `frontend/src/views/HighVoltage/HCabinetLocalView.vue:68,71`（模板标签）、`:185`（import）
 
 **Interfaces:**
 - Produces: 组件 `WizardInventorySelection`，props `{ categories: Array }`，emits `finish | operation | submit-error`，`defineExpose({ selectedMap })`
@@ -164,6 +165,29 @@ import VideoOverlay from '@/components/VideoOverlay.vue'
 模板里把 `<HVideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />`
 改为 `<VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />`
 
+- [ ] **Step 4b: 更新 HCabinetLocalView.vue（/HCL 页面同样用到这个遮罩）**
+
+`:185` 的 import 改为：
+
+```js
+import VideoOverlay from '@/components/VideoOverlay.vue'
+```
+
+模板里两处标签改名（第 68 行是单行，第 71 行是多行，只改开标签即可）：
+
+```html
+    <VideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
+```
+
+```html
+    <VideoOverlay
+      :key="videoSeq"
+      :visible="showPowerVideo"
+      :src="Videos.testVideo"
+      @ended="onPowerVideoEnded"
+    />
+```
+
 - [ ] **Step 5: 确认没有残留引用**
 
 Run: `grep -rn "HWizardInventorySelection\|HVideoOverlay" frontend/src`
@@ -177,13 +201,16 @@ Expected: 构建成功
 浏览器打开 `/HTS`（带 `?experimentId=...&stepId=...`），确认：
 四个 Tab 正常渲染、物品卡片可点选、点「提交」时未选齐会弹出错误提示
 
+`/HCL` 页面也引用了视频遮罩，同样需要确认能正常打开（画布渲染、工具栏出现）
+
 - [ ] **Step 7: 提交**
 
 ```bash
 git add frontend/src/components/WizardInventorySelection.vue \
         frontend/src/components/VideoOverlay.vue \
         frontend/src/views/HighVoltage/HToolSelectionView.vue \
-        frontend/src/views/HighVoltage/HWorkTicketView.vue
+        frontend/src/views/HighVoltage/HWorkTicketView.vue \
+        frontend/src/views/HighVoltage/HCabinetLocalView.vue
 git commit -m "refactor(component): 抽取工器具选择与视频遮罩为共享组件"
 ```
 
