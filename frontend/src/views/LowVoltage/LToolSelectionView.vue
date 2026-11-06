@@ -19,6 +19,13 @@
 
     <div v-if="hasMetadata" class="work-task-btn" @click="showTask = true" title="查看工作任务" />
 
+    <!--
+      遮罩：缺元数据或恢复失败时挡住下方的选择界面。
+      否则用户可以在空选择状态下继续操作并提交，把已有的存档覆盖掉 ——
+      而失败面板上写的是「已有存档不会被覆盖」，必须真的做到。
+    -->
+    <div v-if="!hasMetadata || restoreFailed" class="blocker" />
+
     <!-- 缺少实验信息 -->
     <div v-if="!hasMetadata" class="load-panel" role="status">
       <p>缺少实验信息，请从实验选择页进入低压场景。</p>
@@ -203,6 +210,14 @@ onUnmounted(() => {
 .tool-selection-view > :not(.save-bar-fixed):not(.work-task-btn) {
   position: relative;
   z-index: 1;
+}
+
+/* 盖在选择界面之上、提示面板之下（提示面板 z-index 90） */
+.blocker {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .load-panel {
