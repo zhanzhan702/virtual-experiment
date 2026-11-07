@@ -72,10 +72,10 @@
     />
     <ToolBarRight
       :items="RIGHT_TOOLS"
-      :vt-idx="0"
+      :vt-idx="VT_IDX"
       :vt-active="vtActive"
       :vt-done="vtDone"
-      @click="toggleVoltageTester"
+      @click="onRightToolClick"
     />
 
     <!-- 鼠标跟随：围栏/标识牌中心对准光标；验电笔尖端对准光标 -->
@@ -91,21 +91,24 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import Images from '@/constants/images'
 import ToolBarLeft from '@/components/ToolBarLeft.vue'
 import ToolBarRight from '@/components/ToolBarRight.vue'
-import {
-  LEFT_FENCE_STYLE,
-  RIGHT_FENCE_STYLE,
-  SIGN_DANGER_STYLE,
-  SIGN_WORKING_STYLE,
-  POWER_SOCKET_STYLE,
-  DOOR_CHECK_ZONE,
-  FENCE_HIT_ZONE,
-  SIGN_HIT_ZONE
-} from '@/constants/resident-box-scene'
+
+// ★★★ 放置坐标（相对场景图尺寸的 %，按需调整） ★★★
+// 围栏：左右两半各自独立落位
+const LEFT_FENCE_STYLE = { left: '-12%', top: '58%', width: '56%', height: 'auto' }
+const RIGHT_FENCE_STYLE = { left: '56%', top: '63%', width: '46%', height: 'auto' }
+// 两块标识牌：分开挂，各自独立的位置与大小
+const SIGN_DANGER_STYLE = { left: '33%', top: '67%', width: '10%', height: 'auto' }
+const SIGN_WORKING_STYLE = { left: '53%', top: '67%', width: '10%', height: 'auto' }
+// 排插：叠在背景左上角（与高压一致，不画进背景图）
+// left 不能小于 14%：左侧工具栏 fixed 宽 10vw，会盖住场景最左约 11% 的宽度
+const POWER_SOCKET_STYLE = { left: '14%', top: '12%', width: '7%', height: 'auto' }
+// 三步验电第二步：表箱门把热区（只做命中判定，验电到第二步时显示高亮框便于调坐标）
+const DOOR_CHECK_ZONE = { left: '52%', top: '30%', width: '8%', height: '12%' }
 
 const props = defineProps({
   /** 当前阶段：3 = 架设围栏并悬挂标识牌，4 = 三步式验电 */
@@ -144,8 +147,47 @@ const LEFT_TOOLS = [
   { name: '有人工作标识牌', img: Images.barSignPersonWorking }
 ]
 
-// 低压验电只需验电笔，放在右栏唯一的位置上（vtIdx = 0）
-const RIGHT_TOOLS = [{ name: '验电笔', img: Images.barVoltageTesterNormal }]
+/**
+ * 右栏：镜像**低压**工器具选择页的目录（`low-voltage-tool-selection-config.js`），
+ * 顺序与选择页一致。
+ *
+ * 注意与高压的区别：低压的终端是集中器、线材是「4.0mm²绿黑线 + 0.5mm²遥控/遥信线 +
+ * RS485 线」，没有高压的 6 芯 / 8 芯信号线。不要把高压的清单抄过来。
+ *
+ * 有 1:1 工具栏版素材（`bar*`）的优先用；集中器、2.5mm²黑线、RS485 线没有工具栏版，
+ * 直接复用选择页的图。
+ */
+const RIGHT_TOOLS = [
+  { name: '集中器', img: Images.concentrator },
+
+  { name: '十字螺丝刀', img: Images.barCrossScrewdriver },
+  { name: '剥线钳', img: Images.barWireStripper },
+  { name: '验电笔', img: Images.barVoltageTesterNormal },
+  { name: '铅封', img: Images.barSeal },
+
+  { name: '2.5MM²黄色导线', img: Images.barWireYellow },
+  { name: '2.5MM²绿色导线', img: Images.barWireGreen },
+  { name: '2.5MM²红色导线', img: Images.barWireRed },
+  { name: '2.5MM²黑色导线', img: Images.wire25mmBlack },
+
+  { name: '4.0MM²黄色导线', img: Images.barWireYellow, imgWidth: '95%' },
+  { name: '4.0MM²黄黑色导线', img: Images.barWire4mm2YellowBlack },
+  { name: '4.0MM²绿色导线', img: Images.barWireGreen, imgWidth: '95%' },
+  { name: '4.0MM²红色导线', img: Images.barWireRed, imgWidth: '95%' },
+  { name: '4.0MM²红黑色导线', img: Images.barWire4mm2RedBlack },
+  { name: '4.0MM²绿黑色导线', img: Images.barWireGreenBlack },
+  { name: '扎带', img: Images.barCableTieLabel },
+
+  { name: '0.5MM²遥控线', img: Images.barWire2Core },
+  { name: '0.5MM²遥信线', img: Images.barWire2Core },
+  { name: 'RS485线', img: Images.wireRS485 },
+  { name: '通信模块', img: Images.barCommunicationModule },
+  { name: 'SIM卡', img: Images.barSimCard },
+  { name: '天线', img: Images.barAntenna }
+]
+
+/** 验电笔在右栏里的下标（ToolBarRight 据此高亮） */
+const VT_IDX = RIGHT_TOOLS.findIndex(t => t.name === '验电笔')
 
 // ── 步骤 4：三步验电 ──────────────────────────────────────
 // 0 待验电 → 1 已点排插 → 2 已点门把 → 3 完成
@@ -206,6 +248,42 @@ function hitZone(e, zone) {
   return e.clientX >= x && e.clientX <= x + w && e.clientY >= y && e.clientY <= y + h
 }
 
+/** 围栏图片宽高比（运行时从实际图片获取，用于命中检测） */
+const fenceAspect = reactive({ left: 1, right: 1 })
+
+function loadImageAspect(src, key) {
+  const img = new window.Image()
+  img.onload = () => {
+    fenceAspect[key] = img.naturalWidth / img.naturalHeight
+  }
+  img.src = src
+}
+
+/** 围栏命中：点击必须落在围栏将要出现的矩形内（与高压一致） */
+function hitFenceFromStyle(e, style, aspectKey) {
+  const g = groupRef.value
+  if (!g) return false
+  const r = g.getBoundingClientRect()
+  const imgLeft = r.left + (r.width * parseFloat(style.left)) / 100
+  const imgTop = r.top + (r.height * parseFloat(style.top)) / 100
+  const imgW = (r.width * parseFloat(style.width)) / 100
+  const imgH = imgW / fenceAspect[aspectKey]
+  return (
+    e.clientX >= imgLeft &&
+    e.clientX <= imgLeft + imgW &&
+    e.clientY >= imgTop &&
+    e.clientY <= imgTop + imgH
+  )
+}
+
+/** 标识牌命中：点场景图任意位置即可（与高压一致） */
+function hitScene(e) {
+  const g = groupRef.value
+  if (!g) return false
+  const r = g.getBoundingClientRect()
+  return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+}
+
 /**
  * 元素本体是否被点中。
  *
@@ -259,7 +337,12 @@ function handlePlace(e) {
   }
 
   // 围栏与标识牌各自只认自己的命中区域
-  const ok = idx === 0 ? hitZone(e, FENCE_HIT_ZONE) : hitZone(e, SIGN_HIT_ZONE)
+  // 与高压一致：围栏必须落在围栏将要出现的位置，标识牌点场景任意处即可
+  const ok =
+    idx === 0
+      ? hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
+        hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
+      : hitScene(e)
   if (!ok) {
     fail('请选择正确的放置位置')
     return
@@ -272,6 +355,17 @@ function handlePlace(e) {
 }
 
 // ── 步骤 4 交互 ───────────────────────────────────────────
+/** 右栏点击：只有验电笔在本阶段可用，其余工具留待后续场景（与高压一致） */
+function onRightToolClick(idx) {
+  if (props.disabled) return
+  if (idx !== VT_IDX) {
+    emit('operation')
+    ElMessage.info('该工具将在后续步骤中使用')
+    return
+  }
+  toggleVoltageTester()
+}
+
 function toggleVoltageTester() {
   if (props.disabled) return
   emit('operation')
@@ -315,6 +409,12 @@ function handleVoltageTest(e) {
     fail('验电顺序不正确，请按「排插 → 门把 → 排插」操作')
   }
 }
+
+onMounted(() => {
+  // 命中检测需要围栏的真实宽高比
+  loadImageAspect(Images.barLeftFence, 'left')
+  loadImageAspect(Images.barRightFence, 'right')
+})
 
 // ── 对外状态读写 ──────────────────────────────────────────
 function getState() {

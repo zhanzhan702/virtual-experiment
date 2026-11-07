@@ -47,7 +47,7 @@ import { ElMessage } from 'element-plus'
 import LResidentBoxScene from '@/components/LowVoltage/LResidentBoxScene.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import PromptModal from '@/components/PromptModal.vue'
-import { getStepDraft, saveDraft, submitStep } from '@/api/experiment'
+import { getStepDraft, getExperimentSteps, saveDraft, submitStep } from '@/api/experiment'
 
 const route = useRoute()
 const router = useRouter()
@@ -72,14 +72,24 @@ const errorCount = ref(0)
 
 let timer = null
 
-/** 步骤映射表来自实验启动时写入 localStorage 的 steps */
-const steps = computed(() => {
+/**
+ * 步骤映射表：实验启动时写入 localStorage。
+ *
+ * 用 ref 而不是从 localStorage 现读的 computed —— 恢复流程里可能从后端补拉一份再写回
+ * localStorage，computed 感知不到 localStorage 的变化，stage 会一直停在旧值。
+ */
+const steps = ref([])
+
+function loadStepsFromStorage() {
   try {
-    return JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
+    steps.value = JSON.parse(localStorage.getItem('experimentSteps_' + experimentId.value) || '[]')
   } catch {
-    return []
+    steps.value = []
   }
-})
+}
+
+// 先在 setup 阶段同步读一次，保证首屏就按正确的阶段渲染
+loadStepsFromStorage()
 
 /** 当前步骤属于第几阶段：3 = 围栏挂牌，4 = 三步验电 */
 const stage = computed(() => steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 3)
@@ -97,6 +107,20 @@ async function handleRestore() {
   if (!hasMetadata.value) return
   restoreFailed.value = false
   try {
+    // 步骤映射丢失时（新标签页 / 清过缓存）从后端重建，
+    // 否则 stage 会退化成 3，页面按错误的阶段跑。与高压 /HCL 的处理一致。
+    loadStepsFromStorage()
+    if (!steps.value.length) {
+      try {
+        const all = await getExperimentSteps(experimentId.value)
+        if (all?.length) {
+          localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(all))
+          steps.value = all
+        }
+      } catch {
+        /* 拉不到就按 URL 里的 stepId 原样尝试 */
+      }
+    }
     const draft = await getStepDraft(experimentId.value, stepId.value)
     if (draft && Object.keys(draft).length > 0) sceneRef.value?.restore(draft)
   } catch (err) {
