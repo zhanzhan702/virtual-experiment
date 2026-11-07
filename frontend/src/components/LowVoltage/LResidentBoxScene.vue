@@ -96,6 +96,7 @@ import { ElMessage } from 'element-plus'
 import Images from '@/constants/images'
 import ToolBarLeft from '@/components/ToolBarLeft.vue'
 import ToolBarRight from '@/components/ToolBarRight.vue'
+import { categories as lvCategories } from '@/constants/low-voltage-tool-selection-config'
 
 // ★★★ 放置坐标（相对场景图尺寸的 %，按需调整） ★★★
 // 围栏：左右两半各自独立落位
@@ -148,42 +149,46 @@ const LEFT_TOOLS = [
 ]
 
 /**
- * 右栏：镜像**低压**工器具选择页的目录（`low-voltage-tool-selection-config.js`），
- * 顺序与选择页一致。
+ * 右栏物品栏 = **工器具选择的标准答案**（各分类的 correctIds），不是整本目录 ——
+ * 遥控线、遥感线、RS485、扎带这些干扰项不会出现在这里。
  *
- * 注意与高压的区别：低压的终端是集中器、线材是「4.0mm²绿黑线 + 0.5mm²遥控/遥感线 +
- * RS485 线」，没有高压的 6 芯 / 8 芯信号线。不要把高压的清单抄过来。
- *
- * 有 1:1 工具栏版素材（`bar*`）的优先用；集中器、2.5mm²黑线、RS485 线没有工具栏版，
- * 直接复用选择页的图。
+ * 直接从 `low-voltage-tool-selection-config.js` 生成，答案集调整后这里自动跟随。
+ * 个人防护是穿戴在身上的，不进物品栏。
  */
+const BAR_IMG = {
+  24: Images.concentrator, // 无 1:1 工具栏版
+  32: Images.barCrossScrewdriver,
+  36: Images.barWireStripper,
+  37: Images.barVoltageTesterNormal,
+  38: Images.barSeal,
+  51: Images.barWireYellow,
+  53: Images.barWireGreen,
+  54: Images.barWireRed,
+  56: Images.wire25mmBlack, // 无 1:1 工具栏版
+  57: Images.barWireYellow,
+  58: Images.barWire4mm2YellowBlack,
+  59: Images.barWireGreen,
+  60: Images.barWireRed,
+  61: Images.barWire4mm2RedBlack,
+  63: Images.barWireGreenBlack,
+  67: Images.barCommunicationModule,
+  68: Images.barSimCard,
+  69: Images.barAntenna
+}
+
+function pickCorrectItems(key) {
+  const cat = lvCategories.find(c => c.key === key)
+  if (!cat) return []
+  return cat.correctIds
+    .map(id => cat.tools.find(t => t.id === id))
+    .filter(Boolean)
+    .map(tool => ({ name: tool.name, img: BAR_IMG[tool.id] || Images[tool.image] }))
+}
+
 const RIGHT_TOOLS = [
-  { name: '集中器', img: Images.concentrator },
-
-  { name: '十字螺丝刀', img: Images.barCrossScrewdriver },
-  { name: '剥线钳', img: Images.barWireStripper },
-  { name: '验电笔', img: Images.barVoltageTesterNormal },
-  { name: '铅封', img: Images.barSeal },
-
-  { name: '2.5MM²黄色导线', img: Images.barWireYellow },
-  { name: '2.5MM²绿色导线', img: Images.barWireGreen },
-  { name: '2.5MM²红色导线', img: Images.barWireRed },
-  { name: '2.5MM²黑色导线', img: Images.wire25mmBlack },
-
-  { name: '4.0MM²黄色导线', img: Images.barWireYellow, imgWidth: '95%' },
-  { name: '4.0MM²黄黑色导线', img: Images.barWire4mm2YellowBlack },
-  { name: '4.0MM²绿色导线', img: Images.barWireGreen, imgWidth: '95%' },
-  { name: '4.0MM²红色导线', img: Images.barWireRed, imgWidth: '95%' },
-  { name: '4.0MM²红黑色导线', img: Images.barWire4mm2RedBlack },
-  { name: '4.0MM²绿黑色导线', img: Images.barWireGreenBlack },
-  { name: '扎带', img: Images.barCableTieLabel },
-
-  { name: '0.5MM²遥控线', img: Images.barWire2Core },
-  { name: '0.5MM²遥感线', img: Images.barWire2Core },
-  { name: 'RS485线', img: Images.wireRS485 },
-  { name: '通信模块', img: Images.barCommunicationModule },
-  { name: 'SIM卡', img: Images.barSimCard },
-  { name: '天线', img: Images.barAntenna }
+  ...pickCorrectItems('terminal'),
+  ...pickCorrectItems('tool'),
+  ...pickCorrectItems('wire')
 ]
 
 /** 验电笔在右栏里的下标（ToolBarRight 据此高亮） */
