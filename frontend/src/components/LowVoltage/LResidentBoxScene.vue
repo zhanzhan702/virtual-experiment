@@ -156,7 +156,7 @@ const LEFT_TOOLS = [
  * 个人防护是穿戴在身上的，不进物品栏。
  */
 const BAR_IMG = {
-  24: Images.concentrator, // 无 1:1 工具栏版
+  24: Images.barConcentrator,
   32: Images.barCrossScrewdriver,
   36: Images.barWireStripper,
   37: Images.barVoltageTesterNormal,

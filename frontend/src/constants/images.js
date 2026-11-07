@@ -130,6 +130,7 @@ import barVoltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTeste
 import barVoltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
 import barThreePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
 import barThreePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireTerminal.png'
+import barConcentrator from '@/assets/images/cabinet/toolbar/Concentrator.png'
 import barCrossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
 import barWireStripper from '@/assets/images/cabinet/toolbar/WireStripper.png'
 import barSeal from '@/assets/images/cabinet/toolbar/Seal.png'
@@ -287,6 +288,7 @@ export default {
   // 柜体操作 — 右侧工具栏（终端/工器具/线材）
   barThreePhaseThreeWireMeter,
   barThreePhaseThreeWireTerminal,
+  barConcentrator,
   barCrossScrewdriver,
   barWireStripper,
   barVoltageTesterNormal,
