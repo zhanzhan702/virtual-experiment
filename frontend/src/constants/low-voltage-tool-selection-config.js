@@ -1,7 +1,7 @@
 /**
  * 低压工器具选择配置。
  *
- * 四个分类里只有「线材」与高压不同：低压用 4mm²绿黑线、0.5mm²遥控线、0.5mm²遥信线、
+ * 四个分类里只有「线材」与高压不同：低压用 4mm²绿黑线、0.5mm²遥控线、0.5mm²遥感线、
  * RS485 线替换了高压的 6 芯 / 8 芯信号线。个人防护、终端、工器具的目录与正确项
  * 与高压完全一致（correctIds 也相同）。
  *
@@ -75,7 +75,7 @@ const wire = [
 
   { id: 63, name: '4.0MM²绿黑色导线', slot: 'wire', icon: '🟢⚫', image: 'wireGreenBlack' },
   { id: 64, name: '0.5MM²遥控线', slot: 'wire', icon: '🔌', image: 'wire2Core' },
-  { id: 65, name: '0.5MM²遥信线', slot: 'wire', icon: '🔌', image: 'wire2Core' },
+  { id: 65, name: '0.5MM²遥感线', slot: 'wire', icon: '🔌', image: 'wire2Core' },
   { id: 66, name: 'RS485线', slot: 'wire', icon: '🔌', image: 'wireRS485' },
   { id: 67, name: '通信模块', slot: 'wire', icon: '📶', image: 'communicationModule' },
   { id: 68, name: 'SIM卡', slot: 'wire', icon: '💳', image: 'simCard' },
@@ -114,7 +114,7 @@ export const categories = [
     requiredCount: null,
     multi: true,
     // 正确 13 项：黄/绿/红/黑各规格 10 根 + 通信模块 + SIM卡 + 天线
-    // 错误 6 项：2.5mm²黄黑、2.5mm²红黑、扎带、遥控线、遥信线、RS485线
+    // 错误 6 项：2.5mm²黄黑、2.5mm²红黑、扎带、遥控线、遥感线、RS485线
     correctIds: [51, 53, 54, 56, 57, 58, 59, 60, 61, 63, 67, 68, 69],
     tools: wire
   }

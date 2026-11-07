@@ -151,7 +151,7 @@ const LEFT_TOOLS = [
  * 右栏：镜像**低压**工器具选择页的目录（`low-voltage-tool-selection-config.js`），
  * 顺序与选择页一致。
  *
- * 注意与高压的区别：低压的终端是集中器、线材是「4.0mm²绿黑线 + 0.5mm²遥控/遥信线 +
+ * 注意与高压的区别：低压的终端是集中器、线材是「4.0mm²绿黑线 + 0.5mm²遥控/遥感线 +
  * RS485 线」，没有高压的 6 芯 / 8 芯信号线。不要把高压的清单抄过来。
  *
  * 有 1:1 工具栏版素材（`bar*`）的优先用；集中器、2.5mm²黑线、RS485 线没有工具栏版，
@@ -179,7 +179,7 @@ const RIGHT_TOOLS = [
   { name: '扎带', img: Images.barCableTieLabel },
 
   { name: '0.5MM²遥控线', img: Images.barWire2Core },
-  { name: '0.5MM²遥信线', img: Images.barWire2Core },
+  { name: '0.5MM²遥感线', img: Images.barWire2Core },
   { name: 'RS485线', img: Images.wireRS485 },
   { name: '通信模块', img: Images.barCommunicationModule },
   { name: 'SIM卡', img: Images.barSimCard },
