@@ -109,7 +109,7 @@ const SIGN_WORKING_STYLE = { left: '53%', top: '67%', width: '10%', height: 'aut
 // left 不能小于 14%：左侧工具栏 fixed 宽 10vw，会盖住场景最左约 11% 的宽度
 const POWER_SOCKET_STYLE = { left: '14%', top: '12%', width: '7%', height: 'auto' }
 // 三步验电第二步：表箱门把热区（只做命中判定，验电到第二步时显示高亮框便于调坐标）
-const DOOR_CHECK_ZONE = { left: '52%', top: '30%', width: '8%', height: '12%' }
+const DOOR_CHECK_ZONE = { left: '61%', top: '18%', width: '4%', height: '10%' }
 
 const props = defineProps({
   /** 当前阶段：3 = 架设围栏并悬挂标识牌，4 = 三步式验电 */
