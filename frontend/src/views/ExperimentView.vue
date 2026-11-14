@@ -89,7 +89,8 @@ async function doStartExperiment(type) {
                 1: '/LWT',
                 2: '/LTS',
                 3: '/LRB',
-                4: '/LRB'
+                4: '/LRB',
+                5: '/LBI'
               }
         // 注意：低压每新增一个步骤都要在这里登记，否则「继续实验」会落到
         // 下面的兜底路径（/LWT），看起来就像存档没恢复、又回到了第一步

@@ -28,7 +28,14 @@
       <el-button type="primary" @click="handleRestore">重新加载</el-button>
     </div>
 
-    <div v-if="finished" class="completion-banner" role="status">✓ 表箱外部操作已完成</div>
+    <!-- 三步验电完成提示：与高压步骤 4 使用同一张提示图 -->
+    <PromptModal
+      :visible="showElectrifyNotice"
+      @close="onElectrifyNoticeClose"
+      :button-bottom="'18%'"
+    >
+      <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
+    </PromptModal>
 
     <PromptModal :visible="showTask" @close="showTask = false">
       <article class="task-notice">
@@ -47,6 +54,7 @@ import { ElMessage } from 'element-plus'
 import LResidentBoxScene from '@/components/LowVoltage/LResidentBoxScene.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import Images from '@/constants/images'
 import { getStepDraft, getExperimentSteps, saveDraft, submitStep } from '@/api/experiment'
 
 const route = useRoute()
@@ -65,7 +73,10 @@ const showTask = ref(false)
 const saving = ref(false)
 const submitting = ref(false)
 const restoreFailed = ref(false)
-const finished = ref(false)
+// 三步验电已提交（弹窗展示期间锁定交互，避免重复提交）
+const electrifyDone = ref(false)
+// 三步验电完成提示弹窗（与高压一致，确认后进入表箱内部画布）
+const showElectrifyNotice = ref(false)
 const durationSeconds = ref(0)
 const operationCount = ref(0)
 const errorCount = ref(0)
@@ -100,7 +111,7 @@ const canInteract = computed(
     !restoreFailed.value &&
     !saving.value &&
     !submitting.value &&
-    !finished.value
+    !electrifyDone.value
 )
 
 async function handleRestore() {
@@ -167,9 +178,11 @@ async function onStageComplete() {
   try {
     await submitStep(buildPayload(1))
 
+    // 三步验电完成：先弹提示窗（与高压步骤 4 一致），关窗后再进入表箱内部
     if (stage.value === 4) {
-      finished.value = true
-      ElMessage.success('表箱外部操作完成')
+      electrifyDone.value = true
+      showElectrifyNotice.value = true
+      ElMessage.success('验电操作完成！')
       return
     }
 
@@ -188,6 +201,36 @@ async function onStageComplete() {
   } finally {
     submitting.value = false
   }
+}
+
+/** 验电完成提示关窗 → 进入第 5 步（居民表箱内部 Leafer 画布） */
+async function onElectrifyNoticeClose() {
+  showElectrifyNotice.value = false
+  let next = steps.value.find(s => s.stepOrder === 5)
+  // 第 5 步是后加的：老实验的 localStorage 映射里没有，需要从后端补拉一次
+  if (!next) {
+    try {
+      const all = await getExperimentSteps(experimentId.value)
+      if (all?.length) {
+        localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(all))
+        steps.value = all
+        next = all.find(s => s.stepOrder === 5)
+      }
+    } catch {
+      /* 拉不到按下面的提示处理 */
+    }
+  }
+  if (!next) {
+    ElMessage.warning('未找到下一步骤，请确认数据库已执行第 5 步脚本')
+    return
+  }
+  // 与高压一致：关窗后短暂延时再切步骤
+  setTimeout(() => {
+    router.replace({
+      path: '/LBI',
+      query: { experimentId: experimentId.value, stepId: next.stepId }
+    })
+  }, 500)
 }
 
 onMounted(() => {
@@ -233,18 +276,11 @@ onUnmounted(() => {
   margin-bottom: 1em;
 }
 
-.completion-banner {
-  position: fixed;
-  top: 2vh;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #08766a;
-  background: #f0fff8;
-  border: 2px solid #078c83;
-  border-radius: 20px;
-  padding: 0.4em 1em;
-  z-index: 90;
-  font-size: clamp(14px, 1.4vw, 22px);
+/* 提示弹窗图片尺寸与高压柜体局部页保持一致 */
+.work-bg-img {
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
 }
 
 .task-notice {

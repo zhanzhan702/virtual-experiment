@@ -44,7 +44,9 @@ const routes = [
   { path: '/HCL', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
   { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
   { path: '/LTS', component: () => import('@/views/LowVoltage/LToolSelectionView.vue') },
-  { path: '/LRB', component: () => import('@/views/LowVoltage/LResidentBoxView.vue') }
+  { path: '/LRB', component: () => import('@/views/LowVoltage/LResidentBoxView.vue') },
+  // LBI = Low Box Inner：居民表箱内部操作（Leafer 画布）
+  { path: '/LBI', component: () => import('@/views/LowVoltage/LResidentBoxInnerView.vue') }
 ]
 
 const router = createRouter({
