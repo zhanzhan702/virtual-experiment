@@ -124,8 +124,10 @@ const groupRef = ref(null)
 const socketRef = ref(null)
 
 // ── 步骤 3：放置状态 ──────────────────────────────────────
-// 顺序：0 围栏、1 有电危险牌、2 有人工作牌
-const placed = reactive([false, false, false])
+// 顺序：0 围栏、1 有电危险牌、2 有人工作牌、3 请勿合闸牌
+// 请勿合闸牌在外部队列里常驻显示（与高压一致），但要到表箱内部操作才使用，
+// 因此本阶段点击它只给提示，不进入放置流程。
+const placed = reactive([false, false, false, false])
 const followingTool = ref(null)
 
 /*
@@ -136,16 +138,18 @@ const followingTool = ref(null)
 watch(
   () => props.stage,
   s => {
-    if (s === 4) placed.splice(0, 3, true, true, true)
+    // 步骤 4 四项都视为已完成（与高压一致，避免左栏仍显示为可放置）
+    if (s === 4) placed.splice(0, 4, true, true, true, true)
   },
   { immediate: true }
 )
 
-// 顺序即 placed 数组的下标：0 围栏、1 有电危险牌、2 有人工作牌
+// 顺序即 placed 数组的下标：0 围栏、1 有电危险牌、2 有人工作牌、3 请勿合闸牌
 const LEFT_TOOLS = [
   { name: '围栏', img: Images.barLeftFence },
   { name: '有电危险标识牌', img: Images.barSignStopHighVoltage },
-  { name: '有人工作标识牌', img: Images.barSignPersonWorking }
+  { name: '有人工作标识牌', img: Images.barSignPersonWorking },
+  { name: '请勿合闸标识牌', img: Images.barSafetyNotice }
 ]
 
 /**
@@ -321,6 +325,11 @@ function selectTool(idx) {
   if (props.disabled) return
   emit('operation')
   vtActive.value = false
+  // 请勿合闸牌本阶段不使用，只提示后续去表箱内部操作
+  if (idx === 3) {
+    ElMessage.info('「请勿合闸」标识牌将在表箱内部操作中使用')
+    return
+  }
   if (placed[idx]) {
     fail('该物品已放置')
     return
@@ -356,7 +365,8 @@ function handlePlace(e) {
   placed[idx] = true
   followingTool.value = null
   emit('operation')
-  if (placed.every(Boolean)) emit('complete')
+  // 完成条件只看前三项：请勿合闸牌留到表箱内部操作
+  if (placed.slice(0, 3).every(Boolean)) emit('complete')
 }
 
 // ── 步骤 4 交互 ───────────────────────────────────────────
@@ -432,9 +442,12 @@ function getState() {
 
 function restore(state) {
   if (!state) return
-  // 步骤 4 的放置状态恒为「已完成」，不采纳存档里的旧值
-  if (props.stage === 3 && Array.isArray(state.placed) && state.placed.length === 3) {
-    placed.splice(0, 3, ...state.placed.map(Boolean))
+  // 步骤 4 的放置状态恒为「已完成」，不采纳存档里的旧值；
+  // 旧存档只有 3 项时，第 4 项（请勿合闸）保持未放置
+  if (props.stage === 3 && Array.isArray(state.placed)) {
+    state.placed.slice(0, 4).forEach((v, i) => {
+      placed[i] = Boolean(v)
+    })
   }
   if (typeof state.vtStep === 'number') vtStep.value = state.vtStep
   if (typeof state.vtDone === 'boolean') vtDone.value = state.vtDone
