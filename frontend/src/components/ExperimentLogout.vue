@@ -1,4 +1,4 @@
-<!-- 实验场景退出登录按钮：固定右上角（计时器下方），确认后清空登录态并回到登录页 -->
+<!-- 实验场景退出登录按钮：固定左上角（避开计时器与两侧工具栏），确认后清空登录态并回到登录页 -->
 <template>
   <Teleport to="body">
     <button class="experiment-logout" type="button" @click="handleLogout">

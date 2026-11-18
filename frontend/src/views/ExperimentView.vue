@@ -14,6 +14,7 @@
       <img :src="Images.highWorkBg" alt="高压工作背景" class="work-bg-img" />
     </PromptModal>
   </div>
+  <ExperimentLogout />
 </template>
 
 <script setup>
@@ -21,6 +22,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ScenarioSelector from '@/components/ScenarioSelector.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentLogout from '@/components/ExperimentLogout.vue'
 import Images from '@/constants/images'
 import { startExperiment, getUnfinishedExperiments, deleteExperiment } from '@/api/experiment'
 import { ElMessage, ElMessageBox } from 'element-plus'

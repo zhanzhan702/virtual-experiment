@@ -22,6 +22,7 @@
     <!-- 视频2：工器具选择完（播放完毕自动进入下一步） -->
     <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </div>
+  <ExperimentLogout />
 </template>
 
 <script setup>
@@ -29,6 +30,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentLogout from '@/components/ExperimentLogout.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import WizardInventorySelection from '@/components/WizardInventorySelection.vue'
 import VideoOverlay from '@/components/VideoOverlay.vue'

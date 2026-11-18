@@ -62,6 +62,7 @@
     <!-- 视频1：工作票提交完（播放完毕自动进入工器具选择） -->
     <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
   </main>
+  <ExperimentLogout />
 </template>
 
 <script setup>
@@ -71,6 +72,7 @@ import { ElMessage } from 'element-plus'
 import LWorkTicketForm from '@/components/LowVoltage/LWorkTicketForm.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentLogout from '@/components/ExperimentLogout.vue'
 import VideoOverlay from '@/components/VideoOverlay.vue'
 import Videos from '@/constants/videos'
 import { getStepDraft, saveDraft, submitStep } from '@/api/experiment'

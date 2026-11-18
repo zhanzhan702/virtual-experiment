@@ -168,6 +168,7 @@
       />
     </PromptModal>
   </div>
+  <ExperimentLogout />
 </template>
 
 <script setup>
@@ -177,6 +178,7 @@ import { ElMessage } from 'element-plus'
 import { submitStep, saveDraft, getStepDraft, getExperimentSteps } from '@/api/experiment'
 import { formatLocalTime } from '@/utils/time'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentLogout from '@/components/ExperimentLogout.vue'
 import ToolBarLeft from '@/components/ToolBarLeft.vue'
 import HMiddleArea from '@/components/HighVoltage/HMiddleArea.vue'
 import ToolBarRight from '@/components/ToolBarRight.vue'

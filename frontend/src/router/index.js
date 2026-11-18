@@ -6,11 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 const routes = [
   { path: '/', component: LoginView },
   { path: '/register', component: RegisterView },
-  {
-    path: '/experiment',
-    component: () => import('@/views/ExperimentView.vue'),
-    meta: { experimentScene: true }
-  },
+  { path: '/experiment', component: () => import('@/views/ExperimentView.vue') },
   {
     path: '/admin',
     component: () => import('@/views/Admin/AdminLayoutView.vue'),
@@ -42,47 +38,15 @@ const routes = [
       }
     ]
   },
-  {
-    path: '/HWT',
-    component: () => import('@/views/HighVoltage/HWorkTicketView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/HTS',
-    component: () => import('@/views/HighVoltage/HToolSelectionView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/HSO',
-    component: () => import('@/views/HighVoltage/HSceneOverviewView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/HCL',
-    component: () => import('@/views/HighVoltage/HCabinetLocalView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/LWT',
-    component: () => import('@/views/LowVoltage/LWorkTicketView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/LTS',
-    component: () => import('@/views/LowVoltage/LToolSelectionView.vue'),
-    meta: { experimentScene: true }
-  },
-  {
-    path: '/LRB',
-    component: () => import('@/views/LowVoltage/LResidentBoxView.vue'),
-    meta: { experimentScene: true }
-  },
+  { path: '/HWT', component: () => import('@/views/HighVoltage/HWorkTicketView.vue') },
+  { path: '/HTS', component: () => import('@/views/HighVoltage/HToolSelectionView.vue') },
+  { path: '/HSO', component: () => import('@/views/HighVoltage/HSceneOverviewView.vue') },
+  { path: '/HCL', component: () => import('@/views/HighVoltage/HCabinetLocalView.vue') },
+  { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
+  { path: '/LTS', component: () => import('@/views/LowVoltage/LToolSelectionView.vue') },
+  { path: '/LRB', component: () => import('@/views/LowVoltage/LResidentBoxView.vue') },
   // LBI = Low Box Inner：居民表箱内部操作（Leafer 画布）
-  {
-    path: '/LBI',
-    component: () => import('@/views/LowVoltage/LResidentBoxInnerView.vue'),
-    meta: { experimentScene: true }
-  }
+  { path: '/LBI', component: () => import('@/views/LowVoltage/LResidentBoxInnerView.vue') }
 ]
 
 const router = createRouter({

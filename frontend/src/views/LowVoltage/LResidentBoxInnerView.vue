@@ -50,6 +50,7 @@
       </article>
     </PromptModal>
   </main>
+  <ExperimentLogout />
 </template>
 
 <script setup>
@@ -59,6 +60,7 @@ import { ElMessage } from 'element-plus'
 import LResidentBoxInnerCanvas from '@/components/LowVoltage/LResidentBoxInnerCanvas.vue'
 import ExperimentTimer from '@/components/ExperimentTimer.vue'
 import PromptModal from '@/components/PromptModal.vue'
+import ExperimentLogout from '@/components/ExperimentLogout.vue'
 import ToolBarLeft from '@/components/ToolBarLeft.vue'
 import Images from '@/constants/images'
 import { getStepDraft, getExperimentSteps, saveDraft, submitStep } from '@/api/experiment'
