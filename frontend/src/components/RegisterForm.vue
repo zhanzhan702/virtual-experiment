@@ -126,6 +126,7 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { PASSWORD_PATTERN, PASSWORD_MESSAGE } from '@/constants/password-rule'
 import Images from '@/constants/images'
@@ -197,7 +198,7 @@ async function loadOrgTree() {
     orgTree.value = await getOrgTree()
   } catch (err) {
     // 组织树加载失败不阻塞注册流程，但无法选班级，给出提示
-    alert('组织架构加载失败：' + (err.response?.data?.message || err.message))
+    ElMessage.error('组织架构加载失败：' + (err.response?.data?.message || err.message))
   }
 }
 
