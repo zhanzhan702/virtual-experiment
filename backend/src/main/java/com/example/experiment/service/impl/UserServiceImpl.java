@@ -51,13 +51,15 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean existsByStudentNo(String studentNo) {
-    return usersMapper.selectCount(new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo))
+    return usersMapper.selectCount(
+            new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo))
         > 0;
   }
 
   @Override
   public Users findByStudentNo(String studentNo) {
-    return usersMapper.selectOne(new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo));
+    return usersMapper.selectOne(
+        new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo));
   }
 
   @Override
