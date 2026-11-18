@@ -12,12 +12,13 @@ import Images from '@/constants/images'
 
 <style scoped>
 .preview-box {
-  width: 800px;
-  height: 500px;
+  width: min(760px, 46vw);
+  aspect-ratio: 8 / 5;
+  border-radius: 16px;
+  overflow: hidden;
   background: #fff;
-  border: 1px solid #ccc;
-  padding: 15px;
-  box-sizing: border-box;
+  border: 1px solid var(--admin-border, #ebeef5);
+  box-shadow: 0 14px 40px rgba(26, 179, 148, 0.14);
 }
 
 .preview-img {
@@ -25,5 +26,11 @@ import Images from '@/constants/images'
   height: 100%;
   object-fit: cover;
   /* 图片自适应填充区域 */
+}
+
+@media (max-width: 1100px) {
+  .preview-box {
+    width: min(560px, 86vw);
+  }
 }
 </style>

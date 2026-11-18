@@ -13,22 +13,22 @@
 
 -- 步骤 3：架设围栏并悬挂标识牌
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score)
-SELECT UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 3, 'ERECT_FENCE', '架设围栏并悬挂标识牌', 120, 20.00
+SELECT UUID_TO_BIN(UUID()), (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1'), 3, 'ERECT_FENCE', '架设围栏并悬挂标识牌', 120, 20.00
 FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1
   FROM experiment_steps
-  WHERE template_id = 0x00000000000000000000000000000032
+  WHERE template_id = (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1')
     AND step_order = 3
 );
 
 -- 步骤 4：三步式验电
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score)
-SELECT UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 4, 'THREE_STEP_CHECK', '三步式验电', 90, 15.00
+SELECT UUID_TO_BIN(UUID()), (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1'), 4, 'THREE_STEP_CHECK', '三步式验电', 90, 15.00
 FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1
   FROM experiment_steps
-  WHERE template_id = 0x00000000000000000000000000000032
+  WHERE template_id = (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1')
     AND step_order = 4
 );

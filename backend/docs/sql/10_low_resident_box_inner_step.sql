@@ -12,11 +12,11 @@
 --   mysql --default-character-set=utf8mb4 -u root virtual_experiment < 10_low_resident_box_inner_step.sql
 
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score)
-SELECT UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 5, 'BOX_INNER_OPERATION', '居民表箱内部操作', 240, 20.00
+SELECT UUID_TO_BIN(UUID()), (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1'), 5, 'BOX_INNER_OPERATION', '居民表箱内部操作', 240, 20.00
 FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1
   FROM experiment_steps
-  WHERE template_id = 0x00000000000000000000000000000032
+  WHERE template_id = (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1')
     AND step_order = 5
 );

@@ -13,7 +13,7 @@
 
 INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name, required_seconds, score)
 SELECT UUID_TO_BIN(UUID()),
-       0x00000000000000000000000000000032,
+       (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1'),
        2,
        'SELECT_TOOLS',
        '工器具选择',
@@ -23,6 +23,6 @@ FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1
   FROM experiment_steps
-  WHERE template_id = 0x00000000000000000000000000000032
+  WHERE template_id = (SELECT id FROM experiment_templates WHERE code = 'LV_TRAIN_V1')
     AND step_order = 2
 );

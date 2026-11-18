@@ -50,6 +50,17 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public boolean existsByStudentNo(String studentNo) {
+    return usersMapper.selectCount(new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo))
+        > 0;
+  }
+
+  @Override
+  public Users findByStudentNo(String studentNo) {
+    return usersMapper.selectOne(new LambdaQueryWrapper<Users>().eq(Users::getStudentNo, studentNo));
+  }
+
+  @Override
   public List<String> getUserRoleCodes(String userId) {
     List<UserRoles> userRoles =
         userRolesMapper.selectList(
@@ -190,15 +201,27 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public Users register(RegisterDTO dto) {
+    // 组织必须选到最低层（班级）；班级是叶子节点，不能再往下选
+    Organization org =
+        dto.getOrgId() == null ? null : organizationMapper.selectById(dto.getOrgId());
+    if (org == null) {
+      throw ApiException.notFound("所选班级不存在");
+    }
+    if (!"class".equals(org.getType())) {
+      throw ApiException.badRequest("请选择到班级（组织架构最低层）");
+    }
+
     // DTO → Entity
     Users user = new Users();
     user.setUsername(dto.getUsername());
     user.setPassword(dto.getPassword());
     user.setName(dto.getName());
-    user.setPhone(dto.getPhone());
-    user.setEmail(dto.getEmail());
     user.setStudentNo(dto.getStudentNo());
+    user.setGender(normalizeGender(dto.getGender()));
     user.setOrgId(dto.getOrgId());
+    user.setPhone(blankToNull(dto.getPhone()));
+    user.setEmail(blankToNull(dto.getEmail()));
+    user.setBirthday(dto.getBirthday());
 
     // 注册（含密码加密）
     Users saved = register(user);
@@ -218,10 +241,13 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public LoginVO login(LoginDTO dto) {
-    // 查询用户
+    // 查询用户：先按用户名，再按学号（学生用学号登录）
     Users user = findByUsername(dto.getUsername());
     if (user == null) {
-      throw new RuntimeException("用户名不存在");
+      user = findByStudentNo(dto.getUsername());
+    }
+    if (user == null) {
+      throw new RuntimeException("用户名或学号不存在");
     }
 
     // 校验密码（BCrypt）

@@ -1,7 +1,11 @@
-登录表单组件，右侧表单区域，支持验证码、登录按钮和注册跳转。
-
 <template>
   <div class="login-card">
+    <div class="brand">
+      <img :src="Images.mjuLogo" class="brand-logo" alt="校徽" />
+      <h2 class="brand-title">用电信息采集实训互动系统</h2>
+      <p class="brand-sub">欢迎登录</p>
+    </div>
+
     <el-form
       :model="form"
       :rules="rules"
@@ -10,7 +14,7 @@
       @submit.prevent="handleLogin"
     >
       <el-form-item prop="username">
-        <el-input v-model="form.username" placeholder="用户名" size="large" />
+        <el-input v-model="form.username" placeholder="用户名 / 学号" size="large" />
       </el-form-item>
       <el-form-item prop="password">
         <el-input
@@ -48,6 +52,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
+import Images from '@/constants/images'
 import VerifyCode from './VerifyCode.vue'
 
 const router = useRouter()
@@ -64,7 +69,7 @@ const form = reactive({
 })
 
 const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入用户名或学号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
@@ -94,7 +99,7 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    const res = await authStore.login({
+    await authStore.login({
       username: form.username,
       password: form.password
     })
@@ -116,46 +121,76 @@ function goRegister() {
 </script>
 
 <style scoped>
+/* 配色取自管理员后台主题：青绿 #1ab394 + 浅色卡片 */
 .login-card {
   width: 420px;
-  padding: 40px;
-  background: #4c4d50;
-  border-radius: 5px;
+  padding: 40px 40px 30px;
+  background: #fff;
+  border: 1px solid var(--admin-border, #ebeef5);
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(26, 179, 148, 0.12);
+
+  /* 管理员后台主色（青绿），只在登录卡片内生效，不影响学生深色实验页 */
+  --el-color-primary: #1ab394;
+  --el-color-primary-light-3: #4fc4ab;
+  --el-color-primary-light-5: #8dd9cb;
+  --el-color-primary-light-7: #bce9e0;
+  --el-color-primary-light-8: #d3f1eb;
+  --el-color-primary-light-9: #e9f8f5;
+  --el-color-primary-dark-2: #159c81;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--admin-text, #303133);
+}
+
+.brand-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--admin-text-muted, #909399);
 }
 
 .login-btn {
   width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 6px;
+  border-radius: 8px;
 }
 
 .register {
   text-align: center;
-  color: #4da6ff;
+  font-size: 14px;
+  color: var(--admin-primary, #1ab394);
   cursor: pointer;
+  transition: color 0.2s;
 }
 
-/* 覆盖 Element Plus 深色主题样式 */
+.register:hover {
+  color: var(--admin-primary-hover, #159c81);
+}
+
 :deep(.el-input__wrapper) {
-  background: #3a3b3e !important;
-  box-shadow: none !important;
-  border: 1px solid #555 !important;
-  border-radius: 4px !important;
-}
-
-:deep(.el-input__wrapper:hover) {
-  border-color: #2196f3 !important;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  border-color: #2196f3 !important;
-  box-shadow: 0 0 0 1px #2196f3 inset !important;
-}
-
-:deep(.el-input__inner) {
-  color: #fff !important;
-}
-
-:deep(.el-input__inner::placeholder) {
-  color: #999 !important;
+  border-radius: 8px;
 }
 
 :deep(.el-form-item) {

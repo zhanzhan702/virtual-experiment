@@ -33,6 +33,9 @@ public class AuthController {
     if (userService.existsByUsername(dto.getUsername())) {
       return ResponseEntity.badRequest().body(Map.of("message", "用户名已存在"));
     }
+    if (userService.existsByStudentNo(dto.getStudentNo())) {
+      return ResponseEntity.badRequest().body(Map.of("message", "学号已存在"));
+    }
 
     var user = userService.register(dto);
     return ResponseEntity.ok(

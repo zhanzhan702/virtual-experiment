@@ -15,6 +15,12 @@ public interface UserService {
 
   Users findByUsername(String username);
 
+  /** 学号是否已存在（学号即学生登录账号，需全局唯一） */
+  boolean existsByStudentNo(String studentNo);
+
+  /** 按学号查询用户（学生用学号登录） */
+  Users findByStudentNo(String studentNo);
+
   List<String> getUserRoleCodes(String userId);
 
   /**
