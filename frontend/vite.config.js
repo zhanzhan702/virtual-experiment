@@ -14,6 +14,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // 视频/图片等二进制素材常被 Windows 索引或播放器占用，Vite 监听时会报
+    // EBUSY 并直接退出（dev server 崩溃）。这些文件开发中不会热更新，忽略监听即可。
+    watch: {
+      ignored: ['**/assets/videos/**']
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
