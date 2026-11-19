@@ -3,6 +3,7 @@
     class="scene-stage"
     :class="{ following: isFollowing }"
     @mousemove="moveCursor"
+    @mousedown="onMouseDown"
     @mouseup="vtProbing = false"
   >
     <!-- 场景容器：尺寸由内部背景图决定，所有叠加元素按百分比定位 -->
@@ -19,21 +20,13 @@
         draggable="false"
       />
 
-      <!-- 已放置：围栏左右两半 -->
+      <!-- 已放置：整体围栏（低压场景只有一整条，工具栏图标仍是 LeftFence） -->
       <img
         v-if="placed[0]"
-        :src="Images.barLeftFence"
-        alt="围栏（左）"
+        :src="Images.residentBoxFence"
+        alt="围栏"
         class="overlay"
-        :style="LEFT_FENCE_STYLE"
-        draggable="false"
-      />
-      <img
-        v-if="placed[0]"
-        :src="Images.barRightFence"
-        alt="围栏（右）"
-        class="overlay"
-        :style="RIGHT_FENCE_STYLE"
+        :style="FENCE_STYLE"
         draggable="false"
       />
 
@@ -99,12 +92,12 @@ import ToolBarRight from '@/components/ToolBarRight.vue'
 import { categories as lvCategories } from '@/constants/low-voltage-tool-selection-config'
 
 // ★★★ 放置坐标（相对场景图尺寸的 %，按需调整） ★★★
-// 围栏：左右两半各自独立落位
-const LEFT_FENCE_STYLE = { left: '-12%', top: '58%', width: '56%', height: 'auto' }
-const RIGHT_FENCE_STYLE = { left: '56%', top: '63%', width: '46%', height: 'auto' }
+// 围栏：低压场景只有一整条（ResidentBoxFence.png，宽高比约 2.9:1）。
+// 宽度按场景比例取值，避免底部超出画面；左右位置与大小可继续微调。
+const FENCE_STYLE = { left: '6%', top: '52%', width: '88%', height: 'auto' }
 // 两块标识牌：分开挂，各自独立的位置与大小
-const SIGN_DANGER_STYLE = { left: '33%', top: '67%', width: '10%', height: 'auto' }
-const SIGN_WORKING_STYLE = { left: '53%', top: '67%', width: '10%', height: 'auto' }
+const SIGN_DANGER_STYLE = { left: '33.7%', top: '73.4%', width: '7.2%', height: 'auto' }
+const SIGN_WORKING_STYLE = { left: '54.7%', top: '75.1%', width: '7.2%', height: 'auto' }
 // 排插：叠在背景左上角（与高压一致，不画进背景图）
 // left 不能小于 14%：左侧工具栏 fixed 宽 10vw，会盖住场景最左约 11% 的宽度
 const POWER_SOCKET_STYLE = { left: '14%', top: '12%', width: '7%', height: 'auto' }
@@ -168,7 +161,7 @@ const BAR_IMG = {
   51: Images.barWireYellow,
   53: Images.barWireGreen,
   54: Images.barWireRed,
-  56: Images.wire25mmBlack, // 无 1:1 工具栏版
+  56: Images.barWire25mmBlack, // 工具栏 1:1 版，与选择页的 wire25mmBlack 不是同一张图
   57: Images.barWireYellow,
   58: Images.barWire4mm2YellowBlack,
   59: Images.barWireGreen,
@@ -238,6 +231,12 @@ function moveCursor(e) {
   cursor.y = e.clientY
 }
 
+/** 验电笔按住排插时切换验电状态图，松开（@mouseup）恢复正常图，与高压一致 */
+function onMouseDown(e) {
+  if (!vtActive.value) return
+  vtProbing.value = hitEl(e, socketRef.value)
+}
+
 // ── 命中判定 ──────────────────────────────────────────────
 
 /**
@@ -258,7 +257,7 @@ function hitZone(e, zone) {
 }
 
 /** 围栏图片宽高比（运行时从实际图片获取，用于命中检测） */
-const fenceAspect = reactive({ left: 1, right: 1 })
+const fenceAspect = reactive({ fence: 1 })
 
 function loadImageAspect(src, key) {
   const img = new window.Image()
@@ -352,11 +351,7 @@ function handlePlace(e) {
 
   // 围栏与标识牌各自只认自己的命中区域
   // 与高压一致：围栏必须落在围栏将要出现的位置，标识牌点场景任意处即可
-  const ok =
-    idx === 0
-      ? hitFenceFromStyle(e, LEFT_FENCE_STYLE, 'left') ||
-        hitFenceFromStyle(e, RIGHT_FENCE_STYLE, 'right')
-      : hitScene(e)
+  const ok = idx === 0 ? hitFenceFromStyle(e, FENCE_STYLE, 'fence') : hitScene(e)
   if (!ok) {
     fail('请选择正确的放置位置')
     return
@@ -427,8 +422,7 @@ function handleVoltageTest(e) {
 
 onMounted(() => {
   // 命中检测需要围栏的真实宽高比
-  loadImageAspect(Images.barLeftFence, 'left')
-  loadImageAspect(Images.barRightFence, 'right')
+  loadImageAspect(Images.residentBoxFence, 'fence')
 })
 
 // ── 对外状态读写 ──────────────────────────────────────────

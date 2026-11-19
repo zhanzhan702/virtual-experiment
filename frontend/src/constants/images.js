@@ -27,6 +27,11 @@ import experimentViewBg from '@/assets/images/scenario/ExperimentViewBackground.
 import highWorkBg from '@/assets/images/common/HighWorkBackground.png'
 import simulationDisclaimerNotice from '@/assets/images/scenario/SimulationDisclaimerNotice.png'
 
+// ─── 低压场景提示窗 ───
+// 工作任务（替代原先手写的文字弹窗）与柜门验电完成提示
+import lowWorkTaskNotice from '@/assets/images/common/LowWorkTaskNotice.png'
+import lowElectrifyCompleteNotice from '@/assets/images/common/LowElectrifyCompleteNotice.png'
+
 // ─── 保存/工作任务按钮 ───
 import saveProgressIcon from '@/assets/images/common/SaveProgressIcon.png'
 import saveProgressIconHover from '@/assets/images/common/SaveProgressIconHover.png'
@@ -139,6 +144,8 @@ import barWireYellow from '@/assets/images/cabinet/toolbar/WireYellow.png'
 import barWireGreen from '@/assets/images/cabinet/toolbar/WireGreen.png'
 import barWireRed from '@/assets/images/cabinet/toolbar/WireRed.png'
 import barWire2Core from '@/assets/images/cabinet/toolbar/Wire2Core.png'
+// 2.5MM²黑色导线（工具栏 1:1 版；选择页版为 tool-selection/wire/Wire25mmBlack.png）
+import barWire25mmBlack from '@/assets/images/cabinet/toolbar/Wire25mmBlack.png'
 import barWire4mm2YellowBlack from '@/assets/images/cabinet/toolbar/Wire4mm2YellowBlack.png'
 import barWire4mm2RedBlack from '@/assets/images/cabinet/toolbar/Wire4mm2RedBlack.png'
 import barCableTieLabel from '@/assets/images/cabinet/toolbar/CableTieLabel.png'
@@ -158,8 +165,10 @@ import meteringRoomWithCableTies from '@/assets/images/cabinet/room/metering-roo
 import meteringRoomCovered from '@/assets/images/cabinet/room/metering-room/MeteringRoomCovered.png'
 import junctionBox from '@/assets/images/cabinet/room/JunctionBox.png'
 import junctionBoxSwitch from '@/assets/images/cabinet/room/JunctionBoxSwitch.png'
-// 低压居民表箱外部场景背景
+// 低压居民表箱外部场景背景 + 场景整体围栏（低压只有一整条围栏；
+// 左侧工具栏图标仍用 cabinet/toolbar/LeftFence.png，两者不是同一张图）
 import residentBoxBg from '@/assets/images/cabinet/7.jpg'
+import residentBoxFence from '@/assets/images/cabinet/ResidentBoxFence.png'
 import strippedSignalCable6Core from '@/assets/images/cabinet/room/metering-room/StrippedSignalCable6Core.png'
 
 // ─── 终端小室（leafer ui 画布） ───
@@ -197,6 +206,9 @@ export default {
   experimentViewBg,
   highWorkBg,
   simulationDisclaimerNotice,
+  // 低压场景提示窗
+  lowWorkTaskNotice,
+  lowElectrifyCompleteNotice,
   // 按钮
   saveProgressIcon,
   saveProgressIconHover,
@@ -298,6 +310,7 @@ export default {
   barWireGreen,
   barWireRed,
   barWire2Core,
+  barWire25mmBlack,
   barWire4mm2YellowBlack,
   barWire4mm2RedBlack,
   barCableTieLabel,
@@ -316,6 +329,7 @@ export default {
   junctionBox,
   junctionBoxSwitch,
   residentBoxBg,
+  residentBoxFence,
   strippedSignalCable6Core,
   // 终端小室（leafer ui 画布）
   terminalRoomNoMeter,
