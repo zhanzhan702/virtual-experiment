@@ -13,7 +13,7 @@
     </PromptModal>
 
     <!-- 视频1：工作票填写完（播放完毕自动进入工器具选择） -->
-    <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
+    <VideoOverlay :visible="showVideo" :src="Videos.highTicketVideo" @ended="onVideoEnded" />
   </div>
   <ExperimentLogout />
 </template>

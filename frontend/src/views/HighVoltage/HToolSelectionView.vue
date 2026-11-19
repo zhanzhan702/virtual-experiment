@@ -20,7 +20,7 @@
     </PromptModal>
 
     <!-- 视频2：工器具选择完（播放完毕自动进入下一步） -->
-    <VideoOverlay :visible="showVideo" :src="Videos.testVideo" @ended="onVideoEnded" />
+    <VideoOverlay :visible="showVideo" :src="Videos.highToolSelectionVideo" @ended="onVideoEnded" />
   </div>
   <ExperimentLogout />
 </template>

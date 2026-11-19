@@ -65,7 +65,11 @@
     />
 
     <!-- 视频3：告示牌悬挂完成（播放完毕自动进入步骤4验电） -->
-    <VideoOverlay :visible="showFenceVideo" :src="Videos.testVideo" @ended="onFenceVideoEnded" />
+    <VideoOverlay
+      :visible="showFenceVideo"
+      :src="Videos.highFenceVideo"
+      @ended="onFenceVideoEnded"
+    />
 
     <!-- 合闸三段教学视频（播放完毕自动弹提示图，确认后进入下一段/铅封） -->
     <VideoOverlay
