@@ -97,7 +97,15 @@ async function doStartExperiment(type) {
         // 注意：低压每新增一个步骤都要在这里登记，否则「继续实验」会落到
         // 下面的兜底路径（/LWT），看起来就像存档没恢复、又回到了第一步
         const path = stepRouteMap[exp.nextStepOrder] || (type === 'high' ? '/HWT' : '/LWT')
-        router.push({ path, query: { experimentId: exp.experimentId, stepId: exp.nextStepId } })
+        // 带上 stepOrder：目标页面可直接按阶段渲染，不依赖 localStorage 步骤映射
+        router.push({
+          path,
+          query: {
+            experimentId: exp.experimentId,
+            stepId: exp.nextStepId,
+            stepOrder: exp.nextStepOrder
+          }
+        })
         return
       } catch (action) {
         // 点 × 或遮罩 → 关闭弹窗，不做任何操作
