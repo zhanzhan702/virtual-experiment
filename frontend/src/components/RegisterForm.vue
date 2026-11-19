@@ -215,10 +215,10 @@ async function handleRegister() {
   loading.value = true
   try {
     await authStore.register(form)
-    alert('注册成功，请登录')
+    ElMessage.success('注册成功，请登录')
     router.push('/')
   } catch (err) {
-    alert('注册失败：' + (err.response?.data?.message || err.message))
+    ElMessage.error('注册失败：' + (err.response?.data?.message || err.message))
   } finally {
     loading.value = false
   }
@@ -374,7 +374,10 @@ onMounted(loadOrgTree)
   border-radius: 10px;
   background: linear-gradient(135deg, #22bfa0 0%, #12a58a 100%);
   box-shadow: 0 12px 24px -8px rgba(18, 165, 138, 0.55);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 
   /* 覆盖 Element Plus 的默认/hover 背景，避免渐变被覆盖 */
   --el-button-bg-color: transparent;
@@ -452,7 +455,9 @@ onMounted(loadOrgTree)
   border-radius: 10px;
   background: #f7fafb;
   box-shadow: inset 0 0 0 1px #e6ecef;
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .form-grid :deep(.el-input__wrapper:hover),
