@@ -28,21 +28,18 @@
       <el-button type="primary" @click="handleRestore">重新加载</el-button>
     </div>
 
-    <!-- 三步验电完成提示：与高压步骤 4 使用同一张提示图 -->
+    <!-- 三步验电完成提示：低压柜门验电完成浮窗 -->
     <PromptModal
       :visible="showElectrifyNotice"
       @close="onElectrifyNoticeClose"
       :button-bottom="'18%'"
     >
-      <img :src="Images.electrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
+      <img :src="Images.lowElectrifyCompleteNotice" alt="验电完成提示" class="work-bg-img" />
     </PromptModal>
 
-    <PromptModal :visible="showTask" @close="showTask = false">
-      <article class="task-notice">
-        <h2>低压场景工作任务</h2>
-        <p>本次作业：集中器安装与调试、单相电能表安装。</p>
-        <p>请先架设围栏并悬挂标识牌，再对居民表箱做三步式验电。</p>
-      </article>
+    <!-- 工作任务浮窗（低压工作背景图） -->
+    <PromptModal :visible="showTask" @close="showTask = false" :button-bottom="'12%'">
+      <img :src="Images.lowWorkTaskNotice" alt="低压工作背景" class="work-bg-img" />
     </PromptModal>
   </main>
   <ExperimentLogout />
@@ -104,8 +101,17 @@ function loadStepsFromStorage() {
 // 先在 setup 阶段同步读一次，保证首屏就按正确的阶段渲染
 loadStepsFromStorage()
 
-/** 当前步骤属于第几阶段：3 = 围栏挂牌，4 = 三步验电 */
-const stage = computed(() => steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 3)
+/**
+ * 当前步骤属于第几阶段：3 = 围栏挂牌，4 = 三步验电。
+ *
+ * 优先读 URL 的 stepOrder（与高压 HCabinetLocalView 一致）：从存档返回时
+ * localStorage 的步骤映射可能缺失或尚未补拉，只靠映射会把第 4 步误判成第 3 步。
+ */
+const stage = computed(() => {
+  const fromQuery = Number(route.query.stepOrder)
+  if (fromQuery >= 3) return fromQuery
+  return steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 3
+})
 
 const canInteract = computed(
   () =>
@@ -194,8 +200,11 @@ async function onStageComplete() {
       return
     }
     ElMessage.success('围栏与标识牌已完成')
-    // 同一组件内换 stepId，场景原地进入下一阶段
-    await router.replace({ query: { experimentId: experimentId.value, stepId: next.stepId } })
+    // 同一组件内换 stepId，场景原地进入下一阶段；
+    // 带上 stepOrder，页面不再依赖 localStorage 映射判断阶段（与高压一致）
+    await router.replace({
+      query: { experimentId: experimentId.value, stepId: next.stepId, stepOrder: next.stepOrder }
+    })
     await handleRestore()
     timer = setInterval(() => durationSeconds.value++, 1000)
   } catch (err) {
@@ -230,7 +239,7 @@ async function onElectrifyNoticeClose() {
   setTimeout(() => {
     router.replace({
       path: '/LBI',
-      query: { experimentId: experimentId.value, stepId: next.stepId }
+      query: { experimentId: experimentId.value, stepId: next.stepId, stepOrder: next.stepOrder }
     })
   }, 500)
 }
@@ -283,29 +292,5 @@ onUnmounted(() => {
   max-width: 80vw;
   max-height: 70vh;
   border-radius: 8px;
-}
-
-.task-notice {
-  width: min(650px, 82vw);
-  max-height: 80vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border: 6px solid #008d85;
-  border-radius: 24px;
-  background: #fffdf5;
-  color: #123f68;
-  padding: 5% 7% 20%;
-  font-size: clamp(15px, 1.4vw, 21px);
-  line-height: 1.8;
-}
-
-.task-notice h2 {
-  text-align: center;
-  margin-bottom: 0.6em;
-  font-size: 1.5em;
-}
-
-.task-notice p {
-  margin-bottom: 0.8em;
 }
 </style>

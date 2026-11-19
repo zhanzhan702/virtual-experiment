@@ -42,12 +42,9 @@
 
     <div v-if="stepDone" class="completion-banner" role="status">✓ 居民表箱内部操作已完成</div>
 
-    <PromptModal :visible="showTask" @close="showTask = false">
-      <article class="task-notice">
-        <h2>低压场景工作任务</h2>
-        <p>本次作业：集中器安装与调试、单相电能表安装。</p>
-        <p>三步式验电已完成，请进入居民表箱完成内部操作。</p>
-      </article>
+    <!-- 工作任务浮窗（低压工作背景图，与表箱外部场景一致） -->
+    <PromptModal :visible="showTask" @close="showTask = false" :button-bottom="'12%'">
+      <img :src="Images.lowWorkTaskNotice" alt="低压工作背景" class="work-bg-img" />
     </PromptModal>
   </main>
   <ExperimentLogout />
@@ -121,8 +118,15 @@ function loadStepsFromStorage() {
 
 loadStepsFromStorage()
 
-/** 当前步骤序号；找不到映射时按第 5 步处理 */
-const stage = computed(() => steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 5)
+/**
+ * 当前步骤序号；优先读 URL 的 stepOrder（与高压一致），
+ * 避免存档返回时 localStorage 映射缺失导致阶段误判
+ */
+const stage = computed(() => {
+  const fromQuery = Number(route.query.stepOrder)
+  if (fromQuery >= 5) return fromQuery
+  return steps.value.find(s => s.stepId === stepId.value)?.stepOrder ?? 5
+})
 
 const canInteract = computed(
   () =>
@@ -261,27 +265,10 @@ onUnmounted(() => {
   font-size: clamp(14px, 1.4vw, 22px);
 }
 
-.task-notice {
-  width: min(650px, 82vw);
-  max-height: 80vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border: 6px solid #008d85;
-  border-radius: 24px;
-  background: #fffdf5;
-  color: #123f68;
-  padding: 5% 7% 20%;
-  font-size: clamp(15px, 1.4vw, 21px);
-  line-height: 1.8;
-}
-
-.task-notice h2 {
-  text-align: center;
-  margin-bottom: 0.6em;
-  font-size: 1.5em;
-}
-
-.task-notice p {
-  margin-bottom: 0.8em;
+/* 提示弹窗图片尺寸与表箱外部场景保持一致 */
+.work-bg-img {
+  max-width: 80vw;
+  max-height: 70vh;
+  border-radius: 8px;
 }
 </style>
