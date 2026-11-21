@@ -134,6 +134,8 @@ import barSafetyNotice from '@/assets/images/cabinet/toolbar/SafetyNotice.png'
 import barVoltageTesterNormal from '@/assets/images/cabinet/toolbar/VoltageTesterNormal.png'
 import barVoltageTesterWarning from '@/assets/images/cabinet/toolbar/VoltageTesterWarning.png'
 import barThreePhaseThreeWireMeter from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireMeter.png'
+// 单相智能电表（工具栏 1:1 版，用于居民表箱内部场景）
+import barSinglePhaseMeter from '@/assets/images/cabinet/toolbar/SinglePhaseMeter.png'
 import barThreePhaseThreeWireTerminal from '@/assets/images/cabinet/toolbar/ThreePhaseThreeWireTerminal.png'
 import barConcentrator from '@/assets/images/cabinet/toolbar/Concentrator.png'
 import barCrossScrewdriver from '@/assets/images/cabinet/toolbar/CrossScrewdriver.png'
@@ -165,10 +167,18 @@ import meteringRoomWithCableTies from '@/assets/images/cabinet/room/metering-roo
 import meteringRoomCovered from '@/assets/images/cabinet/room/metering-room/MeteringRoomCovered.png'
 import junctionBox from '@/assets/images/cabinet/room/JunctionBox.png'
 import junctionBoxSwitch from '@/assets/images/cabinet/room/JunctionBoxSwitch.png'
-// 低压居民表箱外部场景背景 + 场景整体围栏（低压只有一整条围栏；
-// 左侧工具栏图标仍用 cabinet/toolbar/LeftFence.png，两者不是同一张图）
-import residentBoxBg from '@/assets/images/cabinet/7.jpg'
+// 低压居民表箱：外部背景 + 场景整体围栏 + 内部画布素材
+// 左侧工具栏图标仍用 cabinet/toolbar/LeftFence.png，与整体围栏不是同一张图
+import residentBoxBg from '@/assets/images/cabinet/room/ResidentBox/ResidentBoxBackground.jpg'
 import residentBoxFence from '@/assets/images/cabinet/ResidentBoxFence.png'
+// 表箱内部（Leafer 画布）
+import residentBoxInnerBg from '@/assets/images/cabinet/room/ResidentBox/ResidentBoxInnerBackground.png'
+import breaker1On from '@/assets/images/cabinet/room/ResidentBox/Breaker1On.png'
+import breaker2On from '@/assets/images/cabinet/room/ResidentBox/Breaker2On.png'
+import breaker2Off from '@/assets/images/cabinet/room/ResidentBox/Breaker2Off.png'
+import breaker3On from '@/assets/images/cabinet/room/ResidentBox/Breaker3On.png'
+import breaker3Off from '@/assets/images/cabinet/room/ResidentBox/Breaker3Off.png'
+import singlePhaseMeterOpen from '@/assets/images/cabinet/room/ResidentBox/SinglePhaseMeterOpen.png'
 import strippedSignalCable6Core from '@/assets/images/cabinet/room/metering-room/StrippedSignalCable6Core.png'
 
 // ─── 终端小室（leafer ui 画布） ───
@@ -299,6 +309,7 @@ export default {
   barSafetyNotice,
   // 柜体操作 — 右侧工具栏（终端/工器具/线材）
   barThreePhaseThreeWireMeter,
+  barSinglePhaseMeter,
   barThreePhaseThreeWireTerminal,
   barConcentrator,
   barCrossScrewdriver,
@@ -330,6 +341,13 @@ export default {
   junctionBoxSwitch,
   residentBoxBg,
   residentBoxFence,
+  residentBoxInnerBg,
+  breaker1On,
+  breaker2On,
+  breaker2Off,
+  breaker3On,
+  breaker3Off,
+  singlePhaseMeterOpen,
   strippedSignalCable6Core,
   // 终端小室（leafer ui 画布）
   terminalRoomNoMeter,
