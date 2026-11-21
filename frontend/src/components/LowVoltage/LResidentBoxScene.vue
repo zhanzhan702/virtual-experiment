@@ -68,6 +68,7 @@
       :vt-idx="VT_IDX"
       :vt-active="vtActive"
       :vt-done="vtDone"
+      :active-idxs="activeRightIdx === null ? [] : [activeRightIdx]"
       @click="onRightToolClick"
     />
 
@@ -84,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import Images from '@/constants/images'
 import ToolBarLeft from '@/components/ToolBarLeft.vue'
@@ -108,10 +109,21 @@ const props = defineProps({
   /** 当前阶段：3 = 架设围栏并悬挂标识牌，4 = 三步式验电 */
   stage: { type: Number, required: true },
   /** 恢复失败等场景下禁止交互 */
-  disabled: { type: Boolean, default: false }
+  disabled: { type: Boolean, default: false },
+  /** 步骤 7 表箱内部完成：外部场景只允许门把铅封 */
+  doorReady: { type: Boolean, default: false },
+  /** 当前右栏选中的工具语义（meter / seal / null），门把铅封时用于跟随图 */
+  rightTool: { type: String, default: null }
 })
 
-const emit = defineEmits(['complete', 'operation', 'error'])
+const emit = defineEmits([
+  'complete',
+  'operation',
+  'error',
+  'left-tool-select',
+  'right-tool-select',
+  'door-sealed'
+])
 
 const groupRef = ref(null)
 const socketRef = ref(null)
@@ -133,6 +145,8 @@ watch(
   s => {
     // 步骤 4 四项都视为已完成（与高压一致，避免左栏仍显示为可放置）
     if (s === 4) placed.splice(0, 4, true, true, true, true)
+    // 进入表箱内部后清除外部工具选中，避免跨阶段残留跟随
+    if (s >= 5) followingTool.value = null
   },
   { immediate: true }
 )
@@ -182,7 +196,9 @@ function pickCorrectItems(key) {
     .map(tool => ({ name: tool.name, img: BAR_IMG[tool.id] || Images[tool.image] }))
 }
 
+// 单相智能电表用于表箱内部（步骤 5+），主场景也常驻显示
 const RIGHT_TOOLS = [
+  { name: '单相智能电表', img: Images.barSinglePhaseMeter },
   ...pickCorrectItems('terminal'),
   ...pickCorrectItems('tool'),
   ...pickCorrectItems('wire')
@@ -190,6 +206,9 @@ const RIGHT_TOOLS = [
 
 /** 验电笔在右栏里的下标（ToolBarRight 据此高亮） */
 const VT_IDX = RIGHT_TOOLS.findIndex(t => t.name === '验电笔')
+
+/** 步骤 5+ 时右栏点击后的高亮项 */
+const activeRightIdx = ref(null)
 
 // ── 步骤 4：三步验电 ──────────────────────────────────────
 // 0 待验电 → 1 已点排插 → 2 已点门把 → 3 完成
@@ -203,8 +222,11 @@ const vtImg = computed(() =>
 )
 
 // ── 鼠标跟随 ──────────────────────────────────────────────
+// 阶段 5+ 外部场景整体 disabled，但左栏选中的「禁止合闸」仍需跟随鼠标；
+// 门把阶段（doorReady）右栏选中「铅封」时也要跟随
+const isSealFollowing = computed(() => props.doorReady && props.rightTool === 'seal')
 const isFollowing = computed(
-  () => !props.disabled && (followingTool.value !== null || vtActive.value)
+  () => isSealFollowing.value || followingTool.value !== null || (!props.disabled && vtActive.value)
 )
 const showFollower = computed(() => isFollowing.value)
 const cursor = reactive({ x: 0, y: 0 })
@@ -212,6 +234,7 @@ const cursor = reactive({ x: 0, y: 0 })
 const VOLTAGE_TESTER_TIP = { x: -28, y: 28 }
 
 const followerImg = computed(() => {
+  if (isSealFollowing.value) return Images.barSeal
   if (vtActive.value) return vtImg.value
   return LEFT_TOOLS[followingTool.value]?.img || Images.barLeftFence
 })
@@ -321,6 +344,13 @@ function fail(message) {
 
 // ── 步骤 3 交互 ───────────────────────────────────────────
 function selectTool(idx) {
+  // 步骤 5+：外部放置逻辑停用（此时父组件也会传 disabled），
+  // 左栏选择必须转发给父组件，因此要先于 disabled 判断
+  if (props.stage >= 5) {
+    followingTool.value = idx
+    emit('left-tool-select', idx)
+    return
+  }
   if (props.disabled) return
   emit('operation')
   vtActive.value = false
@@ -337,6 +367,11 @@ function selectTool(idx) {
 }
 
 function onSceneClick(e) {
+  // 步骤 7 表箱内部完成：外部场景只响应门把命中，用于触发门把铅封
+  if (props.doorReady) {
+    if (hitZone(e, DOOR_CHECK_ZONE)) emit('door-sealed')
+    return
+  }
   if (props.disabled) return
   if (props.stage === 3) handlePlace(e)
   else handleVoltageTest(e)
@@ -367,6 +402,12 @@ function handlePlace(e) {
 // ── 步骤 4 交互 ───────────────────────────────────────────
 /** 右栏点击：只有验电笔在本阶段可用，其余工具留待后续场景（与高压一致） */
 function onRightToolClick(idx) {
+  // 步骤 5+：右栏点击转发给画布（同样要先于 disabled 判断）
+  if (props.stage >= 5) {
+    activeRightIdx.value = idx
+    emit('right-tool-select', idx, RIGHT_TOOLS[idx]?.name)
+    return
+  }
   if (props.disabled) return
   if (idx !== VT_IDX) {
     emit('operation')
@@ -420,9 +461,22 @@ function handleVoltageTest(e) {
   }
 }
 
+/**
+ * 阶段 5+ 时画布覆盖在外部场景之上，鼠标事件不会冒泡到 .scene-stage，
+ * 因此在 window 上补充监听，保证「禁止合闸」跟随图始终跟随光标。
+ */
+function onWindowMouseMove(e) {
+  if (props.stage >= 5 && isFollowing.value) moveCursor(e)
+}
+
 onMounted(() => {
   // 命中检测需要围栏的真实宽高比
   loadImageAspect(Images.residentBoxFence, 'fence')
+  window.addEventListener('mousemove', onWindowMouseMove)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', onWindowMouseMove)
 })
 
 // ── 对外状态读写 ──────────────────────────────────────────
@@ -447,7 +501,12 @@ function restore(state) {
   if (typeof state.vtDone === 'boolean') vtDone.value = state.vtDone
 }
 
-defineExpose({ getState, restore })
+/** 清除右栏选中高亮（画布用完一次工具后调用） */
+function clearRightTool() {
+  activeRightIdx.value = null
+}
+
+defineExpose({ getState, restore, clearRightTool })
 </script>
 
 <style scoped>
