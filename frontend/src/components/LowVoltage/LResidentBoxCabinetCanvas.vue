@@ -173,7 +173,7 @@ const covers = reactive([false, false, false, false])
 const seals = reactive([false, false, false, false, false, false, false, false])
 
 function breakerImg(def, state) {
-  if (def.group === 1) return Images.breaker1On
+  if (def.group === 1) return state === 'off' ? Images.breaker1Off : Images.breaker1On
   if (def.group === 2) return state === 'off' ? Images.breaker2Off : Images.breaker2On
   return state === 'off' ? Images.breaker3Off : Images.breaker3On
 }
