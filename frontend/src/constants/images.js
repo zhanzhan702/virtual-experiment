@@ -30,7 +30,7 @@ import simulationDisclaimerNotice from '@/assets/images/scenario/SimulationDiscl
 // ─── 低压场景提示窗 ───
 // 工作任务（替代原先手写的文字弹窗）与柜门验电完成提示
 import lowWorkTaskNotice from '@/assets/images/common/LowWorkTaskNotice.png'
-import lowElectrifyCompleteNotice from '@/assets/images/common/LowElectrifyCompleteNotice.png'
+import lowElectrifyCompleteNotice from '@/assets/images/cabinet/LowElectrifyCompleteNotice.png'
 
 // ─── 保存/工作任务按钮 ───
 import saveProgressIcon from '@/assets/images/common/SaveProgressIcon.png'
@@ -174,12 +174,17 @@ import residentBoxFence from '@/assets/images/cabinet/ResidentBoxFence.png'
 // 表箱内部（Leafer 画布）
 import residentBoxInnerBg from '@/assets/images/cabinet/room/ResidentBox/ResidentBoxInnerBackground.png'
 import breaker1On from '@/assets/images/cabinet/room/ResidentBox/Breaker1On.png'
+import breaker1Off from '@/assets/images/cabinet/room/ResidentBox/Breaker1Off.png'
 import breaker2On from '@/assets/images/cabinet/room/ResidentBox/Breaker2On.png'
 import breaker2Off from '@/assets/images/cabinet/room/ResidentBox/Breaker2Off.png'
 import breaker3On from '@/assets/images/cabinet/room/ResidentBox/Breaker3On.png'
 import breaker3Off from '@/assets/images/cabinet/room/ResidentBox/Breaker3Off.png'
 import singlePhaseMeterOpen from '@/assets/images/cabinet/room/ResidentBox/SinglePhaseMeterOpen.png'
 import strippedSignalCable6Core from '@/assets/images/cabinet/room/metering-room/StrippedSignalCable6Core.png'
+
+// ─── 杆上变（低压步骤 8+）：外部场景 + 柜内 Leafer 画布初始背景 ───
+import poleTransformerBg from '@/assets/images/cabinet/room/PoleTransformer/PoleTransformerBackground.jpg'
+import poleTransformerInnerBg from '@/assets/images/cabinet/room/PoleTransformer/PoleTransformerInnerBackground.png'
 
 // ─── 终端小室（leafer ui 画布） ───
 import terminalRoomNoMeter from '@/assets/images/cabinet/room/terminal-room/TerminalRoomNoMeter.png'
@@ -343,12 +348,16 @@ export default {
   residentBoxFence,
   residentBoxInnerBg,
   breaker1On,
+  breaker1Off,
   breaker2On,
   breaker2Off,
   breaker3On,
   breaker3Off,
   singlePhaseMeterOpen,
   strippedSignalCable6Core,
+  // 杆上变（低压步骤 8+）
+  poleTransformerBg,
+  poleTransformerInnerBg,
   // 终端小室（leafer ui 画布）
   terminalRoomNoMeter,
   terminalRoomWithMeter,

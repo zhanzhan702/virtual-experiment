@@ -45,7 +45,7 @@ const routes = [
   { path: '/LWT', component: () => import('@/views/LowVoltage/LWorkTicketView.vue') },
   { path: '/LTS', component: () => import('@/views/LowVoltage/LToolSelectionView.vue') },
   { path: '/LRB', component: () => import('@/views/LowVoltage/LResidentBoxView.vue') },
-  // 低压居民表箱内部（步骤 5~7）在 /LRB 内叠加画布；LPT = 杆上变场景（步骤 8 起，占位）
+  // 低压居民表箱内部（步骤 5~7）在 /LRB 内叠加画布；LPT = 杆上变外部场景（步骤 8~9）
   { path: '/LPT', component: () => import('@/views/LowVoltage/LPoleTransformerView.vue') }
 ]
 

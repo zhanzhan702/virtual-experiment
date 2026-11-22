@@ -8,7 +8,13 @@
       :class="{ 'tool-selected': activeIdx === idx, 'tool-placed': placedMask[idx] }"
       @click="emit('select', idx, $event)"
     >
-      <img :src="item.img" alt="" draggable="false" />
+      <!-- scale：个别素材透明边距小、视觉上偏大时单独缩小（如杆上变的插座） -->
+      <img
+        :src="item.img"
+        alt=""
+        draggable="false"
+        :style="item.scale ? { transform: `scale(${item.scale})` } : null"
+      />
     </div>
   </div>
 </template>

@@ -152,13 +152,42 @@ async function onDoorSealed() {
   await onFinalStepComplete()
 }
 
-/** 提交步骤 7 后跳转杆上变占位页 */
+/** 提交步骤 7 后跳转杆上变外部场景（步骤 8） */
 async function onFinalStepComplete() {
   submitting.value = true
   try {
     await submitStep(buildPayload(1))
-    ElMessage.success('低压实验完成')
-    setTimeout(() => router.push('/LPT'), 800)
+    let next = steps.value.find(s => s.stepOrder === 8)
+    // 第 8 步是后加的：老实验的 localStorage 映射里没有，需要从后端补拉一次
+    if (!next) {
+      try {
+        const all = await getExperimentSteps(experimentId.value)
+        if (all?.length) {
+          localStorage.setItem('experimentSteps_' + experimentId.value, JSON.stringify(all))
+          steps.value = all
+          next = all.find(s => s.stepOrder === 8)
+        }
+      } catch {
+        /* 拉不到按下面的提示处理 */
+      }
+    }
+    if (!next) {
+      ElMessage.warning('未找到下一步骤，请确认数据库已执行第 8 步脚本')
+      return
+    }
+    ElMessage.success('居民表箱操作完成')
+    setTimeout(
+      () =>
+        router.push({
+          path: '/LPT',
+          query: {
+            experimentId: experimentId.value,
+            stepId: next.stepId,
+            stepOrder: next.stepOrder
+          }
+        }),
+      800
+    )
   } catch (err) {
     ElMessage.error('提交失败：' + (err.response?.data?.message || err.message))
     doorPending.value = false
