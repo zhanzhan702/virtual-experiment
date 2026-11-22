@@ -7,9 +7,11 @@
 -- 固定 UUID 分配表（与 02_create_data.sql 统一编号）：
 --   32 低压训练场景V1（LV_TRAIN_V1）：
 --     1 填写工作票 / 2 工器具选择 / 3 架设围栏并悬挂标识牌 / 4 三步式验电 /
---     5 断电挂牌 / 6 挂表接线 / 7 上电封盖
+--     5 断电挂牌 / 6 挂表接线 / 7 上电封盖 /
+--     8 杆上变架设围栏并悬挂标识牌 / 9 杆上变三步式验电
 --
 -- 步骤 5~7 为居民表箱内部操作（V11 脚本内容已合并到此，旧环境仍可单独执行 11 升级）。
+-- 步骤 8~9 为杆上变外部场景（V12 脚本内容已合并到此，旧环境仍可单独执行 12 升级）。
 
 INSERT INTO experiment_templates (id, code, name, category, mode, version, description) VALUES
 (0x00000000000000000000000000000032, 'LV_TRAIN_V1', '低压训练场景V1', 'low_voltage', 'training', '1.0', '低压场景下的用电信息采集终端安装与调试训练模式');
@@ -22,4 +24,6 @@ INSERT INTO experiment_steps (id, template_id, step_order, step_code, step_name,
 (UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 4, 'THREE_STEP_CHECK', '三步式验电', 90, 15.00),
 (UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 5, 'POWER_OFF_SIGN', '断电挂牌', 120, 15.00),
 (UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 6, 'MOUNT_METER_WIRING', '挂表接线', 300, 30.00),
-(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 7, 'POWER_ON_SEAL', '上电封盖', 180, 20.00);
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 7, 'POWER_ON_SEAL', '上电封盖', 180, 20.00),
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 8, 'POLE_ERECT_FENCE', '杆上变架设围栏并悬挂标识牌', 120, 20.00),
+(UUID_TO_BIN(UUID()), 0x00000000000000000000000000000032, 9, 'POLE_THREE_STEP_CHECK', '杆上变三步式验电', 90, 15.00);
